@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --onyx-50: 255 252 247;
+  --onyx-100: 252 247 240;
+  --onyx-200: 246 239 228;
+  --onyx-300: 229 219 205;
+  --onyx-400: 184 166 145;
+  --onyx-500: 147 128 106;
+  --onyx-600: 111 95 78;
+  --onyx-700: 82 69 56;
+  --onyx-800: 242 234 224;
+  --onyx-900: 255 251 244;
+  --onyx-950: 248 243 235;
+
+  --gold-400: 212 185 95;
+  --gold-500: 201 168 76;
+  --gold-600: 168 139 58;
+  --cream-500: 33 29 24;
+  --cream-700: 88 77 60;
+
+  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+  --font-outfit: 'Outfit', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+.dark {
+  --onyx-50: 247 247 247;
+  --onyx-100: 227 227 227;
+  --onyx-200: 200 200 200;
+  --onyx-300: 164 164 164;
+  --onyx-400: 129 129 129;
+  --onyx-500: 102 102 102;
+  --onyx-600: 81 81 81;
+  --onyx-700: 67 67 67;
+  --onyx-800: 56 56 56;
+  --onyx-900: 26 26 26;
+  --onyx-950: 10 10 10;
+
+  --cream-500: 245 240 232;
+  --cream-700: 232 223 208;
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-outfit);
+    background:
+      radial-gradient(circle at top, rgb(var(--gold-500) / 0.1), transparent 24%),
+      linear-gradient(180deg, rgb(var(--onyx-950)) 0%, rgb(var(--onyx-900)) 100%);
+    color: rgb(var(--cream-500));
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  ::selection {
+    background-color: rgb(var(--gold-500) / 0.3);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--onyx-900));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--onyx-400) / 0.45);
+    border-radius: 999px;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgb(var(--onyx-900) / 0.72);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgb(var(--cream-500) / 0.08);
+  }
+
+  .font-display {
+    font-family: var(--font-cormorant);
+  }
+}

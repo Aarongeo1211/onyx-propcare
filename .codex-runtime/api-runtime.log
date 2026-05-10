@@ -1,0 +1,61 @@
+≡ƒÅù∩╕Å  Onyx Propcare API running on http://localhost:4000
+[0mGET /health [32m200[0m 3.023 ms - 54[0m
+[0mGET /api/v1/properties/featured [32m200[0m 485.477 ms - 8297[0m
+[0mPOST /api/v1/auth/register [33m409[0m 117.672 ms - 76[0m
+[0mPOST /api/v1/auth/login [32m200[0m 783.485 ms - 458[0m
+[0mGET /api/v1/properties/featured [32m200[0m 13.167 ms - 8297[0m
+[0mGET /api/v1/properties/featured [36m304[0m 13.512 ms - -[0m
+[0mGET /api/v1/plans [32m200[0m 23.652 ms - 1732[0m
+[0mGET /api/v1/subscriptions/my [32m200[0m 22.761 ms - 1063[0m
+[0mPOST /api/v1/auth/login [32m200[0m 564.208 ms - 431[0m
+[0mGET /api/v1/admin/stats [0m-[0m - ms - -[0m
+[0mGET /api/v1/admin/stats [0m-[0m - ms - -[0m
+[0mGET /api/v1/admin/stats [32m200[0m 39.405 ms - 393[0m
+[0mGET /api/v1/admin/stats [36m304[0m 21.636 ms - -[0m
+[0mGET /api/v1/admin/properties?page=1&limit=12 [32m200[0m 23.411 ms - 16744[0m
+[0mGET /api/v1/admin/properties?page=1&limit=12 [36m304[0m 23.124 ms - -[0m
+[0mGET /api/v1/inquiries?limit=50 [32m200[0m 16.997 ms - 86[0m
+[0mGET /api/v1/inquiries?limit=50 [36m304[0m 20.972 ms - -[0m
+[0mPOST /api/v1/auth/register [33m409[0m 9.511 ms - 76[0m
+[0mPOST /api/v1/auth/register [33m409[0m 99.770 ms - 76[0m
+[0mGET /api/v1/properties/featured [32m200[0m 24.061 ms - 8297[0m
+[0mPOST /api/v1/auth/register [32m201[0m 842.251 ms - 215[0m
+[0mPOST /api/v1/auth/login [32m200[0m 848.352 ms - 479[0m
+[Email] Failed to send: Error: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 5b1f17b1804b1-488fc1c0354sm134294655e9.11 - gsmtp
+    at SMTPConnection._formatError (C:\Users\Lenovo\Desktop\Projects\onyx-propcare\node_modules\.pnpm\nodemailer@8.0.5\node_modules\nodemailer\lib\smtp-connection\index.js:887:19)
+    at SMTPConnection._actionAUTHComplete (C:\Users\Lenovo\Desktop\Projects\onyx-propcare\node_modules\.pnpm\nodemailer@8.0.5\node_modules\nodemailer\lib\smtp-connection\index.js:1695:34)
+    at SMTPConnection.<anonymous> (C:\Users\Lenovo\Desktop\Projects\onyx-propcare\node_modules\.pnpm\nodemailer@8.0.5\node_modules\nodemailer\lib\smtp-connection\index.js:626:26)
+    at SMTPConnection._processResponse (C:\Users\Lenovo\Desktop\Projects\onyx-propcare\node_modules\.pnpm\nodemailer@8.0.5\node_modules\nodemailer\lib\smtp-connection\index.js:1072:20)
+    at SMTPConnection._onData (C:\Users\Lenovo\Desktop\Projects\onyx-propcare\node_modules\.pnpm\nodemailer@8.0.5\node_modules\nodemailer\lib\smtp-connection\index.js:847:14)
+    at SMTPConnection._onSocketData (C:\Users\Lenovo\Desktop\Projects\onyx-propcare\node_modules\.pnpm\nodemailer@8.0.5\node_modules\nodemailer\lib\smtp-connection\index.js:217:44)
+    at TLSSocket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5) {
+  code: 'EAUTH',
+  response: '535-5.7.8 Username and Password not accepted. For more information, go to\n' +
+    '535 5.7.8  https://support.google.com/mail/?p=BadCredentials 5b1f17b1804b1-488fc1c0354sm134294655e9.11 - gsmtp',
+  responseCode: 535,
+  command: 'AUTH PLAIN'
+}
+[0mGET /api/v1/properties/featured [32m200[0m 14.378 ms - 8297[0m
+[0mPOST /api/v1/auth/login [32m200[0m 700.519 ms - 458[0m
+[0mGET /api/v1/properties/featured [32m200[0m 59.616 ms - 8297[0m
+[0mGET /api/v1/properties/featured [36m304[0m 21.054 ms - -[0m
+[0mGET /api/v1/plans [32m200[0m 13.672 ms - 1732[0m
+[0mGET /api/v1/subscriptions/my [32m200[0m 13.180 ms - 1063[0m
+[0mPOST /api/v1/auth/login [32m200[0m 626.098 ms - 431[0m
+[0mGET /api/v1/admin/stats [0m-[0m - ms - -[0m
+[0mGET /api/v1/admin/stats [32m200[0m 675.675 ms - 393[0m
+[0mGET /api/v1/admin/stats [32m200[0m 27.945 ms - 393[0m
+[0mGET /api/v1/admin/stats [36m304[0m 46.752 ms - -[0m
+[0mGET /api/v1/admin/properties?page=1&limit=12 [32m200[0m 32.511 ms - 16744[0m
+[0mGET /api/v1/admin/properties?page=1&limit=12 [36m304[0m 31.576 ms - -[0m
+[0mGET /api/v1/inquiries?limit=50 [32m200[0m 7.595 ms - 86[0m
+[0mGET /api/v1/inquiries?limit=50 [36m304[0m 18.753 ms - -[0m
+[0mPOST /api/v1/auth/login [32m200[0m 663.643 ms - 458[0m
+[0mGET /api/v1/properties/featured [32m200[0m 21.966 ms - 8297[0m
+[0mGET /api/v1/properties/featured [36m304[0m 7.363 ms - -[0m
+[0mGET /api/v1/plans [32m200[0m 16.168 ms - 1732[0m
+[0mGET /api/v1/subscriptions/my [32m200[0m 14.347 ms - 1063[0m

@@ -1,0 +1,530 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & Auth ────────────────────────────────────────
+
+enum UserRole {
+  BUYER
+  SELLER
+  AGENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  phone         String?   @unique
+  name          String
+  avatar        String?
+  role          UserRole  @default(BUYER)
+  emailVerified DateTime?
+  passwordHash  String?
+  isActive      Boolean   @default(true)
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  // Relations
+  properties    Property[]
+  inquiries     Inquiry[]
+  favorites     Favorite[]
+  reviews       Review[]
+  sessions      Session[]
+  accounts      Account[]
+  subscriptions    Subscription[]
+  callbackRequests CallbackRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ─── Properties ──────────────────────────────────────────
+
+enum PropertyType {
+  FARMLAND
+  RESIDENTIAL_PLOT
+  AGRICULTURAL_LAND
+  ORCHARD
+  PLANTATION
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  SOLD
+  INACTIVE
+  REJECTED
+}
+
+enum ListingType {
+  SALE
+  LEASE
+}
+
+model Property {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  description String         @db.Text
+  type        PropertyType
+  status      PropertyStatus @default(DRAFT)
+  listingType ListingType    @default(SALE)
+
+  // Pricing
+  price       Float
+  pricePerUnit Float?
+  priceUnit   String?        @default("acre") // acre, sq.ft, hectare
+  isNegotiable Boolean       @default(false)
+
+  // Location
+  address     String
+  village     String?
+  taluka      String?
+  district    String
+  state       String
+  pincode     String?
+  latitude    Float?
+  longitude   Float?
+
+  // Land Details
+  totalArea   Float
+  areaUnit    String         @default("acres")
+  facing      String?
+  roadAccess  Boolean        @default(false)
+  roadWidth   Float?         // in feet
+  boundaryWall Boolean       @default(false)
+
+  // Farmland-specific
+  soilType    String?
+  waterSource String?        // borewell, canal, river, rain-fed
+  irrigation  String?
+  cropHistory String?        @db.Text
+  annualYield String?
+
+  // Residential-specific
+  isNAOrder   Boolean?       // Non-Agricultural order
+  isTPScheme  Boolean?       // Town Planning scheme
+  zonalType   String?        // residential, commercial, mixed
+
+  // Legal
+  ownershipType String?      // freehold, leasehold
+  surveyNumber  String?
+  hasClearTitle Boolean      @default(false)
+  isDisputeFree Boolean      @default(false)
+  encumbrance   String?      @db.Text
+
+  // Media
+  images      PropertyImage[]
+  documents   PropertyDocument[]
+
+  // Relations
+  ownerId     String
+  owner       User           @relation(fields: [ownerId], references: [id])
+  inquiries        Inquiry[]
+  favorites        Favorite[]
+  reviews          Review[]
+  callbackRequests CallbackRequest[]
+  soilData         SoilData?
+  waterData   WaterData?
+  legalCheck  LegalCheck?
+  droneMap    DroneMap?
+
+  // Full-text search (generated column, managed by migration)
+  searchVector Unsupported("tsvector")?
+
+  // Metadata
+  viewCount   Int            @default(0)
+  isFeatured  Boolean        @default(false)
+  featuredAt  DateTime?
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([state, district])
+  @@index([type, status])
+  @@index([price])
+  @@index([latitude, longitude])
+  @@index([ownerId])
+  @@index([status, createdAt])
+  @@index([isFeatured, featuredAt])
+  @@map("properties")
+}
+
+model PropertyImage {
+  id         String   @id @default(cuid())
+  url        String
+  alt        String?
+  isPrimary  Boolean  @default(false)
+  order      Int      @default(0)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("property_images")
+}
+
+model PropertyDocument {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  type       String   // title_deed, 7_12_extract, mutation, map, etc.
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("property_documents")
+}
+
+// ─── Unique Data Layers ──────────────────────────────────
+
+model SoilData {
+  id           String   @id @default(cuid())
+  propertyId   String   @unique
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  soilType     String   // black, red, alluvial, laterite
+  ph           Float?
+  nitrogen     Float?
+  phosphorus   Float?
+  potassium    Float?
+  organicCarbon Float?
+  texture      String?  // sandy, clay, loam
+  fertility    String?  // high, medium, low
+  suitableCrops String? @db.Text
+  reportUrl    String?
+  testedAt     DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("soil_data")
+}
+
+model WaterData {
+  id              String   @id @default(cuid())
+  propertyId      String   @unique
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  waterTableDepth Float?   // in feet
+  waterQuality    String?  // good, moderate, poor
+  tdsLevel        Float?   // ppm
+  borewellCount   Int?
+  borewellDepth   Float?
+  canalDistance    Float?   // km
+  riverDistance    Float?   // km
+  rainfallAvg     Float?   // mm/year
+  reportUrl       String?
+  testedAt        DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("water_data")
+}
+
+model DroneMap {
+  id            String   @id @default(cuid())
+  propertyId    String   @unique
+  property      Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  mapUrl        String
+  thumbnailUrl  String?
+  resolution    String?  // e.g., "5cm/px"
+  capturedAt    DateTime?
+  fileSize      Int?
+  notes         String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("drone_maps")
+}
+
+model LegalCheck {
+  id              String   @id @default(cuid())
+  propertyId      String   @unique
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  titleStatus     String   // clear, disputed, pending
+  encumbranceCheck Boolean @default(false)
+  encumbranceResult String?
+  litigationCheck  Boolean @default(false)
+  litigationResult String?
+  naOrderVerified  Boolean @default(false)
+  tpSchemeVerified Boolean @default(false)
+  revenueRecordOk  Boolean @default(false)
+  verifiedBy       String?
+  reportUrl        String?
+  verifiedAt       DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("legal_checks")
+}
+
+// ─── Interactions ────────────────────────────────────────
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  SITE_VISIT
+  NEGOTIATING
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+model Inquiry {
+  id         String        @id @default(cuid())
+  message    String        @db.Text
+  status     InquiryStatus @default(NEW)
+  propertyId String
+  property   Property      @relation(fields: [propertyId], references: [id])
+  userId     String
+  user       User          @relation(fields: [userId], references: [id])
+
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([propertyId, status])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("inquiries")
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  rating     Int      // 1-5
+  comment    String?  @db.Text
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, propertyId])
+  @@index([propertyId])
+  @@map("reviews")
+}
+
+// ─── CMS / Admin ─────────────────────────────────────────
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  excerpt     String?
+  coverImage  String?
+  isPublished Boolean  @default(false)
+  authorName  String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+model ContactSubmission {
+  id       String  @id @default(cuid())
+  name     String
+  email    String
+  phone    String?
+  subject  String
+  message  String  @db.Text
+  isRead   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@map("contact_submissions")
+}
+
+// ─── Plans & Subscriptions ───────────────────────────────
+
+enum PlanType {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  FREE
+  BASIC
+  FEATURED
+  PREMIUM
+}
+
+enum PlanCategory {
+  ALL
+  FARMLAND
+  RESIDENTIAL_PLOT
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PAYMENT_PENDING
+}
+
+model Plan {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  name            String
+  type            PlanType
+  category        PlanCategory @default(ALL)
+  sortOrder       Int       @default(0)
+  price           Float
+  maxProperties   Int
+  maxImages       Int
+  maxVideos       Int       @default(0)
+  listingDuration Int
+  features        String[]
+  hasSoilData     Boolean   @default(false)
+  hasWaterData    Boolean   @default(false)
+  hasLegalCheck   Boolean   @default(false)
+  hasDroneMap     Boolean   @default(false)
+  hasFeatured     Boolean   @default(false)
+  featuredCount   Int       @default(0)
+  hasVideo        Boolean   @default(false)
+  hasVerifiedBadge Boolean  @default(false)
+  hasTopRank      Boolean   @default(false)
+  hasHomepagePlacement Boolean @default(false)
+  hasTopSectionPlacement Boolean @default(false)
+  visibilityLabel String    @default("standard")
+  isActive        Boolean   @default(true)
+
+  subscriptions   Subscription[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("plans")
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  userId          String
+  user            User               @relation(fields: [userId], references: [id])
+  planId          String
+  plan            Plan               @relation(fields: [planId], references: [id])
+  status          SubscriptionStatus @default(PAYMENT_PENDING)
+
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  currency          String           @default("INR")
+  amount            Float
+
+  startDate       DateTime?
+  endDate         DateTime?
+
+  propertiesUsed  Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([planId])
+  @@index([razorpayOrderId])
+  @@index([endDate])
+  @@map("subscriptions")
+}
+
+// ─── Audit Log ───────────────────────────────────────────
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  entity      String
+  entityId    String?
+  actorId     String
+  actorEmail  String
+  actorRole   String
+  details     Json?
+  ipAddress   String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Callback Requests ──────────────────────────────────
+
+enum CallbackStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model CallbackRequest {
+  id          String         @id @default(cuid())
+  name        String
+  phone       String
+  propertyId  String
+  property    Property       @relation(fields: [propertyId], references: [id])
+  userId      String?
+  user        User?          @relation(fields: [userId], references: [id])
+  status      CallbackStatus @default(PENDING)
+  note        String?
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([status, createdAt])
+  @@map("callback_requests")
+}

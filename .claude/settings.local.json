@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(xargs ls *)",
+      "Bash(xargs wc *)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(xargs cat *)",
+      "Bash(node -e \"console.log\\('JWT:', require\\('crypto'\\).randomBytes\\(48\\).toString\\('base64url'\\)\\); console.log\\('NA:', require\\('crypto'\\).randomBytes\\(48\\).toString\\('base64url'\\)\\); console.log\\('CSRF:', require\\('crypto'\\).randomBytes\\(32\\).toString\\('base64url'\\)\\)\")",
+      "Bash(pnpm add *)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:aaron@localhost:5432/onyx_propcare\" pnpm exec prisma migrate dev --name init --create-only)",
+      "Bash(mkdir -p prisma/migrations/0_init)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:aaron@localhost:5432/onyx_propcare\" pnpm exec prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:aaron@localhost:5432/onyx_propcare\" pnpm exec prisma migrate resolve --applied 0_init)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:aaron@localhost:5432/onyx_propcare\" pnpm exec prisma migrate diff --from-url \"postgresql://postgres:aaron@localhost:5432/onyx_propcare\" --to-schema-datamodel prisma/schema.prisma --script)",
+      "Bash(pnpm exec *)",
+      "Bash(npx vitest *)",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(npx next *)",
+      "Bash(pnpm remove *)",
+      "Bash(npx prisma *)"
+    ]
+  }
+}

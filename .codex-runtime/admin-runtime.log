@@ -1,0 +1,75 @@
+   Γû▓ Next.js 15.5.15
+   - Local:        http://localhost:3101
+   - Network:      http://10.2.0.2:3101
+   - Environments: .env.local
+
+ Γ£ô Starting...
+ Γ£ô Ready in 11.7s
+ Γùï Compiling / ...
+ Γ£ô Compiled / in 14.5s (630 modules)
+ GET / 307 in 19453ms
+ Γùï Compiling /dashboard ...
+ Γ£ô Compiled /dashboard in 22.3s (1466 modules)
+ GET /dashboard 200 in 24257ms
+ GET / 307 in 2836ms
+ GET /dashboard 200 in 1854ms
+ Γùï Compiling /login ...
+ Γ£ô Compiled /login in 17.1s (1020 modules)
+ GET /login 200 in 19259ms
+ Γùï Compiling /api/auth/[...nextauth] ...
+ Γ£ô Compiled /api/auth/[...nextauth] in 29s (1242 modules)
+ GET /api/auth/providers 200 in 52361ms
+ GET /api/auth/session 200 in 54755ms
+ GET /api/auth/csrf 200 in 2203ms
+ POST /api/auth/callback/credentials 200 in 7825ms
+ GET /api/auth/session 200 in 4368ms
+ Γùï Compiling /dashboard ...
+ Γ£ô Compiled /dashboard in 23.2s (1031 modules)
+ GET /login 200 in 944ms
+ GET /api/auth/session 200 in 476ms
+ GET /api/auth/providers 200 in 106ms
+ GET /api/auth/csrf 200 in 94ms
+ POST /api/auth/callback/credentials 200 in 778ms
+ GET /api/auth/session 200 in 78ms
+ GET /dashboard 200 in 585ms
+ GET /dashboard 200 in 1263ms
+ GET /api/auth/session 200 in 164ms
+ Γùï Compiling /properties ...
+ Γ£ô Compiled /properties in 4.4s (1700 modules)
+ GET /properties 200 in 5966ms
+ GET /api/auth/session 200 in 501ms
+ Γùï Compiling /inquiries ...
+ Γ£ô Compiled /inquiries in 5.4s (1709 modules)
+ GET /inquiries 200 in 6431ms
+ GET /api/auth/session 200 in 943ms
+ GET /login 200 in 382ms
+ GET /api/auth/session 200 in 88ms
+ GET /api/auth/providers 200 in 53ms
+ GET /api/auth/csrf 200 in 71ms
+ POST /api/auth/callback/credentials 401 in 110ms
+ GET /login 200 in 352ms
+ GET /api/auth/session 200 in 61ms
+ GET /api/auth/providers 200 in 100ms
+ GET /api/auth/csrf 200 in 97ms
+ POST /api/auth/callback/credentials 200 in 696ms
+ GET /api/auth/session 200 in 441ms
+ GET /dashboard 200 in 687ms
+ GET /dashboard 200 in 2071ms
+ GET /api/auth/session 200 in 173ms
+ GET /properties 200 in 879ms
+ GET /api/auth/session 200 in 135ms
+ GET /inquiries 200 in 377ms
+ GET /api/auth/session 200 in 121ms
+ GET /login 200 in 308ms
+ GET /api/auth/session 200 in 54ms
+ GET /api/auth/providers 200 in 61ms
+ GET /api/auth/csrf 200 in 65ms
+ POST /api/auth/callback/credentials 200 in 700ms
+ GET /api/auth/session 200 in 86ms
+ GET /dashboard 200 in 207ms
+ GET /dashboard 200 in 856ms
+ GET /api/auth/session 200 in 134ms
+ GET /properties 200 in 676ms
+ GET /api/auth/session 200 in 108ms
+ GET /inquiries 200 in 577ms
+ GET /api/auth/session 200 in 97ms

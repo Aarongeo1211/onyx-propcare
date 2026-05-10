@@ -1,0 +1,31 @@
+{
+  "name": "onyx-propcare",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "test:e2e": "pnpm build && playwright test",
+    "dev:web": "turbo dev --filter=@onyx/web",
+    "dev:admin": "turbo dev --filter=@onyx/admin",
+    "dev:api": "turbo dev --filter=@onyx/api",
+    "db:generate": "turbo db:generate --filter=@onyx/db",
+    "db:push": "turbo db:push --filter=@onyx/db",
+    "db:studio": "turbo db:studio --filter=@onyx/db"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.1.0",
+    "prisma": "^6.1.0"
+  }
+}

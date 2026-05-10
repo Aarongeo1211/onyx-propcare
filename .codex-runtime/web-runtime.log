@@ -1,0 +1,103 @@
+   Γû▓ Next.js 15.5.15
+   - Local:        http://localhost:3100
+   - Network:      http://10.2.0.2:3100
+   - Environments: .env.local
+
+ Γ£ô Starting...
+ Γ£ô Ready in 11.7s
+ Γùï Compiling / ...
+ Γ£ô Compiled / in 19.6s (1593 modules)
+ GET / 200 in 23606ms
+ GET / 200 in 3542ms
+ Γùï Compiling /login ...
+ Γ£ô Compiled / in 26.7s (1607 modules)
+ GET /login 200 in 32968ms
+ GET / 200 in 30031ms
+ GET /register 200 in 30043ms
+ Γùï Compiling /api/auth/[...nextauth] ...
+ GET / 200 in 44790ms
+ Γ£ô Compiled /api/auth/[...nextauth] in 81.3s (1845 modules)
+ GET / 200 in 595ms
+ GET /api/auth/session 200 in 208ms
+ GET /register 200 in 796ms
+ GET /api/auth/session 200 in 135ms
+ GET /login 200 in 419ms
+ GET /api/auth/session 200 in 198ms
+ GET /api/auth/providers 200 in 968ms
+ GET /api/auth/csrf 200 in 512ms
+ POST /api/auth/callback/credentials 200 in 1073ms
+ GET /api/auth/session 200 in 224ms
+ GET / 200 in 509ms
+ GET / 200 in 429ms
+ Γùï Compiling /pricing ...
+ Γ£ô Compiled /pricing in 6.4s (1876 modules)
+ GET /pricing 200 in 8660ms
+ GET /api/auth/session 200 in 756ms
+ Γ£ô Compiled in 2.6s (1639 modules)
+ Γ£ô Compiled in 2.3s (1639 modules)
+ GET / 200 in 1379ms
+ Γùï Compiling /api/auth/[...nextauth] ...
+ Γ£ô Compiled /api/auth/[...nextauth] in 3.3s (1128 modules)
+ GET /register 200 in 3230ms
+ GET /api/auth/session 200 in 93ms
+ GET /login 200 in 371ms
+ GET /api/auth/session 200 in 272ms
+ GET /api/auth/providers 200 in 592ms
+ GET /api/auth/csrf 200 in 201ms
+ POST /api/auth/callback/credentials 200 in 1121ms
+ GET /api/auth/session 200 in 120ms
+ GET / 200 in 313ms
+ GET / 200 in 306ms
+ GET /pricing 200 in 1467ms
+ GET /api/auth/session 200 in 330ms
+ Γùï Compiling /pricing/success ...
+ Γ£ô Compiled /pricing/success in 9.2s (1871 modules)
+ GET /pricing/success?plan=PROFESSIONAL 200 in 10199ms
+ GET / 200 in 1381ms
+ GET /api/auth/session 200 in 1347ms
+ GET /register 200 in 566ms
+ GET /api/auth/session 200 in 162ms
+ GET /login 200 in 242ms
+ GET /api/auth/session 200 in 115ms
+ GET /api/auth/providers 200 in 99ms
+ GET /api/auth/csrf 200 in 179ms
+ POST /api/auth/callback/credentials 200 in 1007ms
+ GET /api/auth/session 200 in 257ms
+ GET / 200 in 441ms
+ GET / 200 in 1132ms
+ GET /pricing 200 in 1145ms
+ GET /api/auth/session 200 in 302ms
+ GET /register 200 in 348ms
+ GET /api/auth/session 200 in 56ms
+ GET /register 200 in 324ms
+ GET /api/auth/session 200 in 120ms
+ GET / 200 in 453ms
+ GET /api/auth/session 200 in 170ms
+ GET /register 200 in 485ms
+ GET /api/auth/session 200 in 172ms
+ GET /api/auth/providers 200 in 132ms
+ GET /api/auth/csrf 200 in 149ms
+ POST /api/auth/callback/credentials 200 in 1248ms
+ GET /api/auth/session 200 in 133ms
+ GET / 200 in 1209ms
+ GET /api/auth/session 200 in 373ms
+ GET /login 200 in 549ms
+ GET /api/auth/session 200 in 226ms
+ GET /api/auth/providers 200 in 148ms
+ GET /api/auth/csrf 200 in 93ms
+ POST /api/auth/callback/credentials 200 in 868ms
+ GET /api/auth/session 200 in 214ms
+ GET / 200 in 401ms
+ GET / 200 in 1903ms
+ GET /pricing 200 in 993ms
+ GET /api/auth/session 200 in 239ms
+ GET /login 200 in 284ms
+ GET /api/auth/session 200 in 96ms
+ GET /api/auth/providers 200 in 79ms
+ GET /api/auth/csrf 200 in 106ms
+ POST /api/auth/callback/credentials 200 in 772ms
+ GET /api/auth/session 200 in 83ms
+ GET / 200 in 130ms
+ GET / 200 in 240ms
+ GET /pricing 200 in 580ms
+ GET /api/auth/session 200 in 240ms
