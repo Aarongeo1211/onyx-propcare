@@ -17,6 +17,12 @@ interface Property {
   state: string;
   owner?: { name: string; email: string } | null;
   createdAt: string;
+  videos?: Array<{ url: string }>;
+  documents?: Array<{ name: string; url: string; type: string }>;
+  droneMap?: { mapUrl: string } | null;
+  soilData?: { approvalStatus: string; reviewNotes?: string | null } | null;
+  waterData?: { approvalStatus: string; reviewNotes?: string | null } | null;
+  legalCheck?: { approvalStatus: string; reviewNotes?: string | null; verifiedBy?: string | null } | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -32,6 +38,17 @@ function formatPrice(price: number) {
   return `₹${price.toLocaleString("en-IN")}`;
 }
 
+function getReviewBadge(status?: string | null) {
+  switch (status) {
+    case "APPROVED":
+      return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    case "REJECTED":
+      return "bg-red-500/10 text-red-400 border-red-500/20";
+    default:
+      return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+  }
+}
+
 export default function PropertiesPage() {
   const { data: session } = useSession();
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -41,6 +58,7 @@ export default function PropertiesPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
 
   async function fetchProperties() {
     if (!session) return;
@@ -130,6 +148,36 @@ export default function PropertiesPage() {
     }
   }
 
+  async function handleDataReview(
+    propertyId: string,
+    section: "soil" | "water" | "legal",
+    approvalStatus: "APPROVED" | "REJECTED"
+  ) {
+    if (!session) return;
+    const token = (session.user as any).accessToken;
+    setActionLoading(`${propertyId}-${section}-${approvalStatus}`);
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/admin/properties/${propertyId}/review-data`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ section, approvalStatus, reviewNotes: reviewNotes[`${propertyId}-${section}`] || "" }),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        await fetchProperties();
+      } else {
+        alert(data.error || "Failed to review property data");
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   const filteredProperties = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return properties;
@@ -196,6 +244,7 @@ export default function PropertiesPage() {
                 <th className="px-5 py-3.5 text-left text-xs uppercase tracking-[0.2em] text-cream/25">Location</th>
                 <th className="px-5 py-3.5 text-left text-xs uppercase tracking-[0.2em] text-cream/25">Owner</th>
                 <th className="px-5 py-3.5 text-left text-xs uppercase tracking-[0.2em] text-cream/25">Price</th>
+                <th className="px-5 py-3.5 text-left text-xs uppercase tracking-[0.2em] text-cream/25">Reports</th>
                 <th className="px-5 py-3.5 text-left text-xs uppercase tracking-[0.2em] text-cream/25">Status</th>
                 <th className="px-5 py-3.5 text-right text-xs uppercase tracking-[0.2em] text-cream/25">Actions</th>
               </tr>
@@ -204,14 +253,14 @@ export default function PropertiesPage() {
               {loading ? (
                 Array.from({ length: 6 }).map((_, index) => (
                   <tr key={index}>
-                    <td colSpan={7} className="px-5 py-5">
+                    <td colSpan={8} className="px-5 py-5">
                       <div className="h-4 rounded bg-onyx-800/50 animate-pulse" />
                     </td>
                   </tr>
                 ))
               ) : filteredProperties.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-sm text-cream/25">
+                  <td colSpan={8} className="px-5 py-12 text-center text-sm text-cream/25">
                     No properties match the current filter set.
                   </td>
                 </tr>
@@ -241,6 +290,75 @@ export default function PropertiesPage() {
                       <p className="text-xs text-cream/25">{property.owner?.email || "No email"}</p>
                     </td>
                     <td className="px-5 py-4 text-sm text-gold">{formatPrice(property.price)}</td>
+                    <td className="px-5 py-4">
+                      <div className="space-y-2 min-w-[210px]">
+                        {(["soil", "water", "legal"] as const).map((section) => {
+                          const data = property[section === "soil" ? "soilData" : section === "water" ? "waterData" : "legalCheck"];
+                          if (!data) {
+                            return (
+                              <div key={section} className="flex items-center justify-between gap-2 text-xs text-cream/20">
+                                <span className="capitalize">{section}</span>
+                                <span>No submission</span>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div key={section} className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="capitalize text-xs text-cream/50">{section}</span>
+                                <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] ${getReviewBadge(data.approvalStatus)}`}>
+                                  {data.approvalStatus}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleDataReview(property.id, section, "APPROVED")}
+                                  disabled={actionLoading === `${property.id}-${section}-APPROVED`}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
+                                  title={`Approve ${section} report`}
+                                >
+                                  <CheckCircle className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDataReview(property.id, section, "REJECTED")}
+                                  disabled={actionLoading === `${property.id}-${section}-REJECTED`}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10"
+                                  title={`Reject ${section} report`}
+                                >
+                                  <XCircle className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div className="rounded-lg border border-cream/8 bg-onyx-950/40 px-3 py-2 text-xs text-cream/45">
+                          <span className="font-medium text-cream/60">Media:</span>{" "}
+                          {property.videos?.length || 0} video(s), {property.documents?.length || 0} document(s)
+                          {property.droneMap ? ", drone map attached" : ""}
+                        </div>
+                        {(["soil", "water", "legal"] as const).map((section) => {
+                          const data = property[section === "soil" ? "soilData" : section === "water" ? "waterData" : "legalCheck"];
+                          if (!data) return null;
+
+                          return (
+                            <textarea
+                              key={`${property.id}-${section}-notes`}
+                              value={reviewNotes[`${property.id}-${section}`] ?? data.reviewNotes ?? ""}
+                              onChange={(event) =>
+                                setReviewNotes((prev) => ({
+                                  ...prev,
+                                  [`${property.id}-${section}`]: event.target.value,
+                                }))
+                              }
+                              rows={2}
+                              placeholder={`Review notes for ${section}`}
+                              className="w-full rounded-lg border border-cream/10 bg-onyx-950/50 px-3 py-2 text-xs text-cream/70 focus:border-gold/30 focus:outline-none"
+                            />
+                          );
+                        })}
+                      </div>
+                    </td>
                     <td className="px-5 py-4">
                       <span className={`inline-flex rounded-full border px-3 py-1 text-[10px] ${statusColors[property.status] || statusColors.DRAFT}`}>
                         {property.status.replace(/_/g, " ")}

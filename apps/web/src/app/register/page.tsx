@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -17,6 +17,7 @@ import { Button } from "@onyx/ui";
 import { Input } from "@onyx/ui";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const GOOGLE_ROLE_COOKIE = "onyx-auth-role";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -44,6 +45,20 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const redirectAfterAuth = async () => {
+    const session = await getSession();
+    const role = session?.user?.role;
+    window.location.assign(
+      role === "SELLER" || role === "AGENT" || role === "ADMIN" || role === "SUPER_ADMIN"
+        ? "/dashboard"
+        : "/"
+    );
+  };
+
+  const setGoogleRoleCookie = (role: "BUYER" | "SELLER") => {
+    document.cookie = `${GOOGLE_ROLE_COOKIE}=${role}; Path=/; Max-Age=600; SameSite=Lax`;
+  };
 
   const updateForm = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -117,7 +132,7 @@ export default function RegisterPage() {
         // Registration succeeded but auto-login failed; redirect to login
         window.location.assign("/login");
       } else {
-        window.location.assign("/");
+        await redirectAfterAuth();
       }
     } catch {
       setError("An unexpected error occurred");
@@ -440,7 +455,10 @@ export default function RegisterPage() {
           <motion.div custom={10} variants={fadeUp} className="mt-5">
             <button
               type="button"
-              onClick={() => signIn("google", { callbackUrl: "/" })}
+              onClick={() => {
+                setGoogleRoleCookie(form.role);
+                signIn("google", { callbackUrl: "/auth/complete" });
+              }}
               className="w-full h-12 flex items-center justify-center gap-3 rounded-lg border border-cream/10 bg-onyx-900/40 hover:bg-onyx-900/70 hover:border-cream/20 transition-all duration-300 group"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">

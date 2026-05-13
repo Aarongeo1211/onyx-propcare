@@ -65,6 +65,7 @@ export default function DashboardPropertiesPage() {
   const { data: session } = useSession();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PropertyStatus>("ALL");
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -76,6 +77,7 @@ export default function DashboardPropertiesPage() {
 
   async function fetchProperties() {
     setLoading(true);
+    setError(null);
     try {
       const params = activeTab !== "ALL" ? `?status=${activeTab}` : "";
       const res = await fetch(`${API_BASE}/users/me/properties${params}`, {
@@ -87,6 +89,7 @@ export default function DashboardPropertiesPage() {
       }
     } catch (error) {
       console.error("Failed to fetch properties:", error);
+      setError("Failed to load your listings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -94,16 +97,18 @@ export default function DashboardPropertiesPage() {
 
   async function toggleStatus(id: string, currentStatus: string) {
     setTogglingId(id);
+    setError(null);
     try {
+      let response: Response;
       if (currentStatus === "ACTIVE") {
         // Deactivate
-        await fetch(`${API_BASE}/properties/${id}`, {
+        response = await fetch(`${API_BASE}/properties/${id}`, {
           method: "DELETE",
           headers: { Authorization: `Bearer ${session!.user.accessToken}` },
         });
       } else {
         // Reactivate
-        await fetch(`${API_BASE}/properties/${id}`, {
+        response = await fetch(`${API_BASE}/properties/${id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -112,9 +117,16 @@ export default function DashboardPropertiesPage() {
           body: JSON.stringify({}),
         });
       }
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Unable to update listing status.");
+      }
+
       fetchProperties();
     } catch (error) {
       console.error("Failed to toggle status:", error);
+      setError(error instanceof Error ? error.message : "Unable to update listing status.");
     } finally {
       setTogglingId(null);
     }
@@ -141,6 +153,12 @@ export default function DashboardPropertiesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
           {/* Status Tabs */}
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {statusTabs.map((tab) => (

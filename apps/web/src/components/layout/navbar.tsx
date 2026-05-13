@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -101,20 +102,14 @@ export function Navbar() {
         <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10">
-              <div className="absolute inset-0 bg-gradient-gold rounded-lg rotate-45 group-hover:rotate-[225deg] transition-transform duration-700" />
-              <span className="absolute inset-0 flex items-center justify-center font-display text-onyx-950 font-bold text-lg">
-                O
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display text-xl font-semibold tracking-wide text-cream">
-                ONYX
-              </span>
-              <span className="text-[10px] font-body uppercase tracking-[0.3em] text-gold/70 -mt-1">
-                Propcare
-              </span>
-            </div>
+            <Image
+              src="/brand/onyx-propcare-navbar.png"
+              alt="Onyx Propcare"
+              width={1160}
+              height={900}
+              priority
+              className="h-14 w-auto object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:scale-[1.02] sm:h-16"
+            />
           </Link>
 
           {/* Desktop links */}

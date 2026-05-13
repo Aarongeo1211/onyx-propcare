@@ -18,6 +18,11 @@ const themeScript = `
 export const metadata: Metadata = {
   title: "Onyx Propcare | Admin Portal",
   description: "Admin dashboard for managing Onyx Propcare marketplace",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({

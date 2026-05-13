@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   title: "Onyx Propcare | India's Largest Farmland & Plot Marketplace",
   description:
     "Discover premium farmlands and residential plots across India. Access exclusive soil data, water reports, drone maps, and legal verification — all in one platform.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
   keywords: [
     "farmland India",
     "residential plots",

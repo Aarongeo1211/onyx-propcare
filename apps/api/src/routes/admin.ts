@@ -8,6 +8,64 @@ import { logAudit } from "../middleware/audit";
 
 export const adminRoutes = Router();
 
+const reviewDataSchema = z.object({
+  section: z.enum(["soil", "water", "legal"]),
+  approvalStatus: z.enum(["APPROVED", "REJECTED", "PENDING"]),
+  reviewNotes: z.string().max(1000).optional().or(z.literal("")),
+});
+
+const updateRefundSchema = z.object({
+  status: z.enum(["PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED", "PROCESSED"]),
+  adminNotes: z.string().max(2000).optional().or(z.literal("")),
+});
+
+const updatePlatformSettingSchema = z.object({
+  label: z.string().min(2).max(120).optional(),
+  category: z.string().min(2).max(80).optional(),
+  description: z.string().max(2000).optional().or(z.literal("")),
+  value: z.union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.record(z.string(), z.any())]),
+});
+
+const defaultPlatformSettings = [
+  {
+    key: "support_contact",
+    label: "Support Contact",
+    category: "Support",
+    description: "Primary support channels shown to users and admins.",
+    value: { email: "support@onyxpropcare.com", phone: "+91 98765 43210", hours: "Mon-Fri 10:00-18:00 IST" },
+  },
+  {
+    key: "billing_contact",
+    label: "Billing & Refund Contact",
+    category: "Billing",
+    description: "Contact information used for refunds and subscription billing help.",
+    value: { email: "refunds@onyxpropcare.com", escalationEmail: "billing@onyxpropcare.com" },
+  },
+  {
+    key: "media_storage_mode",
+    label: "Media Storage Mode",
+    category: "Infrastructure",
+    description: "Current storage mode for listing media uploads.",
+    value: { mode: process.env.CLOUDINARY_CLOUD_NAME ? "cloudinary" : "local", localPath: "/uploads" },
+  },
+  {
+    key: "payment_mode",
+    label: "Payment Mode",
+    category: "Billing",
+    description: "Current payment provider mode used by subscription activation.",
+    value: { gateway: "razorpay", live: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) },
+  },
+];
+
+async function ensurePlatformSettings() {
+  const existingCount = await prisma.platformSetting.count();
+  if (existingCount > 0) {
+    return;
+  }
+
+  await prisma.platformSetting.createMany({ data: defaultPlatformSettings });
+}
+
 adminRoutes.get(
   "/stats",
   requireAuth,
@@ -17,7 +75,7 @@ adminRoutes.get(
       const [
         totalProperties, activeListings, totalInquiries,
         totalUsers, activeUsers, recentInquiries,
-        totalViews, propertiesByType, propertiesByState,
+        totalViews, propertiesByType, propertiesByState, pendingCallbacks, pendingRefunds,
       ] = await Promise.all([
         prisma.property.count(),
         prisma.property.count({ where: { status: "ACTIVE" } }),
@@ -35,6 +93,8 @@ adminRoutes.get(
           orderBy: { _count: { state: "desc" } },
           take: 10,
         }),
+        prisma.callbackRequest.count({ where: { status: "PENDING" } }),
+        prisma.refundRequest.count({ where: { status: { in: ["PENDING", "UNDER_REVIEW"] } } }),
       ]);
 
       res.json({
@@ -44,8 +104,10 @@ adminRoutes.get(
           newInquiries: recentInquiries,
           recentInquiries,
           totalViews: totalViews._sum.viewCount ?? 0,
-          propertiesByType: Object.fromEntries(propertiesByType.map((p) => [p.type, p._count._all])),
-          propertiesByState: Object.fromEntries(propertiesByState.map((p) => [p.state, p._count._all])),
+          pendingCallbacks,
+          pendingRefunds,
+          propertiesByType: Object.fromEntries(propertiesByType.map((p: { type: string; _count: { _all: number } }) => [p.type, p._count._all])),
+          propertiesByState: Object.fromEntries(propertiesByState.map((p: { state: string; _count: { _all: number } }) => [p.state, p._count._all])),
         },
       });
     } catch (err) {
@@ -75,7 +137,13 @@ adminRoutes.get(
           where,
           include: {
             images: { where: { isPrimary: true }, take: 1 },
+            videos: { take: 1, orderBy: { order: "asc" } },
+            documents: { take: 3, orderBy: { name: "asc" } },
+            droneMap: { select: { mapUrl: true, thumbnailUrl: true, capturedAt: true } },
             owner: { select: { id: true, name: true, email: true } },
+            soilData: { select: { approvalStatus: true, reviewNotes: true, testedAt: true } },
+            waterData: { select: { approvalStatus: true, reviewNotes: true, testedAt: true } },
+            legalCheck: { select: { approvalStatus: true, reviewNotes: true, verifiedAt: true, verifiedBy: true } },
           },
           orderBy: { createdAt: "desc" },
           skip: (pageNum - 1) * limitNum,
@@ -92,6 +160,209 @@ adminRoutes.get(
     } catch (err) {
       logger.error({ err }, "Error fetching admin properties");
       res.status(500).json({ success: false, error: "Failed to fetch properties" });
+    }
+  }
+);
+
+adminRoutes.get(
+  "/refund-requests",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const status = getSingleQueryParam(req.query.status);
+      const page = getQueryNumber(req.query.page, 1);
+      const limit = getQueryNumber(req.query.limit, 20);
+      const where: Record<string, unknown> = {};
+      if (status) where.status = status;
+
+      const pageNum = Math.max(1, page);
+      const limitNum = Math.min(100, Math.max(1, limit));
+
+      const [requests, total] = await Promise.all([
+        prisma.refundRequest.findMany({
+          where,
+          include: {
+            user: { select: { id: true, name: true, email: true } },
+            subscription: { include: { plan: { select: { name: true, price: true, category: true } } } },
+          },
+          orderBy: { createdAt: "desc" },
+          skip: (pageNum - 1) * limitNum,
+          take: limitNum,
+        }),
+        prisma.refundRequest.count({ where }),
+      ]);
+
+      res.json({
+        success: true,
+        data: requests,
+        pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) },
+      });
+    } catch (err) {
+      logger.error({ err }, "Error fetching refund requests");
+      res.status(500).json({ success: false, error: "Failed to fetch refund requests" });
+    }
+  }
+);
+
+adminRoutes.patch(
+  "/refund-requests/:id",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const data = updateRefundSchema.parse(req.body);
+      const updated = await prisma.refundRequest.update({
+        where: { id: String(req.params.id) },
+        data: {
+          status: data.status,
+          adminNotes: data.adminNotes || null,
+          resolvedAt: data.status === "APPROVED" || data.status === "REJECTED" || data.status === "PROCESSED" ? new Date() : null,
+        },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          subscription: { include: { plan: { select: { name: true, price: true, category: true } } } },
+        },
+      });
+
+      await logAudit(req, { action: "UPDATE_REFUND_REQUEST", entity: "refund_request", entityId: updated.id, details: data as Record<string, unknown> });
+      res.json({ success: true, data: updated });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: err.errors });
+      }
+      logger.error({ err }, "Error updating refund request");
+      res.status(500).json({ success: false, error: "Failed to update refund request" });
+    }
+  }
+);
+
+adminRoutes.get(
+  "/settings",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (_req, res) => {
+    try {
+      await ensurePlatformSettings();
+      const settings = await prisma.platformSetting.findMany({
+        orderBy: [{ category: "asc" }, { label: "asc" }],
+      });
+      res.json({ success: true, data: settings });
+    } catch (err) {
+      logger.error({ err }, "Error fetching platform settings");
+      res.status(500).json({ success: false, error: "Failed to fetch settings" });
+    }
+  }
+);
+
+adminRoutes.put(
+  "/settings/:key",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const data = updatePlatformSettingSchema.parse(req.body);
+      const key = String(req.params.key);
+      const updated = await prisma.platformSetting.upsert({
+        where: { key },
+        update: {
+          label: data.label,
+          category: data.category,
+          description: data.description || null,
+          value: data.value,
+          updatedBy: req.user?.email || req.user?.id,
+        },
+        create: {
+          key,
+          label: data.label ?? key,
+          category: data.category ?? "General",
+          description: data.description || null,
+          value: data.value,
+          updatedBy: req.user?.email || req.user?.id,
+        },
+      });
+      await logAudit(req, { action: "UPDATE_PLATFORM_SETTING", entity: "platform_setting", entityId: updated.id, details: { key, value: data.value } });
+      res.json({ success: true, data: updated });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: err.errors });
+      }
+      logger.error({ err }, "Error updating platform setting");
+      res.status(500).json({ success: false, error: "Failed to update setting" });
+    }
+  }
+);
+
+adminRoutes.patch(
+  "/properties/:id/review-data",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const { section, approvalStatus, reviewNotes } = reviewDataSchema.parse(req.body);
+      const propertyId = String(req.params.id);
+      const reviewerName = req.user?.name || req.user?.email || "Admin";
+
+      if (section === "soil") {
+        const existing = await prisma.soilData.findUnique({ where: { propertyId } });
+        if (!existing) {
+          return res.status(404).json({ success: false, error: "Soil report not found" });
+        }
+
+        const updated = await prisma.soilData.update({
+          where: { propertyId },
+          data: {
+            approvalStatus,
+            reviewNotes: reviewNotes || null,
+            approvedBy: approvalStatus === "APPROVED" ? reviewerName : null,
+            approvedAt: approvalStatus === "APPROVED" ? new Date() : null,
+          },
+        });
+        await logAudit(req, { action: "REVIEW_SOIL_DATA", entity: "property", entityId: propertyId, details: { approvalStatus, reviewNotes } });
+        return res.json({ success: true, data: updated });
+      }
+
+      if (section === "water") {
+        const existing = await prisma.waterData.findUnique({ where: { propertyId } });
+        if (!existing) {
+          return res.status(404).json({ success: false, error: "Water report not found" });
+        }
+
+        const updated = await prisma.waterData.update({
+          where: { propertyId },
+          data: {
+            approvalStatus,
+            reviewNotes: reviewNotes || null,
+            approvedBy: approvalStatus === "APPROVED" ? reviewerName : null,
+            approvedAt: approvalStatus === "APPROVED" ? new Date() : null,
+          },
+        });
+        await logAudit(req, { action: "REVIEW_WATER_DATA", entity: "property", entityId: propertyId, details: { approvalStatus, reviewNotes } });
+        return res.json({ success: true, data: updated });
+      }
+
+      const existing = await prisma.legalCheck.findUnique({ where: { propertyId } });
+      if (!existing) {
+        return res.status(404).json({ success: false, error: "Legal check not found" });
+      }
+
+      const updated = await prisma.legalCheck.update({
+        where: { propertyId },
+        data: {
+          approvalStatus,
+          reviewNotes: reviewNotes || null,
+          verifiedBy: approvalStatus === "APPROVED" ? reviewerName : null,
+          verifiedAt: approvalStatus === "APPROVED" ? new Date() : null,
+        },
+      });
+      await logAudit(req, { action: "REVIEW_LEGAL_DATA", entity: "property", entityId: propertyId, details: { approvalStatus, reviewNotes } });
+      res.json({ success: true, data: updated });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: err.errors });
+      }
+      logger.error({ err }, "Error reviewing property data");
+      res.status(500).json({ success: false, error: "Failed to review property data" });
     }
   }
 );

@@ -13,7 +13,15 @@
     "dev:api": "turbo dev --filter=@onyx/api",
     "db:generate": "turbo db:generate --filter=@onyx/db",
     "db:push": "turbo db:push --filter=@onyx/db",
-    "db:studio": "turbo db:studio --filter=@onyx/db"
+    "db:studio": "turbo db:studio --filter=@onyx/db",
+    "railway:build:web": "pnpm --filter @onyx/web build",
+    "railway:start:web": "pnpm --filter @onyx/web start",
+    "railway:build:admin": "pnpm --filter @onyx/admin build",
+    "railway:start:admin": "pnpm --filter @onyx/admin start",
+    "railway:build:api": "pnpm --filter @onyx/api build",
+    "railway:start:api": "pnpm --filter @onyx/api start",
+    "railway:db:migrate": "pnpm --filter @onyx/db db:migrate:deploy",
+    "railway:db:seed": "pnpm --filter @onyx/db db:seed"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

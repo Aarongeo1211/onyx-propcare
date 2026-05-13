@@ -1,13 +1,171 @@
 import { Router } from "express";
 import { prisma } from "@onyx/db";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth";
+import { optionalAuth, requireAuth } from "../middleware/auth";
 import { getQueryNumber, getSingleQueryParam } from "../utils/request";
-import { findEligibleSubscription, getPlanCategoryForPropertyType } from "../utils/plans";
+import {
+  findCategoryCompatibleSubscription,
+  findEligibleSubscription,
+  getPlanCategoryForPropertyType,
+} from "../utils/plans";
 import { logger } from "../lib/logger";
 import { cache } from "../lib/redis";
 
 export const propertyRoutes = Router();
+
+const nearbyLocationSchema = z.object({
+  name: z.string().min(2).max(80),
+  distanceKm: z.number().min(0).max(500),
+  category: z.string().min(2).max(40).optional(),
+});
+
+const soilDataInputSchema = z.object({
+  soilType: z.string().min(2).max(80),
+  ph: z.number().min(0).max(14).optional(),
+  nitrogen: z.number().min(0).max(1000).optional(),
+  phosphorus: z.number().min(0).max(500).optional(),
+  potassium: z.number().min(0).max(1000).optional(),
+  organicCarbon: z.number().min(0).max(100).optional(),
+  texture: z.string().max(80).optional(),
+  fertility: z.string().max(40).optional(),
+  suitableCrops: z.string().max(500).optional(),
+  reportUrl: z.string().url().optional(),
+  testedAt: z.string().datetime().optional(),
+});
+
+const waterDataInputSchema = z.object({
+  waterTableDepth: z.number().min(0).max(5000).optional(),
+  waterQuality: z.string().max(40).optional(),
+  tdsLevel: z.number().min(0).max(100000).optional(),
+  borewellCount: z.number().int().min(0).max(100).optional(),
+  borewellDepth: z.number().min(0).max(5000).optional(),
+  canalDistance: z.number().min(0).max(500).optional(),
+  riverDistance: z.number().min(0).max(500).optional(),
+  rainfallAvg: z.number().min(0).max(20000).optional(),
+  reportUrl: z.string().url().optional(),
+  testedAt: z.string().datetime().optional(),
+});
+
+const legalCheckInputSchema = z.object({
+  titleStatus: z.string().min(2).max(40),
+  encumbranceCheck: z.boolean().optional(),
+  encumbranceResult: z.string().max(120).optional(),
+  litigationCheck: z.boolean().optional(),
+  litigationResult: z.string().max(120).optional(),
+  naOrderVerified: z.boolean().optional(),
+  tpSchemeVerified: z.boolean().optional(),
+  revenueRecordOk: z.boolean().optional(),
+  reportUrl: z.string().url().optional(),
+});
+
+const propertyVideoInputSchema = z.object({
+  url: z.string().url(),
+  title: z.string().max(120).optional(),
+  publicId: z.string().optional(),
+  thumbnailUrl: z.string().url().optional(),
+  durationSeconds: z.number().min(0).max(60 * 60 * 3).optional(),
+  isPrimary: z.boolean().optional(),
+  order: z.number().int().min(0).optional(),
+});
+
+const propertyDocumentInputSchema = z.object({
+  name: z.string().min(2).max(140),
+  url: z.string().url(),
+  publicId: z.string().optional(),
+  type: z.string().min(2).max(80),
+});
+
+const droneMapInputSchema = z.object({
+  mapUrl: z.string().url(),
+  thumbnailUrl: z.string().url().optional(),
+  resolution: z.string().max(40).optional(),
+  capturedAt: z.string().datetime().optional(),
+  fileSize: z.number().int().min(0).optional(),
+  notes: z.string().max(2000).optional(),
+});
+
+function hasMeaningfulData<T extends Record<string, unknown>>(value?: T | null, requiredKeys: (keyof T)[] = []) {
+  if (!value) return false;
+  const hasRequired = requiredKeys.length === 0 || requiredKeys.some((key) => {
+    const current = value[key];
+    return current !== undefined && current !== null && current !== "";
+  });
+
+  if (!hasRequired) return false;
+
+  return Object.values(value).some((current) => current !== undefined && current !== null && current !== "");
+}
+
+function buildApprovalReset() {
+  return {
+    approvalStatus: "PENDING" as const,
+    approvedBy: null,
+    approvedAt: null,
+    reviewNotes: null,
+  };
+}
+
+function getFeatureValidationError(plan: {
+  hasSoilData: boolean;
+  hasWaterData: boolean;
+  hasLegalCheck: boolean;
+  hasDroneMap: boolean;
+  maxVideos: number;
+}) {
+  return {
+    ensureCapabilities({
+      soilData,
+      waterData,
+      legalCheck,
+      droneMap,
+      videos,
+    }: {
+      soilData?: unknown;
+      waterData?: unknown;
+      legalCheck?: unknown;
+      droneMap?: unknown;
+      videos?: unknown[];
+    }) {
+      if (soilData && !plan.hasSoilData) {
+        return "Your current plan does not include soil reports.";
+      }
+      if (waterData && !plan.hasWaterData) {
+        return "Your current plan does not include water reports.";
+      }
+      if (legalCheck && !plan.hasLegalCheck) {
+        return "Your current plan does not include legal verification data.";
+      }
+      if (droneMap && !plan.hasDroneMap) {
+        return "Your current plan does not include drone maps.";
+      }
+      if (videos && videos.length > 0) {
+        if (plan.maxVideos === 0) {
+          return "Your current plan does not include listing videos.";
+        }
+        if (plan.maxVideos !== -1 && videos.length > plan.maxVideos) {
+          return `Your plan allows up to ${plan.maxVideos} video${plan.maxVideos === 1 ? "" : "s"} per listing.`;
+        }
+      }
+
+      return null;
+    },
+  };
+}
+
+function sanitizePublicProperty<T>(property: T): T {
+  const record = property as T & {
+    soilData?: { approvalStatus?: string } | null;
+    waterData?: { approvalStatus?: string } | null;
+    legalCheck?: { approvalStatus?: string } | null;
+  };
+
+  return {
+    ...record,
+    soilData: record.soilData?.approvalStatus === "APPROVED" ? record.soilData : null,
+    waterData: record.waterData?.approvalStatus === "APPROVED" ? record.waterData : null,
+    legalCheck: record.legalCheck?.approvalStatus === "APPROVED" ? record.legalCheck : null,
+  };
+}
 
 // GET /api/v1/properties - List properties with filters
 propertyRoutes.get("/", async (req, res) => {
@@ -85,9 +243,9 @@ propertyRoutes.get("/", async (req, res) => {
         include: {
           images: { where: { isPrimary: true }, take: 1 },
           owner: { select: { id: true, name: true, avatar: true } },
-          soilData: { select: { soilType: true, fertility: true } },
-          waterData: { select: { waterQuality: true, waterTableDepth: true } },
-          legalCheck: { select: { titleStatus: true } },
+          soilData: { select: { soilType: true, fertility: true, approvalStatus: true } },
+          waterData: { select: { waterQuality: true, waterTableDepth: true, approvalStatus: true } },
+          legalCheck: { select: { titleStatus: true, approvalStatus: true } },
         },
         orderBy:
           sortBy === "newest"
@@ -104,7 +262,7 @@ propertyRoutes.get("/", async (req, res) => {
 
     res.json({
       success: true,
-      data: properties,
+      data: properties.map((property) => sanitizePublicProperty(property)),
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -166,6 +324,7 @@ propertyRoutes.get("/compare", async (req, res) => {
       },
       include: {
         images: { orderBy: { order: "asc" } },
+        videos: { orderBy: { order: "asc" } },
         soilData: true,
         waterData: true,
         legalCheck: true,
@@ -174,7 +333,7 @@ propertyRoutes.get("/compare", async (req, res) => {
       },
     });
 
-    res.json({ success: true, data: properties });
+    res.json({ success: true, data: properties.map((property) => sanitizePublicProperty(property)) });
   } catch (error) {
     logger.error({ err: error }, "Error fetching comparison properties");
     res.status(500).json({ success: false, error: "Failed to fetch comparison properties" });
@@ -202,6 +361,26 @@ const createPropertySchema = z.object({
   boundaryWall: z.boolean().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
+  soilType: z.string().max(80).optional(),
+  waterSource: z.string().max(80).optional(),
+  irrigation: z.string().max(120).optional(),
+  cropHistory: z.string().max(1000).optional(),
+  annualYield: z.string().max(120).optional(),
+  isNAOrder: z.boolean().optional(),
+  isTPScheme: z.boolean().optional(),
+  zonalType: z.string().max(80).optional(),
+  ownershipType: z.string().max(80).optional(),
+  surveyNumber: z.string().max(80).optional(),
+  hasClearTitle: z.boolean().optional(),
+  isDisputeFree: z.boolean().optional(),
+  encumbrance: z.string().max(1000).optional(),
+  nearbyLocations: z.array(nearbyLocationSchema).max(7).optional(),
+  soilData: soilDataInputSchema.optional(),
+  waterData: waterDataInputSchema.optional(),
+  legalCheck: legalCheckInputSchema.optional(),
+  videos: z.array(propertyVideoInputSchema).max(5).optional(),
+  documents: z.array(propertyDocumentInputSchema).max(20).optional(),
+  droneMap: droneMapInputSchema.optional(),
 });
 
 // GET /api/v1/properties/by-id/:id — Get property by ID (for editing)
@@ -211,6 +390,7 @@ propertyRoutes.get("/by-id/:id", requireAuth, async (req, res) => {
       where: { id: String(req.params.id) },
       include: {
         images: { orderBy: { order: "asc" } },
+        videos: { orderBy: { order: "asc" } },
         documents: true,
         owner: { select: { id: true, name: true, avatar: true, phone: true } },
         soilData: true,
@@ -237,12 +417,13 @@ propertyRoutes.get("/by-id/:id", requireAuth, async (req, res) => {
 });
 
 // GET /api/v1/properties/:slug
-propertyRoutes.get("/:slug", async (req, res) => {
+propertyRoutes.get("/:slug", optionalAuth, async (req, res) => {
   try {
     const property = await prisma.property.findUnique({
       where: { slug: String(req.params.slug) },
       include: {
         images: { orderBy: { order: "asc" } },
+        videos: { orderBy: { order: "asc" } },
         documents: true,
         owner: { select: { id: true, name: true, avatar: true, phone: true } },
         soilData: true,
@@ -265,7 +446,23 @@ propertyRoutes.get("/:slug", async (req, res) => {
       data: { viewCount: { increment: 1 } },
     });
 
-    res.json({ success: true, data: property });
+    if (req.user) {
+      await prisma.propertyView.upsert({
+        where: {
+          propertyId_userId: {
+            propertyId: property.id,
+            userId: req.user.id,
+          },
+        },
+        update: { viewedAt: new Date() },
+        create: {
+          propertyId: property.id,
+          userId: req.user.id,
+        },
+      });
+    }
+
+    res.json({ success: true, data: sanitizePublicProperty(property) });
   } catch (error) {
     logger.error({ err: error }, "Error fetching property");
     res.status(500).json({ success: false, error: "Failed to fetch property" });
@@ -285,17 +482,42 @@ propertyRoutes.post("/", requireAuth, async (req, res) => {
       });
     }
 
+    const capabilityError = getFeatureValidationError(eligibleSubscription.plan).ensureCapabilities({
+      soilData: data.soilData,
+      waterData: data.waterData,
+      legalCheck: data.legalCheck,
+      droneMap: data.droneMap,
+      videos: data.videos,
+    });
+
+    if (capabilityError) {
+      return res.status(403).json({ success: false, error: capabilityError });
+    }
+
     const slug = data.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "")
       + "-" + Date.now().toString(36);
 
+    const {
+      soilData,
+      waterData,
+      legalCheck,
+      videos,
+      documents,
+      droneMap,
+      nearbyLocations,
+      ...propertyData
+    } = data;
+
     const property = await prisma.property.create({
       data: {
-        ...data,
+        ...propertyData,
         slug,
         ownerId: req.user!.id,
+        nearbyLocations: nearbyLocations ?? [],
+        status: "PENDING_REVIEW",
         isFeatured:
           eligibleSubscription.plan.hasFeatured ||
           eligibleSubscription.plan.hasHomepagePlacement ||
@@ -306,6 +528,76 @@ propertyRoutes.post("/", requireAuth, async (req, res) => {
           eligibleSubscription.plan.hasTopSectionPlacement
             ? new Date()
             : null,
+        videos: videos?.length
+          ? {
+              create: videos.map((video, index) => ({
+                ...video,
+                title: video.title ?? null,
+                publicId: video.publicId ?? null,
+                thumbnailUrl: video.thumbnailUrl ?? null,
+                durationSeconds: video.durationSeconds ?? null,
+                isPrimary: video.isPrimary ?? index === 0,
+                order: video.order ?? index,
+              })),
+            }
+          : undefined,
+        documents: documents?.length
+          ? {
+              create: documents.map((document) => ({
+                ...document,
+                publicId: document.publicId ?? null,
+              })),
+            }
+          : undefined,
+        droneMap: droneMap
+          ? {
+              create: {
+                mapUrl: droneMap.mapUrl,
+                thumbnailUrl: droneMap.thumbnailUrl ?? null,
+                resolution: droneMap.resolution ?? null,
+                capturedAt: droneMap.capturedAt ? new Date(droneMap.capturedAt) : null,
+                fileSize: droneMap.fileSize ?? null,
+                notes: droneMap.notes ?? null,
+              },
+            }
+          : undefined,
+        soilData: hasMeaningfulData(soilData, ["soilType"])
+          ? {
+              create: {
+                ...soilData!,
+                testedAt: soilData!.testedAt ? new Date(soilData!.testedAt) : null,
+                ...buildApprovalReset(),
+              },
+            }
+          : undefined,
+        waterData: hasMeaningfulData(waterData)
+          ? {
+              create: {
+                ...waterData!,
+                testedAt: waterData!.testedAt ? new Date(waterData!.testedAt) : null,
+                ...buildApprovalReset(),
+              },
+            }
+          : undefined,
+        legalCheck: hasMeaningfulData(legalCheck, ["titleStatus"])
+          ? {
+              create: {
+                ...legalCheck!,
+                approvalStatus: "PENDING",
+                verifiedBy: null,
+                verifiedAt: null,
+                reviewNotes: null,
+              },
+            }
+          : undefined,
+      },
+      include: {
+        videos: true,
+        documents: true,
+        droneMap: true,
+        soilData: true,
+        waterData: true,
+        legalCheck: true,
       },
     });
 
@@ -348,6 +640,26 @@ const updatePropertySchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   isNegotiable: z.boolean().optional(),
+  soilType: z.string().max(80).optional(),
+  waterSource: z.string().max(80).optional(),
+  irrigation: z.string().max(120).optional(),
+  cropHistory: z.string().max(1000).optional(),
+  annualYield: z.string().max(120).optional(),
+  isNAOrder: z.boolean().optional(),
+  isTPScheme: z.boolean().optional(),
+  zonalType: z.string().max(80).optional(),
+  ownershipType: z.string().max(80).optional(),
+  surveyNumber: z.string().max(80).optional(),
+  hasClearTitle: z.boolean().optional(),
+  isDisputeFree: z.boolean().optional(),
+  encumbrance: z.string().max(1000).optional(),
+  nearbyLocations: z.array(nearbyLocationSchema).max(7).optional(),
+  soilData: soilDataInputSchema.nullable().optional(),
+  waterData: waterDataInputSchema.nullable().optional(),
+  legalCheck: legalCheckInputSchema.nullable().optional(),
+  videos: z.array(propertyVideoInputSchema).max(5).optional(),
+  documents: z.array(propertyDocumentInputSchema).max(20).optional(),
+  droneMap: droneMapInputSchema.nullable().optional(),
 });
 
 propertyRoutes.patch("/:id", requireAuth, async (req, res) => {
@@ -365,13 +677,211 @@ propertyRoutes.patch("/:id", requireAuth, async (req, res) => {
     }
 
     const data = updatePropertySchema.parse(req.body);
+    const {
+      soilData,
+      waterData,
+      legalCheck,
+      videos,
+      documents,
+      droneMap,
+      ...baseData
+    } = data;
+    const nextType = data.type ?? property.type;
+    const hasMeaningfulUpdate =
+      Object.keys(baseData).length > 0 ||
+      soilData !== undefined ||
+      waterData !== undefined ||
+      legalCheck !== undefined ||
+      videos !== undefined ||
+      documents !== undefined ||
+      droneMap !== undefined;
 
-    const updated = await prisma.property.update({
-      where: { id: String(req.params.id) },
-      data,
-      include: {
-        images: { where: { isPrimary: true }, take: 1 },
-      },
+    const isReactivationOnly = !hasMeaningfulUpdate && property.status !== "ACTIVE";
+
+    const eligibleSubscription = isReactivationOnly
+      ? await findCategoryCompatibleSubscription(req.user!.id, nextType)
+      : await findEligibleSubscription(req.user!.id, nextType);
+    if (!eligibleSubscription) {
+      return res.status(403).json({
+        success: false,
+        error: `No active listing plan is available for ${getPlanCategoryForPropertyType(nextType).replace(/_/g, " ").toLowerCase()} properties.`,
+        code: "NO_ACTIVE_PLAN",
+      });
+    }
+
+    const capabilityError = getFeatureValidationError(eligibleSubscription.plan).ensureCapabilities({
+      soilData: soilData ?? undefined,
+      waterData: waterData ?? undefined,
+      legalCheck: legalCheck ?? undefined,
+      droneMap: droneMap ?? undefined,
+      videos,
+    });
+
+    if (capabilityError) {
+      return res.status(403).json({ success: false, error: capabilityError });
+    }
+
+    const updateData = !hasMeaningfulUpdate && property.status !== "ACTIVE"
+      ? { status: "PENDING_REVIEW" as const }
+      : baseData;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.property.update({
+        where: { id: String(req.params.id) },
+        data: {
+          ...updateData,
+          ...(hasMeaningfulUpdate ? { status: property.status === "ACTIVE" ? "PENDING_REVIEW" : property.status } : {}),
+        },
+        include: {
+          images: { where: { isPrimary: true }, take: 1 },
+          videos: true,
+          documents: true,
+          droneMap: true,
+          soilData: true,
+          waterData: true,
+          legalCheck: true,
+        },
+      });
+
+      if (videos !== undefined) {
+        await tx.propertyVideo.deleteMany({ where: { propertyId: property.id } });
+        if (videos.length > 0) {
+          await tx.propertyVideo.createMany({
+            data: videos.map((video, index) => ({
+              propertyId: property.id,
+              url: video.url,
+              title: video.title ?? null,
+              publicId: video.publicId ?? null,
+              thumbnailUrl: video.thumbnailUrl ?? null,
+              durationSeconds: video.durationSeconds ?? null,
+              isPrimary: video.isPrimary ?? index === 0,
+              order: video.order ?? index,
+            })),
+          });
+        }
+      }
+
+      if (documents !== undefined) {
+        await tx.propertyDocument.deleteMany({ where: { propertyId: property.id } });
+        if (documents.length > 0) {
+          await tx.propertyDocument.createMany({
+            data: documents.map((document) => ({
+              propertyId: property.id,
+              name: document.name,
+              url: document.url,
+              publicId: document.publicId ?? null,
+              type: document.type,
+            })),
+          });
+        }
+      }
+
+      if (droneMap !== undefined) {
+        if (droneMap === null) {
+          await tx.droneMap.deleteMany({ where: { propertyId: property.id } });
+        } else {
+          await tx.droneMap.upsert({
+            where: { propertyId: property.id },
+            update: {
+              mapUrl: droneMap.mapUrl,
+              thumbnailUrl: droneMap.thumbnailUrl ?? null,
+              resolution: droneMap.resolution ?? null,
+              capturedAt: droneMap.capturedAt ? new Date(droneMap.capturedAt) : null,
+              fileSize: droneMap.fileSize ?? null,
+              notes: droneMap.notes ?? null,
+            },
+            create: {
+              propertyId: property.id,
+              mapUrl: droneMap.mapUrl,
+              thumbnailUrl: droneMap.thumbnailUrl ?? null,
+              resolution: droneMap.resolution ?? null,
+              capturedAt: droneMap.capturedAt ? new Date(droneMap.capturedAt) : null,
+              fileSize: droneMap.fileSize ?? null,
+              notes: droneMap.notes ?? null,
+            },
+          });
+        }
+      }
+
+      if (soilData !== undefined) {
+        if (soilData === null || !hasMeaningfulData(soilData, ["soilType"])) {
+          await tx.soilData.deleteMany({ where: { propertyId: property.id } });
+        } else {
+          await tx.soilData.upsert({
+            where: { propertyId: property.id },
+            update: {
+              ...soilData,
+              testedAt: soilData.testedAt ? new Date(soilData.testedAt) : null,
+              ...buildApprovalReset(),
+            },
+            create: {
+              propertyId: property.id,
+              ...soilData,
+              testedAt: soilData.testedAt ? new Date(soilData.testedAt) : null,
+              ...buildApprovalReset(),
+            },
+          });
+        }
+      }
+
+      if (waterData !== undefined) {
+        if (waterData === null || !hasMeaningfulData(waterData)) {
+          await tx.waterData.deleteMany({ where: { propertyId: property.id } });
+        } else {
+          await tx.waterData.upsert({
+            where: { propertyId: property.id },
+            update: {
+              ...waterData,
+              testedAt: waterData.testedAt ? new Date(waterData.testedAt) : null,
+              ...buildApprovalReset(),
+            },
+            create: {
+              propertyId: property.id,
+              ...waterData,
+              testedAt: waterData.testedAt ? new Date(waterData.testedAt) : null,
+              ...buildApprovalReset(),
+            },
+          });
+        }
+      }
+
+      if (legalCheck !== undefined) {
+        if (legalCheck === null || !hasMeaningfulData(legalCheck, ["titleStatus"])) {
+          await tx.legalCheck.deleteMany({ where: { propertyId: property.id } });
+        } else {
+          await tx.legalCheck.upsert({
+            where: { propertyId: property.id },
+            update: {
+              ...legalCheck,
+              approvalStatus: "PENDING",
+              verifiedBy: null,
+              verifiedAt: null,
+              reviewNotes: null,
+            },
+            create: {
+              propertyId: property.id,
+              ...legalCheck,
+              approvalStatus: "PENDING",
+              verifiedBy: null,
+              verifiedAt: null,
+              reviewNotes: null,
+            },
+          });
+        }
+      }
+
+      return tx.property.findUnique({
+        where: { id: property.id },
+        include: {
+          images: { where: { isPrimary: true }, take: 1 },
+          videos: true,
+          documents: true,
+          droneMap: true,
+          soilData: true,
+          waterData: true,
+          legalCheck: true,
+        },
+      });
     });
 
     res.json({ success: true, data: updated });

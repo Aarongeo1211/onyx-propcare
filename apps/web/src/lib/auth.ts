@@ -1,8 +1,22 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const GOOGLE_ROLE_COOKIE = "onyx-auth-role";
+
+function getRequestedGoogleRole() {
+  return cookies().then((cookieStore) => {
+    const value = cookieStore.get(GOOGLE_ROLE_COOKIE)?.value;
+
+    if (value === "SELLER" || value === "AGENT") {
+      return value;
+    }
+
+    return "BUYER";
+  });
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -65,10 +79,11 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (account?.provider === "google" && account.id_token) {
         try {
+          const role = await getRequestedGoogleRole();
           const res = await fetch(`${API_URL}/api/v1/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ idToken: account.id_token }),
+            body: JSON.stringify({ idToken: account.id_token, role }),
           });
           const data = await res.json();
           if (data.success && data.data) {

@@ -136,6 +136,7 @@ export default function PricingPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false);
   const [usage, setUsage] = useState<SubscriptionUsage | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState<string | null>(null);
@@ -149,6 +150,7 @@ export default function PricingPage() {
 
         if (plansPayload.success) {
           setPlans(plansPayload.data);
+          setPaymentsEnabled(Boolean(plansPayload.meta?.paymentsEnabled));
         }
 
         if (session?.user?.accessToken && SELLER_ROLES.has(session.user.role)) {
@@ -199,6 +201,11 @@ export default function PricingPage() {
 
     if (!SELLER_ROLES.has(session.user.role)) {
       window.alert("Please use a seller account to activate listing plans.");
+      return;
+    }
+
+    if (plan.price > 0 && !paymentsEnabled) {
+      window.alert("Paid plans are not live yet. Please start with the free pack for now.");
       return;
     }
 
@@ -303,6 +310,14 @@ export default function PricingPage() {
             Pick the category pack that matches your inventory, publish with the right media limits,
             and stay ready for Railway deployment with live Razorpay checkout when keys are present.
           </p>
+          {!paymentsEnabled && (
+            <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-earth-green/25 bg-earth-green/10 px-5 py-4 text-left text-sm text-cream/75">
+              <p className="font-medium text-earth-green">Seller onboarding is live with the free plan.</p>
+              <p className="mt-1 text-cream/60">
+                Paid plans are temporarily locked until Razorpay is configured in production. Sellers can still activate the free pack and start listing immediately.
+              </p>
+            </div>
+          )}
 
           <div className="mx-auto mt-10 grid max-w-4xl gap-4 rounded-[2rem] border border-cream/10 bg-onyx-900/60 p-4 backdrop-blur-xl md:grid-cols-[1.2fr_2fr]">
             <div className="rounded-[1.5rem] border border-earth-green/20 bg-earth-green/10 p-6 text-left">
@@ -368,11 +383,13 @@ export default function PricingPage() {
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {[
+                {[ 
                   "Category-specific plan enforcement for farmland and residential plots",
                   "Image and video caps aligned with the purchased pack",
                   "Featured, top section, and homepage boosts driven by plan flags",
-                  "Mock activation locally, Razorpay checkout automatically when keys exist",
+                  paymentsEnabled
+                    ? "Paid checkout is live with Razorpay for production seller onboarding"
+                    : "Paid plans stay locked until Razorpay is configured, while the free pack remains available",
                 ].map((item) => (
                   <div key={item} className="rounded-2xl border border-cream/10 bg-onyx-950/35 p-4 text-sm text-cream/65">
                     {item}
@@ -417,6 +434,7 @@ export default function PricingPage() {
               const isCurrent = activePlanCodes.has(plan.code);
               const isPremium = plan.type === "PREMIUM";
               const planHighlights = getPlanHighlights(plan);
+              const isPaidUnavailable = plan.price > 0 && !paymentsEnabled;
 
               return (
                 <motion.article
@@ -476,7 +494,7 @@ export default function PricingPage() {
 
                     <button
                       onClick={() => handleSubscribe(plan)}
-                      disabled={subscribing === plan.id || isCurrent}
+                      disabled={subscribing === plan.id || isCurrent || isPaidUnavailable}
                       className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition ${
                         isPremium
                           ? "bg-gradient-to-r from-gold to-gold-light text-onyx-950 hover:shadow-[0_16px_40px_rgba(201,168,76,0.35)]"
@@ -487,6 +505,8 @@ export default function PricingPage() {
                         ? "Already Active"
                         : subscribing === plan.id
                         ? "Processing..."
+                        : isPaidUnavailable
+                        ? "Coming Soon"
                         : canPurchase
                         ? plan.price === 0
                           ? "Activate Plan"
@@ -496,6 +516,11 @@ export default function PricingPage() {
                         : "Sign In to Continue"}
                       <ArrowRight className="h-4 w-4" />
                     </button>
+                    {isPaidUnavailable && (
+                      <p className="mt-3 text-xs text-cream/45">
+                        Paid checkout will unlock after Razorpay is connected. Free onboarding is available now.
+                      </p>
+                    )}
                   </div>
                 </motion.article>
               );

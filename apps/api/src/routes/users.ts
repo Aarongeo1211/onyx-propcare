@@ -146,10 +146,65 @@ userRoutes.get("/me/inquiries", requireAuth, async (req, res) => {
 userRoutes.get("/me/stats", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
+    const isSeller = req.user!.role === "SELLER" || req.user!.role === "AGENT";
+
+    if (!isSeller) {
+      const [favoritesCount, viewedCount, totalInquiries, callbackCount, recentViews] = await Promise.all([
+        prisma.favorite.count({ where: { userId } }),
+        prisma.propertyView.count({ where: { userId } }),
+        prisma.inquiry.count({ where: { userId } }),
+        prisma.callbackRequest.count({ where: { userId } }),
+        prisma.propertyView.findMany({
+          where: { userId },
+          include: {
+            property: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                price: true,
+                type: true,
+                district: true,
+                state: true,
+                images: { where: { isPrimary: true }, take: 1 },
+              },
+            },
+          },
+          orderBy: { viewedAt: "desc" },
+          take: 5,
+        }),
+      ]);
+
+      return res.json({
+        success: true,
+        data: {
+          viewedCount,
+          totalInquiries,
+          favoritesCount,
+          callbackCount,
+          recentViews: recentViews.map((view: {
+            viewedAt: Date;
+            property: {
+              id: string;
+              title: string;
+              slug: string;
+              price: number;
+              type: string;
+              district: string;
+              state: string;
+              images: Array<{ url: string }>;
+            };
+          }) => ({
+            viewedAt: view.viewedAt,
+            property: view.property,
+          })),
+        },
+      });
+    }
 
     const [
       totalProperties, activeListings, properties,
-      totalInquiries, newInquiries, subscription, recentInquiries,
+      totalInquiries, newInquiries, subscription, recentInquiries, callbackCount,
     ] = await Promise.all([
       prisma.property.count({ where: { ownerId: userId } }),
       prisma.property.count({ where: { ownerId: userId, status: "ACTIVE" } }),
@@ -170,6 +225,7 @@ userRoutes.get("/me/stats", requireAuth, async (req, res) => {
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
+      prisma.callbackRequest.count({ where: { property: { ownerId: userId } } }),
     ]);
 
     const totalViews = properties.reduce((sum, p) => sum + p.viewCount, 0);
@@ -177,7 +233,7 @@ userRoutes.get("/me/stats", requireAuth, async (req, res) => {
     res.json({
       success: true,
       data: {
-        totalProperties, activeListings, totalViews, totalInquiries, newInquiries,
+        totalProperties, activeListings, totalViews, totalInquiries, newInquiries, callbackCount,
         subscription: subscription
           ? {
               planName: subscription.plan.name,

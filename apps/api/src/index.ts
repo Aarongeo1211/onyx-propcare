@@ -1,5 +1,6 @@
 import { env, isProd } from "./config/env";
 import express from "express";
+import path from "node:path";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -17,6 +18,7 @@ import { uploadRoutes } from "./routes/upload";
 import { contactRoutes } from "./routes/contact";
 import { callbackRoutes } from "./routes/callbacks";
 import { auditRoutes } from "./routes/audit";
+import { refundRoutes } from "./routes/refunds";
 import { generalLimiter, authLimiter, uploadLimiter } from "./middleware/rateLimit";
 import { sanitizeInputs } from "./middleware/sanitize";
 import {
@@ -25,6 +27,21 @@ import {
   invalidCsrfTokenError,
 } from "./middleware/csrf";
 import { optionalAuth } from "./middleware/auth";
+
+function getWorkspaceRoot() {
+  const cwd = process.cwd();
+  return cwd.endsWith(path.join("apps", "api")) ? path.resolve(cwd, "..", "..") : cwd;
+}
+
+function getUploadRoot() {
+  if (!env.UPLOAD_DIR) {
+    return path.join(getWorkspaceRoot(), "uploads");
+  }
+
+  return path.isAbsolute(env.UPLOAD_DIR)
+    ? env.UPLOAD_DIR
+    : path.join(getWorkspaceRoot(), env.UPLOAD_DIR);
+}
 
 const app = express();
 
@@ -60,6 +77,7 @@ app.use("/api/v1/subscriptions/webhook", subscriptionRoutes);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(sanitizeInputs);
+app.use("/uploads", express.static(getUploadRoot()));
 
 // Health check (no auth)
 app.get("/health", (_req, res) => {
@@ -90,6 +108,7 @@ app.use("/api/v1/favorites", favoriteRoutes);
 app.use("/api/v1/upload", uploadLimiter, uploadRoutes);
 app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/callbacks", callbackRoutes);
+app.use("/api/v1/refunds", refundRoutes);
 app.use("/api/v1/admin/audit-logs", auditRoutes);
 
 // 404 handler

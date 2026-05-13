@@ -193,6 +193,10 @@ export interface ActiveSubscriptionPlan {
   maxProperties: number;
   maxImages: number;
   maxVideos: number;
+  hasSoilData: boolean;
+  hasWaterData: boolean;
+  hasLegalCheck: boolean;
+  hasDroneMap: boolean;
   endDate?: string | null;
 }
 

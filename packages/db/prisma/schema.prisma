@@ -39,6 +39,8 @@ model User {
   accounts      Account[]
   subscriptions    Subscription[]
   callbackRequests CallbackRequest[]
+  propertyViews    PropertyView[]
+  refundRequests   RefundRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,6 +104,12 @@ enum ListingType {
   LEASE
 }
 
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Property {
   id          String         @id @default(cuid())
   title       String
@@ -126,6 +134,7 @@ model Property {
   pincode     String?
   latitude    Float?
   longitude   Float?
+  nearbyLocations Json?
 
   // Land Details
   totalArea   Float
@@ -156,6 +165,7 @@ model Property {
 
   // Media
   images      PropertyImage[]
+  videos      PropertyVideo[]
   documents   PropertyDocument[]
 
   // Relations
@@ -165,6 +175,7 @@ model Property {
   favorites        Favorite[]
   reviews          Review[]
   callbackRequests CallbackRequest[]
+  views             PropertyView[]
   soilData         SoilData?
   waterData   WaterData?
   legalCheck  LegalCheck?
@@ -204,16 +215,47 @@ model PropertyImage {
   @@map("property_images")
 }
 
+model PropertyVideo {
+  id         String   @id @default(cuid())
+  url        String
+  title      String?
+  publicId   String?
+  thumbnailUrl String?
+  durationSeconds Float?
+  isPrimary  Boolean  @default(false)
+  order      Int      @default(0)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("property_videos")
+}
+
 model PropertyDocument {
   id         String   @id @default(cuid())
   name       String
   url        String
+  publicId   String?
   type       String   // title_deed, 7_12_extract, mutation, map, etc.
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@index([propertyId])
   @@map("property_documents")
+}
+
+model PropertyView {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt   DateTime @default(now())
+
+  @@unique([propertyId, userId])
+  @@index([userId, viewedAt])
+  @@index([propertyId, viewedAt])
+  @@map("property_views")
 }
 
 // ─── Unique Data Layers ──────────────────────────────────
@@ -233,6 +275,10 @@ model SoilData {
   suitableCrops String? @db.Text
   reportUrl    String?
   testedAt     DateTime?
+  approvalStatus ApprovalStatus @default(PENDING)
+  approvedBy   String?
+  approvedAt   DateTime?
+  reviewNotes  String?  @db.Text
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -254,6 +300,10 @@ model WaterData {
   rainfallAvg     Float?   // mm/year
   reportUrl       String?
   testedAt        DateTime?
+  approvalStatus  ApprovalStatus @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  reviewNotes     String?  @db.Text
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -290,9 +340,11 @@ model LegalCheck {
   naOrderVerified  Boolean @default(false)
   tpSchemeVerified Boolean @default(false)
   revenueRecordOk  Boolean @default(false)
+  approvalStatus   ApprovalStatus @default(PENDING)
   verifiedBy       String?
   reportUrl        String?
   verifiedAt       DateTime?
+  reviewNotes      String?  @db.Text
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -462,6 +514,7 @@ model Subscription {
 
   razorpayOrderId   String?
   razorpayPaymentId String?
+  razorpaySignature String?
   currency          String           @default("INR")
   amount            Float
 
@@ -469,6 +522,7 @@ model Subscription {
   endDate         DateTime?
 
   propertiesUsed  Int       @default(0)
+  refundRequests  RefundRequest[]
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -527,4 +581,48 @@ model CallbackRequest {
   @@index([userId])
   @@index([status, createdAt])
   @@map("callback_requests")
+}
+
+enum RefundRequestStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PROCESSED
+}
+
+model RefundRequest {
+  id             String              @id @default(cuid())
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId String?
+  subscription   Subscription?       @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  reason         String              @db.Text
+  details        String?             @db.Text
+  preferredContact String?
+  status         RefundRequestStatus @default(PENDING)
+  adminNotes     String?             @db.Text
+  resolvedAt     DateTime?
+
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("refund_requests")
+}
+
+model PlatformSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  category    String
+  value       Json
+  description String?  @db.Text
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([category, key])
+  @@map("platform_settings")
 }

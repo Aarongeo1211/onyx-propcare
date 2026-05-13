@@ -10,6 +10,9 @@ import {
   MessageSquare,
   ScrollText,
   LogOut,
+  PhoneCall,
+  CreditCard,
+  Settings,
 } from "lucide-react";
 
 const navItems = [
@@ -17,7 +20,10 @@ const navItems = [
   { href: "/properties", icon: Building2, label: "Properties" },
   { href: "/users", icon: Users, label: "Users" },
   { href: "/inquiries", icon: MessageSquare, label: "Inquiries" },
+  { href: "/callbacks", icon: PhoneCall, label: "Callbacks" },
+  { href: "/refunds", icon: CreditCard, label: "Refunds" },
   { href: "/audit-log", icon: ScrollText, label: "Audit Log" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function Sidebar() {

@@ -25,6 +25,13 @@ interface DashboardStats {
   totalViews: number;
   totalInquiries: number;
   newInquiries: number;
+  callbackCount?: number;
+  favoritesCount?: number;
+  viewedCount?: number;
+  recentViews?: Array<{
+    viewedAt: string;
+    property: { id: string; title: string; slug: string; district: string; state: string };
+  }>;
   subscription: {
     planName: string;
     planType: string;
@@ -36,7 +43,7 @@ interface DashboardStats {
     features: string[];
     price: number;
   } | null;
-  recentInquiries: Array<{
+      recentInquiries: Array<{
     id: string;
     message: string;
     status: string;
@@ -138,7 +145,7 @@ export default function DashboardOverviewPage() {
     : [
         {
           label: "Properties Viewed",
-          value: "-",
+          value: stats?.viewedCount ?? 0,
           icon: Eye,
           color: "text-sky-400",
         },
@@ -150,13 +157,13 @@ export default function DashboardOverviewPage() {
         },
         {
           label: "Favorites",
-          value: "-",
+          value: stats?.favoritesCount ?? 0,
           icon: Building2,
           color: "text-amber-400",
         },
         {
-          label: "Active",
-          value: "-",
+          label: "Callbacks",
+          value: stats?.callbackCount ?? 0,
           icon: TrendingUp,
           color: "text-emerald-400",
         },
@@ -370,6 +377,42 @@ export default function DashboardOverviewPage() {
                       {timeAgo(inquiry.createdAt)}
                     </div>
                   </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {!isSeller && stats?.recentViews && stats.recentViews.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-display text-lg font-semibold text-cream">Recently Viewed</h3>
+                <Link
+                  href="/properties"
+                  className="text-sm font-body text-gold hover:text-gold-light transition-colors flex items-center gap-1"
+                >
+                  Browse more
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="space-y-3">
+                {stats.recentViews.map((view) => (
+                  <Link
+                    key={`${view.property.id}-${view.viewedAt}`}
+                    href={`/properties/${view.property.slug}`}
+                    className="block rounded-xl border border-cream/5 bg-onyx-800/30 p-4 transition-colors hover:bg-onyx-800/50"
+                  >
+                    <p className="text-sm font-body text-cream">{view.property.title}</p>
+                    <p className="mt-1 text-xs text-cream/30">
+                      {view.property.district}, {view.property.state}
+                    </p>
+                    <p className="mt-2 text-xs text-cream/25">{timeAgo(view.viewedAt)}</p>
+                  </Link>
                 ))}
               </div>
             </motion.div>

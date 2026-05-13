@@ -12,6 +12,7 @@ import {
   LogOut,
   Home,
   Settings,
+  PhoneCall,
 } from "lucide-react";
 import { Badge } from "@onyx/ui";
 
@@ -28,6 +29,7 @@ const sellerNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Overview" },
   { href: "/dashboard/properties", icon: Building2, label: "My Properties" },
   { href: "/dashboard/inquiries", icon: MessageSquare, label: "Inquiries" },
+  { href: "/dashboard/callbacks", icon: PhoneCall, label: "Callbacks" },
   { href: "/dashboard/subscription", icon: CreditCard, label: "Subscription" },
   { href: "/dashboard/favorites", icon: Heart, label: "Favorites" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },

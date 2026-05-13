@@ -112,8 +112,39 @@ subscriptionRoutes.post("/", requireAuth, async (req, res) => {
       });
     }
 
-    // Paid plans require Razorpay configured — no silent mock activation
+    // In local/dev, allow a mock activation path so the seller workflow is testable
     if (!isRazorpayConfigured) {
+      if (!isProd) {
+        const activated = await prisma.subscription.create({
+          data: {
+            userId,
+            planId: plan.id,
+            status: "ACTIVE",
+            amount: plan.price,
+            currency: "INR",
+            propertiesUsed: 0,
+            startDate: new Date(),
+            endDate: getSubscriptionEndDate(plan.listingDuration),
+            razorpayOrderId: `mock_order_${Date.now()}`,
+            razorpayPaymentId: `mock_payment_${Date.now()}`,
+          },
+          include: { plan: true },
+        });
+
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+        if (user) {
+          sendSubscriptionConfirmation(user.email, plan.name, activated.endDate!).catch((err) =>
+            logger.error({ err }, "Failed to send subscription confirmation")
+          );
+        }
+
+        return res.status(201).json({
+          success: true,
+          data: activated,
+          payment: { mode: "mock", ...getRazorpayPublicConfig() },
+        });
+      }
+
       return res.status(503).json({
         success: false,
         error: "Payments are not configured. Please contact support.",
@@ -330,6 +361,10 @@ subscriptionRoutes.get("/my/usage", requireAuth, async (req, res) => {
           maxProperties: s.plan.maxProperties,
           maxImages: s.plan.maxImages,
           maxVideos: s.plan.maxVideos,
+          hasSoilData: s.plan.hasSoilData,
+          hasWaterData: s.plan.hasWaterData,
+          hasLegalCheck: s.plan.hasLegalCheck,
+          hasDroneMap: s.plan.hasDroneMap,
           endDate: s.endDate,
         })),
       },

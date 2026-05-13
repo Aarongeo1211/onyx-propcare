@@ -16,8 +16,12 @@ import {
   Upload,
   X,
   Star,
+  Video,
+  FileArchive,
+  Satellite,
 } from "lucide-react";
 import { INDIAN_STATES, AREA_UNITS } from "@onyx/types";
+import { Badge } from "@onyx/ui";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
@@ -37,6 +41,19 @@ const FACING_OPTIONS = [
   "North-East", "North-West", "South-East", "South-West",
 ];
 
+function toOptionalNumber(value: string) {
+  if (!value.trim()) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+interface UploadedAsset {
+  url: string;
+  publicId?: string;
+  originalName?: string;
+  size?: number;
+}
+
 export default function EditPropertyPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -49,7 +66,19 @@ export default function EditPropertyPage() {
   const [success, setSuccess] = useState(false);
   const [existingImages, setExistingImages] = useState<{ id: string; url: string; isPrimary: boolean; order: number }[]>([]);
   const [newImages, setNewImages] = useState<{ url: string; publicId: string }[]>([]);
+  const [uploadedVideos, setUploadedVideos] = useState<Array<UploadedAsset & { title: string; thumbnailUrl?: string }>>([]);
+  const [uploadedDocuments, setUploadedDocuments] = useState<Array<UploadedAsset & { name: string; type: string }>>([]);
+  const [droneMap, setDroneMap] = useState<{
+    mapUrl: string;
+    thumbnailUrl?: string;
+    resolution: string;
+    capturedAt: string;
+    notes: string;
+  } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
+  const [uploadingReportField, setUploadingReportField] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_IMAGES = 10;
@@ -72,6 +101,59 @@ export default function EditPropertyPage() {
     roadAccess: false,
     roadWidth: "",
     boundaryWall: false,
+    soilType: "",
+    waterSource: "",
+    irrigation: "",
+    cropHistory: "",
+    annualYield: "",
+    isNAOrder: false,
+    isTPScheme: false,
+    zonalType: "",
+    ownershipType: "",
+    surveyNumber: "",
+    hasClearTitle: false,
+    isDisputeFree: false,
+    encumbrance: "",
+  });
+  const [nearbyLocations, setNearbyLocations] = useState([{ name: "", distanceKm: "", category: "" }]);
+  const [soilReport, setSoilReport] = useState({
+    soilType: "",
+    ph: "",
+    nitrogen: "",
+    phosphorus: "",
+    potassium: "",
+    organicCarbon: "",
+    texture: "",
+    fertility: "",
+    suitableCrops: "",
+    reportUrl: "",
+    testedAt: "",
+    approvalStatus: "",
+  });
+  const [waterReport, setWaterReport] = useState({
+    waterTableDepth: "",
+    waterQuality: "",
+    tdsLevel: "",
+    borewellCount: "",
+    borewellDepth: "",
+    canalDistance: "",
+    riverDistance: "",
+    rainfallAvg: "",
+    reportUrl: "",
+    testedAt: "",
+    approvalStatus: "",
+  });
+  const [legalReport, setLegalReport] = useState({
+    titleStatus: "",
+    encumbranceCheck: false,
+    encumbranceResult: "",
+    litigationCheck: false,
+    litigationResult: "",
+    naOrderVerified: false,
+    tpSchemeVerified: false,
+    revenueRecordOk: false,
+    reportUrl: "",
+    approvalStatus: "",
   });
 
   useEffect(() => {
@@ -99,6 +181,35 @@ export default function EditPropertyPage() {
             }))
           );
         }
+        if (p.videos && p.videos.length > 0) {
+          setUploadedVideos(
+            p.videos.map((video: { url: string; publicId?: string | null; title?: string | null; thumbnailUrl?: string | null }) => ({
+              url: video.url,
+              publicId: video.publicId || undefined,
+              title: video.title || "Listing video",
+              thumbnailUrl: video.thumbnailUrl || undefined,
+            }))
+          );
+        }
+        if (p.documents && p.documents.length > 0) {
+          setUploadedDocuments(
+            p.documents.map((document: { url: string; publicId?: string | null; name: string; type: string }) => ({
+              url: document.url,
+              publicId: document.publicId || undefined,
+              name: document.name,
+              type: document.type,
+            }))
+          );
+        }
+        if (p.droneMap?.mapUrl) {
+          setDroneMap({
+            mapUrl: p.droneMap.mapUrl,
+            thumbnailUrl: p.droneMap.thumbnailUrl || p.droneMap.mapUrl,
+            resolution: p.droneMap.resolution || "",
+            capturedAt: p.droneMap.capturedAt || "",
+            notes: p.droneMap.notes || "",
+          });
+        }
         setForm({
           title: p.title || "",
           description: p.description || "",
@@ -117,7 +228,74 @@ export default function EditPropertyPage() {
           roadAccess: p.roadAccess || false,
           roadWidth: p.roadWidth?.toString() || "",
           boundaryWall: p.boundaryWall || false,
+          soilType: p.soilType || "",
+          waterSource: p.waterSource || "",
+          irrigation: p.irrigation || "",
+          cropHistory: p.cropHistory || "",
+          annualYield: p.annualYield || "",
+          isNAOrder: p.isNAOrder || false,
+          isTPScheme: p.isTPScheme || false,
+          zonalType: p.zonalType || "",
+          ownershipType: p.ownershipType || "",
+          surveyNumber: p.surveyNumber || "",
+          hasClearTitle: p.hasClearTitle || false,
+          isDisputeFree: p.isDisputeFree || false,
+          encumbrance: p.encumbrance || "",
         });
+        setNearbyLocations(
+          Array.isArray(p.nearbyLocations) && p.nearbyLocations.length > 0
+            ? p.nearbyLocations.map((item: { name?: string; distanceKm?: number; category?: string }) => ({
+                name: item.name || "",
+                distanceKm: item.distanceKm != null ? String(item.distanceKm) : "",
+                category: item.category || "",
+              }))
+            : [{ name: "", distanceKm: "", category: "" }]
+        );
+        if (p.soilData) {
+          setSoilReport({
+            soilType: p.soilData.soilType || "",
+            ph: p.soilData.ph?.toString() || "",
+            nitrogen: p.soilData.nitrogen?.toString() || "",
+            phosphorus: p.soilData.phosphorus?.toString() || "",
+            potassium: p.soilData.potassium?.toString() || "",
+            organicCarbon: p.soilData.organicCarbon?.toString() || "",
+            texture: p.soilData.texture || "",
+            fertility: p.soilData.fertility || "",
+            suitableCrops: p.soilData.suitableCrops || "",
+            reportUrl: p.soilData.reportUrl || "",
+            testedAt: p.soilData.testedAt || "",
+            approvalStatus: p.soilData.approvalStatus || "",
+          });
+        }
+        if (p.waterData) {
+          setWaterReport({
+            waterTableDepth: p.waterData.waterTableDepth?.toString() || "",
+            waterQuality: p.waterData.waterQuality || "",
+            tdsLevel: p.waterData.tdsLevel?.toString() || "",
+            borewellCount: p.waterData.borewellCount?.toString() || "",
+            borewellDepth: p.waterData.borewellDepth?.toString() || "",
+            canalDistance: p.waterData.canalDistance?.toString() || "",
+            riverDistance: p.waterData.riverDistance?.toString() || "",
+            rainfallAvg: p.waterData.rainfallAvg?.toString() || "",
+            reportUrl: p.waterData.reportUrl || "",
+            testedAt: p.waterData.testedAt || "",
+            approvalStatus: p.waterData.approvalStatus || "",
+          });
+        }
+        if (p.legalCheck) {
+          setLegalReport({
+            titleStatus: p.legalCheck.titleStatus || "",
+            encumbranceCheck: Boolean(p.legalCheck.encumbranceCheck),
+            encumbranceResult: p.legalCheck.encumbranceResult || "",
+            litigationCheck: Boolean(p.legalCheck.litigationCheck),
+            litigationResult: p.legalCheck.litigationResult || "",
+            naOrderVerified: Boolean(p.legalCheck.naOrderVerified),
+            tpSchemeVerified: Boolean(p.legalCheck.tpSchemeVerified),
+            revenueRecordOk: Boolean(p.legalCheck.revenueRecordOk),
+            reportUrl: p.legalCheck.reportUrl || "",
+            approvalStatus: p.legalCheck.approvalStatus || "",
+          });
+        }
       } else {
         setError("Property not found or you do not have permission to edit it.");
       }
@@ -180,6 +358,124 @@ export default function EditPropertyPage() {
     }
   }, [totalImages, session]);
 
+  const uploadFiles = useCallback(
+    async (endpoint: "videos" | "documents", fieldName: "videos" | "documents", files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      if (fileArray.length === 0) return [];
+
+      const formData = new FormData();
+      fileArray.forEach((file) => formData.append(fieldName, file));
+
+      const response = await fetch(`${API_BASE}/upload/${endpoint}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session!.user.accessToken}` },
+        body: formData,
+      });
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || `Failed to upload ${endpoint}`);
+      }
+
+      return data.data as UploadedAsset[];
+    },
+    [session]
+  );
+
+  const handleVideoUpload = useCallback(async (files: FileList | File[]) => {
+    setUploadingVideos(true);
+    setError(null);
+    try {
+      const uploaded = await uploadFiles("videos", "videos", files);
+      setUploadedVideos((prev) => [
+        ...prev,
+        ...uploaded.map((asset) => ({
+          ...asset,
+          title: asset.originalName?.replace(/\.[^.]+$/, "") || "Listing video",
+        })),
+      ]);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload videos");
+    } finally {
+      setUploadingVideos(false);
+    }
+  }, [uploadFiles]);
+
+  const handleDocumentUpload = useCallback(async (files: FileList | File[]) => {
+    setUploadingDocuments(true);
+    setError(null);
+    try {
+      const uploaded = await uploadFiles("documents", "documents", files);
+      setUploadedDocuments((prev) => [
+        ...prev,
+        ...uploaded.map((asset) => ({
+          ...asset,
+          name: asset.originalName || "Document",
+          type: "supporting_document",
+        })),
+      ]);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload documents");
+    } finally {
+      setUploadingDocuments(false);
+    }
+  }, [uploadFiles]);
+
+  const handleReportUpload = useCallback(async (
+    reportKind: "soil" | "water" | "legal",
+    files: FileList | File[]
+  ) => {
+    setUploadingReportField(reportKind);
+    setError(null);
+    try {
+      const [uploaded] = await uploadFiles("documents", "documents", files);
+      if (!uploaded?.url) {
+        throw new Error("No file was uploaded");
+      }
+
+      if (reportKind === "soil") {
+        setSoilReport((prev) => ({ ...prev, reportUrl: uploaded.url }));
+      } else if (reportKind === "water") {
+        setWaterReport((prev) => ({ ...prev, reportUrl: uploaded.url }));
+      } else {
+        setLegalReport((prev) => ({ ...prev, reportUrl: uploaded.url }));
+      }
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload report");
+    } finally {
+      setUploadingReportField(null);
+    }
+  }, [uploadFiles]);
+
+  const handleDroneMapUpload = useCallback(async (files: FileList | File[]) => {
+    setUploadingDocuments(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      Array.from(files).slice(0, 1).forEach((file) => formData.append("images", file));
+      const response = await fetch(`${API_BASE}/upload/images`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session!.user.accessToken}` },
+        body: formData,
+      });
+      const data = await response.json();
+      if (!data.success || !data.data?.[0]?.url) {
+        throw new Error(data.error || "Failed to upload drone map");
+      }
+
+      setDroneMap((prev) => ({
+        mapUrl: data.data[0].url,
+        thumbnailUrl: data.data[0].url,
+        resolution: prev?.resolution || "",
+        capturedAt: prev?.capturedAt || "",
+        notes: prev?.notes || "",
+      }));
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload drone map");
+    } finally {
+      setUploadingDocuments(false);
+    }
+  }, [session]);
+
   const removeExistingImage = async (imageId: string) => {
     const img = existingImages.find((i) => i.id === imageId);
     if (!img) return;
@@ -214,6 +510,20 @@ export default function EditPropertyPage() {
     }
   }, [handleImageUpload]);
 
+  const updateNearbyLocation = (index: number, field: "name" | "distanceKm" | "category", value: string) => {
+    setNearbyLocations((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+  };
+
+  const addNearbyLocation = () => {
+    setNearbyLocations((prev) =>
+      prev.length >= 7 ? prev : [...prev, { name: "", distanceKm: "", category: "" }]
+    );
+  };
+
+  const removeNearbyLocation = (index: number) => {
+    setNearbyLocations((prev) => (prev.length === 1 ? [{ name: "", distanceKm: "", category: "" }] : prev.filter((_, i) => i !== index)));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -240,6 +550,101 @@ export default function EditPropertyPage() {
       if (form.pincode) payload.pincode = form.pincode;
       if (form.facing) payload.facing = form.facing;
       if (form.roadWidth) payload.roadWidth = parseFloat(form.roadWidth);
+      if (form.soilType) payload.soilType = form.soilType;
+      if (form.waterSource) payload.waterSource = form.waterSource;
+      if (form.irrigation) payload.irrigation = form.irrigation;
+      if (form.cropHistory) payload.cropHistory = form.cropHistory;
+      if (form.annualYield) payload.annualYield = form.annualYield;
+      if (form.zonalType) payload.zonalType = form.zonalType;
+      if (form.ownershipType) payload.ownershipType = form.ownershipType;
+      if (form.surveyNumber) payload.surveyNumber = form.surveyNumber;
+      if (form.encumbrance) payload.encumbrance = form.encumbrance;
+      payload.isNAOrder = form.isNAOrder;
+      payload.isTPScheme = form.isTPScheme;
+      payload.hasClearTitle = form.hasClearTitle;
+      payload.isDisputeFree = form.isDisputeFree;
+      payload.nearbyLocations = nearbyLocations
+        .filter((item) => item.name.trim() && item.distanceKm.trim())
+        .map((item) => ({
+          name: item.name.trim(),
+          distanceKm: Number(item.distanceKm),
+          category: item.category.trim() || undefined,
+        }));
+      payload.soilData = soilReport.soilType.trim()
+        ? {
+            soilType: soilReport.soilType.trim(),
+            ph: toOptionalNumber(soilReport.ph),
+            nitrogen: toOptionalNumber(soilReport.nitrogen),
+            phosphorus: toOptionalNumber(soilReport.phosphorus),
+            potassium: toOptionalNumber(soilReport.potassium),
+            organicCarbon: toOptionalNumber(soilReport.organicCarbon),
+            texture: soilReport.texture.trim() || undefined,
+            fertility: soilReport.fertility.trim() || undefined,
+            suitableCrops: soilReport.suitableCrops.trim() || undefined,
+            reportUrl: soilReport.reportUrl.trim() || undefined,
+            testedAt: soilReport.testedAt || undefined,
+          }
+        : null;
+      payload.waterData =
+        waterReport.waterTableDepth ||
+        waterReport.waterQuality ||
+        waterReport.tdsLevel ||
+        waterReport.borewellCount ||
+        waterReport.borewellDepth ||
+        waterReport.canalDistance ||
+        waterReport.riverDistance ||
+        waterReport.rainfallAvg ||
+        waterReport.reportUrl ||
+        waterReport.testedAt
+          ? {
+              waterTableDepth: toOptionalNumber(waterReport.waterTableDepth),
+              waterQuality: waterReport.waterQuality.trim() || undefined,
+              tdsLevel: toOptionalNumber(waterReport.tdsLevel),
+              borewellCount: toOptionalNumber(waterReport.borewellCount),
+              borewellDepth: toOptionalNumber(waterReport.borewellDepth),
+              canalDistance: toOptionalNumber(waterReport.canalDistance),
+              riverDistance: toOptionalNumber(waterReport.riverDistance),
+              rainfallAvg: toOptionalNumber(waterReport.rainfallAvg),
+              reportUrl: waterReport.reportUrl.trim() || undefined,
+              testedAt: waterReport.testedAt || undefined,
+            }
+          : null;
+      payload.legalCheck = legalReport.titleStatus.trim()
+        ? {
+            titleStatus: legalReport.titleStatus.trim(),
+            encumbranceCheck: legalReport.encumbranceCheck,
+            encumbranceResult: legalReport.encumbranceResult.trim() || undefined,
+            litigationCheck: legalReport.litigationCheck,
+            litigationResult: legalReport.litigationResult.trim() || undefined,
+            naOrderVerified: legalReport.naOrderVerified,
+            tpSchemeVerified: legalReport.tpSchemeVerified,
+            revenueRecordOk: legalReport.revenueRecordOk,
+            reportUrl: legalReport.reportUrl.trim() || undefined,
+          }
+        : null;
+      payload.videos = uploadedVideos.map((video, index) => ({
+        url: video.url,
+        publicId: video.publicId,
+        title: video.title || `Listing video ${index + 1}`,
+        thumbnailUrl: video.thumbnailUrl,
+        isPrimary: index === 0,
+        order: index,
+      }));
+      payload.documents = uploadedDocuments.map((document) => ({
+        name: document.name,
+        url: document.url,
+        publicId: document.publicId,
+        type: document.type,
+      }));
+      payload.droneMap = droneMap?.mapUrl
+        ? {
+            mapUrl: droneMap.mapUrl,
+            thumbnailUrl: droneMap.thumbnailUrl || droneMap.mapUrl,
+            resolution: droneMap.resolution || undefined,
+            capturedAt: droneMap.capturedAt || undefined,
+            notes: droneMap.notes || undefined,
+          }
+        : null;
 
       const res = await fetch(`${API_BASE}/properties/${propertyId}`, {
         method: "PATCH",
@@ -549,6 +954,157 @@ export default function EditPropertyPage() {
               </div>
             </div>
 
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gold/10 rounded-lg">
+                  <MapPin className="w-4 h-4 text-gold" />
+                </div>
+                <h2 className="font-display text-xl font-semibold text-cream">Nearby Locations</h2>
+              </div>
+              <div className="space-y-4">
+                {nearbyLocations.map((location, index) => (
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-[1.6fr_0.8fr_1fr_auto] gap-3">
+                    <input value={location.name} onChange={(e) => updateNearbyLocation(index, "name", e.target.value)} placeholder="Location name" className={inputClass} />
+                    <input type="number" step="0.1" min="0" value={location.distanceKm} onChange={(e) => updateNearbyLocation(index, "distanceKm", e.target.value)} placeholder="Distance (km)" className={inputClass} />
+                    <input value={location.category} onChange={(e) => updateNearbyLocation(index, "category", e.target.value)} placeholder="Category" className={inputClass} />
+                    <button type="button" onClick={() => removeNearbyLocation(index)} className="px-4 py-3 text-sm font-body text-red-400 border border-red-500/20 rounded-xl hover:bg-red-500/10">Remove</button>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-cream/35">Maximum 7 nearby entries.</p>
+                  <button type="button" onClick={addNearbyLocation} disabled={nearbyLocations.length >= 7} className="px-4 py-2 text-xs font-body text-gold border border-gold/20 rounded-lg disabled:opacity-40">Add Nearby</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gold/10 rounded-lg">
+                  <FileText className="w-4 h-4 text-gold" />
+                </div>
+                <h2 className="font-display text-xl font-semibold text-cream">Seller Data</h2>
+              </div>
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <input name="soilType" value={form.soilType} onChange={handleChange} placeholder="Soil type" className={inputClass} />
+                  <input name="waterSource" value={form.waterSource} onChange={handleChange} placeholder="Water source" className={inputClass} />
+                  <input name="irrigation" value={form.irrigation} onChange={handleChange} placeholder="Irrigation" className={inputClass} />
+                  <input name="annualYield" value={form.annualYield} onChange={handleChange} placeholder="Annual yield" className={inputClass} />
+                  <input name="ownershipType" value={form.ownershipType} onChange={handleChange} placeholder="Ownership type" className={inputClass} />
+                  <input name="surveyNumber" value={form.surveyNumber} onChange={handleChange} placeholder="Survey number" className={inputClass} />
+                </div>
+                <textarea name="cropHistory" value={form.cropHistory} onChange={handleChange} rows={3} placeholder="Crop history" className={`${inputClass} resize-none`} />
+                <textarea name="encumbrance" value={form.encumbrance} onChange={handleChange} rows={3} placeholder="Encumbrance notes" className={`${inputClass} resize-none`} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="hasClearTitle" checked={form.hasClearTitle} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Clear title available</span></label>
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isDisputeFree" checked={form.isDisputeFree} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Dispute free</span></label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isNAOrder" checked={form.isNAOrder} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">NA order</span></label>
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isTPScheme" checked={form.isTPScheme} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">TP scheme</span></label>
+                  <input name="zonalType" value={form.zonalType} onChange={handleChange} placeholder="Zonal type" className={inputClass} />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-xl font-semibold text-cream">Soil Report</h2>
+                {soilReport.approvalStatus && <Badge variant="outline">{soilReport.approvalStatus}</Badge>}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <input value={soilReport.soilType} onChange={(e) => setSoilReport((prev) => ({ ...prev, soilType: e.target.value }))} placeholder="Report soil type" className={inputClass} />
+                <input value={soilReport.texture} onChange={(e) => setSoilReport((prev) => ({ ...prev, texture: e.target.value }))} placeholder="Texture" className={inputClass} />
+                <input type="number" step="0.1" value={soilReport.ph} onChange={(e) => setSoilReport((prev) => ({ ...prev, ph: e.target.value }))} placeholder="pH" className={inputClass} />
+                <input value={soilReport.fertility} onChange={(e) => setSoilReport((prev) => ({ ...prev, fertility: e.target.value }))} placeholder="Fertility" className={inputClass} />
+                <input type="number" step="0.1" value={soilReport.nitrogen} onChange={(e) => setSoilReport((prev) => ({ ...prev, nitrogen: e.target.value }))} placeholder="Nitrogen" className={inputClass} />
+                <input type="number" step="0.1" value={soilReport.phosphorus} onChange={(e) => setSoilReport((prev) => ({ ...prev, phosphorus: e.target.value }))} placeholder="Phosphorus" className={inputClass} />
+                <input type="number" step="0.1" value={soilReport.potassium} onChange={(e) => setSoilReport((prev) => ({ ...prev, potassium: e.target.value }))} placeholder="Potassium" className={inputClass} />
+                <input type="number" step="0.01" value={soilReport.organicCarbon} onChange={(e) => setSoilReport((prev) => ({ ...prev, organicCarbon: e.target.value }))} placeholder="Organic carbon %" className={inputClass} />
+                <input type="date" value={soilReport.testedAt ? soilReport.testedAt.slice(0, 10) : ""} onChange={(e) => setSoilReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className={inputClass} />
+                <input value={soilReport.reportUrl} onChange={(e) => setSoilReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Report URL" className={inputClass} />
+              </div>
+              <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
+                {uploadingReportField === "soil" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                Upload Soil Report
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                  onChange={(event) => {
+                    if (event.target.files) handleReportUpload("soil", event.target.files);
+                    event.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+              <textarea value={soilReport.suitableCrops} onChange={(e) => setSoilReport((prev) => ({ ...prev, suitableCrops: e.target.value }))} rows={3} placeholder="Suitable crops" className={`${inputClass} resize-none mt-5`} />
+            </div>
+
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-xl font-semibold text-cream">Water Report</h2>
+                {waterReport.approvalStatus && <Badge variant="outline">{waterReport.approvalStatus}</Badge>}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <input type="number" step="0.1" value={waterReport.waterTableDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterTableDepth: e.target.value }))} placeholder="Water table depth (ft)" className={inputClass} />
+                <input value={waterReport.waterQuality} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterQuality: e.target.value }))} placeholder="Water quality" className={inputClass} />
+                <input type="number" step="0.1" value={waterReport.tdsLevel} onChange={(e) => setWaterReport((prev) => ({ ...prev, tdsLevel: e.target.value }))} placeholder="TDS level" className={inputClass} />
+                <input type="number" value={waterReport.borewellCount} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellCount: e.target.value }))} placeholder="Borewell count" className={inputClass} />
+                <input type="number" step="0.1" value={waterReport.borewellDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellDepth: e.target.value }))} placeholder="Borewell depth" className={inputClass} />
+                <input type="number" step="0.1" value={waterReport.canalDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, canalDistance: e.target.value }))} placeholder="Canal distance (km)" className={inputClass} />
+                <input type="number" step="0.1" value={waterReport.riverDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, riverDistance: e.target.value }))} placeholder="River distance (km)" className={inputClass} />
+                <input type="number" step="0.1" value={waterReport.rainfallAvg} onChange={(e) => setWaterReport((prev) => ({ ...prev, rainfallAvg: e.target.value }))} placeholder="Average rainfall" className={inputClass} />
+                <input type="date" value={waterReport.testedAt ? waterReport.testedAt.slice(0, 10) : ""} onChange={(e) => setWaterReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className={inputClass} />
+                <input value={waterReport.reportUrl} onChange={(e) => setWaterReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Water report URL" className={inputClass} />
+              </div>
+              <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
+                {uploadingReportField === "water" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                Upload Water Report
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                  onChange={(event) => {
+                    if (event.target.files) handleReportUpload("water", event.target.files);
+                    event.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-xl font-semibold text-cream">Legal Check</h2>
+                {legalReport.approvalStatus && <Badge variant="outline">{legalReport.approvalStatus}</Badge>}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <input value={legalReport.titleStatus} onChange={(e) => setLegalReport((prev) => ({ ...prev, titleStatus: e.target.value }))} placeholder="Title status" className={inputClass} />
+                <input value={legalReport.reportUrl} onChange={(e) => setLegalReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Legal report URL" className={inputClass} />
+                <input value={legalReport.encumbranceResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceResult: e.target.value }))} placeholder="Encumbrance result" className={inputClass} />
+                <input value={legalReport.litigationResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationResult: e.target.value }))} placeholder="Litigation result" className={inputClass} />
+              </div>
+              <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
+                {uploadingReportField === "legal" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                Upload Legal Report
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                  onChange={(event) => {
+                    if (event.target.files) handleReportUpload("legal", event.target.files);
+                    event.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.encumbranceCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Encumbrance checked</span></label>
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.litigationCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Litigation checked</span></label>
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.naOrderVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, naOrderVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">NA order verified</span></label>
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.tpSchemeVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, tpSchemeVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">TP scheme verified</span></label>
+                <label className="flex items-center gap-3 cursor-pointer md:col-span-2"><input type="checkbox" checked={legalReport.revenueRecordOk} onChange={(e) => setLegalReport((prev) => ({ ...prev, revenueRecordOk: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Revenue records matched</span></label>
+              </div>
+            </div>
+
             {/* Property Images */}
             <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-8">
               <div className="flex items-center justify-between mb-6">
@@ -649,6 +1205,206 @@ export default function EditPropertyPage() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gold/10 rounded-lg">
+                    <Video className="w-4 h-4 text-gold" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-xl font-semibold text-cream">Listing Videos</h2>
+                    <p className="text-xs text-cream/35 mt-1">Manage walkthrough videos for this listing.</p>
+                  </div>
+                </div>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
+                  {uploadingVideos ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Upload Video
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    multiple
+                    onChange={(event) => {
+                      if (event.target.files) handleVideoUpload(event.target.files);
+                      event.target.value = "";
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              {uploadedVideos.length > 0 ? (
+                <div className="space-y-3">
+                  {uploadedVideos.map((video, index) => (
+                    <div key={`${video.publicId || video.url}-${index}`} className="rounded-xl border border-cream/8 bg-onyx-800/30 p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                        <video src={video.url} controls className="h-28 w-full rounded-lg bg-black md:w-56" />
+                        <div className="flex-1">
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-cream/40">Video Title</label>
+                          <input
+                            value={video.title}
+                            onChange={(event) =>
+                              setUploadedVideos((prev) =>
+                                prev.map((item, itemIndex) =>
+                                  itemIndex === index ? { ...item, title: event.target.value } : item
+                                )
+                              )
+                            }
+                            className={inputClass}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setUploadedVideos((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}
+                          className="self-start rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 hover:bg-red-500/10"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-cream/35">No videos attached yet.</p>
+              )}
+            </div>
+
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gold/10 rounded-lg">
+                    <FileArchive className="w-4 h-4 text-gold" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-xl font-semibold text-cream">Property Documents</h2>
+                    <p className="text-xs text-cream/35 mt-1">Keep the brochure, deeds, and plot documents synced.</p>
+                  </div>
+                </div>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
+                  {uploadingDocuments ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Upload Document
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                    multiple
+                    onChange={(event) => {
+                      if (event.target.files) handleDocumentUpload(event.target.files);
+                      event.target.value = "";
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              {uploadedDocuments.length > 0 ? (
+                <div className="space-y-3">
+                  {uploadedDocuments.map((document, index) => (
+                    <div key={`${document.publicId || document.url}-${index}`} className="grid gap-3 rounded-xl border border-cream/8 bg-onyx-800/30 p-4 md:grid-cols-[1.3fr_1fr_auto]">
+                      <input
+                        value={document.name}
+                        onChange={(event) =>
+                          setUploadedDocuments((prev) =>
+                            prev.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, name: event.target.value } : item
+                            )
+                          )
+                        }
+                        className={inputClass}
+                      />
+                      <select
+                        value={document.type}
+                        onChange={(event) =>
+                          setUploadedDocuments((prev) =>
+                            prev.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, type: event.target.value } : item
+                            )
+                          )
+                        }
+                        className={`${inputClass} appearance-none`}
+                      >
+                        <option value="supporting_document">Supporting Document</option>
+                        <option value="title_deed">Title Deed</option>
+                        <option value="7_12_extract">7/12 Extract</option>
+                        <option value="mutation">Mutation</option>
+                        <option value="site_map">Site Map</option>
+                        <option value="approval">Approval</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setUploadedDocuments((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}
+                        className="self-end rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 hover:bg-red-500/10"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-cream/35">No documents attached yet.</p>
+              )}
+            </div>
+
+            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gold/10 rounded-lg">
+                    <Satellite className="w-4 h-4 text-gold" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-xl font-semibold text-cream">Drone Map</h2>
+                    <p className="text-xs text-cream/35 mt-1">Replace or refine the drone survey for this listing.</p>
+                  </div>
+                </div>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
+                  {uploadingDocuments ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  Upload Drone Map
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) => {
+                      if (event.target.files) handleDroneMapUpload(event.target.files);
+                      event.target.value = "";
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              {droneMap?.mapUrl ? (
+                <div className="space-y-4">
+                  <img src={droneMap.mapUrl} alt="Drone map preview" className="h-56 w-full rounded-xl object-cover" />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <input
+                      value={droneMap.resolution}
+                      onChange={(event) => setDroneMap((prev) => prev ? { ...prev, resolution: event.target.value } : prev)}
+                      placeholder="Resolution e.g. 5cm/px"
+                      className={inputClass}
+                    />
+                    <input
+                      type="date"
+                      value={droneMap.capturedAt ? droneMap.capturedAt.slice(0, 10) : ""}
+                      onChange={(event) =>
+                        setDroneMap((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                capturedAt: event.target.value ? new Date(event.target.value).toISOString() : "",
+                              }
+                            : prev
+                        )
+                      }
+                      className={inputClass}
+                    />
+                  </div>
+                  <textarea
+                    value={droneMap.notes}
+                    onChange={(event) => setDroneMap((prev) => prev ? { ...prev, notes: event.target.value } : prev)}
+                    rows={3}
+                    placeholder="Drone notes"
+                    className={`${inputClass} resize-none`}
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-cream/35">No drone map attached yet.</p>
+              )}
             </div>
 
             {/* Submit */}

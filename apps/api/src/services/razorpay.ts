@@ -2,12 +2,26 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import { env } from "../config/env";
 
+function hasRealCredential(value?: string | null) {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return false;
+
+  return ![
+    "your_key_id",
+    "your_key_secret",
+    "your_webhook_secret",
+    "changeme",
+    "replace_me",
+  ].includes(normalized);
+}
+
 const keyId = env.RAZORPAY_KEY_ID;
 const keySecret = env.RAZORPAY_KEY_SECRET;
 const webhookSecret = env.RAZORPAY_WEBHOOK_SECRET;
 
-export const isRazorpayConfigured = Boolean(keyId && keySecret);
-export const isRazorpayWebhookConfigured = Boolean(webhookSecret);
+export const isRazorpayConfigured = hasRealCredential(keyId) && hasRealCredential(keySecret);
+export const isRazorpayWebhookConfigured = hasRealCredential(webhookSecret);
 
 export const razorpayClient = isRazorpayConfigured
   ? new Razorpay({

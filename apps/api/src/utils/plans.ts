@@ -54,3 +54,19 @@ export async function findEligibleSubscription(userId: string, propertyType: Pro
     return true;
   }) || null;
 }
+
+export async function findCategoryCompatibleSubscription(userId: string, propertyType: PropertyType) {
+  const subscriptions = await prisma.subscription.findMany({
+    where: {
+      userId,
+      status: "ACTIVE",
+      endDate: { gt: new Date() },
+    },
+    include: { plan: true },
+    orderBy: [{ createdAt: "desc" }],
+  });
+
+  return subscriptions.find((subscription) =>
+    planSupportsPropertyType(subscription.plan.category, propertyType)
+  ) || null;
+}

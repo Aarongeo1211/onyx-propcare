@@ -8,7 +8,7 @@ Full-stack property listing platform built with a Turborepo monorepo.
 - **Admin** — Next.js 15 (App Router), React 19, Tailwind CSS
 - **API** — Express 4, Prisma 6, PostgreSQL, Zod validation, Pino logging
 - **Payments** — Razorpay with webhook verification
-- **Storage** — Cloudinary (images), PostgreSQL (data)
+- **Storage** — Cloudinary or local/volume-backed uploads, PostgreSQL (data)
 - **Auth** — JWT + Google OAuth, login lockout, password reset with hashed tokens
 
 ## Project Structure
@@ -78,6 +78,31 @@ pnpm dev:api      # API only
 docker compose up         # Postgres + Redis + all apps
 docker compose up postgres redis   # Just DB + cache for local dev
 ```
+
+### Railway
+
+This repo is ready to deploy to Railway as three services from the monorepo root:
+
+- `onyx-api`
+- `onyx-web`
+- `onyx-admin`
+
+Helper commands:
+
+```bash
+pnpm railway:build:api
+pnpm railway:start:api
+pnpm railway:build:web
+pnpm railway:start:web
+pnpm railway:build:admin
+pnpm railway:start:admin
+pnpm railway:db:migrate
+pnpm railway:db:seed
+```
+
+Full setup guide:
+
+- [docs/deployment/railway.md](C:/Users/Lenovo/Desktop/Projects/onyx-propcare/docs/deployment/railway.md)
 
 ### Test
 

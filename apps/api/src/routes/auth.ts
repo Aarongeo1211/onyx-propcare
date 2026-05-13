@@ -28,6 +28,11 @@ const registerSchema = z.object({
   role: z.enum(["BUYER", "SELLER", "AGENT"]).default("BUYER"),
 });
 
+const googleAuthSchema = z.object({
+  idToken: z.string().min(1, "idToken is required"),
+  role: z.enum(["BUYER", "SELLER", "AGENT"]).optional().default("BUYER"),
+});
+
 function signToken(user: { id: string; email: string; name: string; role: string }) {
   return jwt.sign(user, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -126,10 +131,7 @@ authRoutes.post("/login", async (req, res) => {
 // POST /api/v1/auth/google — accepts Google ID token, verifies with Google
 authRoutes.post("/google", async (req, res) => {
   try {
-    const { idToken } = req.body;
-    if (!idToken) {
-      return res.status(400).json({ success: false, error: "idToken is required" });
-    }
+    const { idToken, role } = googleAuthSchema.parse(req.body);
 
     if (!isGoogleConfigured) {
       return res.status(503).json({ success: false, error: "Google sign-in not configured" });
@@ -148,7 +150,7 @@ authRoutes.post("/google", async (req, res) => {
           name: profile.name,
           email: profile.email.toLowerCase(),
           avatar: profile.picture || null,
-          role: "BUYER",
+          role,
           emailVerified: new Date(),
           isActive: true,
         },
@@ -177,6 +179,9 @@ authRoutes.post("/google", async (req, res) => {
       },
     });
   } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: err.errors[0]?.message || "Invalid request" });
+    }
     logger.error({ err }, "Google auth error");
     res.status(500).json({ success: false, error: "Google authentication failed" });
   }

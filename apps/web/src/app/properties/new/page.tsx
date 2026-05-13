@@ -20,6 +20,9 @@ import {
   Upload,
   X,
   Star,
+  Video,
+  FileArchive,
+  Satellite,
 } from "lucide-react";
 import type { SubscriptionUsage } from "@onyx/types";
 import { INDIAN_STATES, AREA_UNITS } from "@onyx/types";
@@ -55,6 +58,19 @@ function getPlanCategoryForPropertyType(type: string) {
   return "FARMLAND";
 }
 
+function toOptionalNumber(value: string) {
+  if (!value.trim()) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+interface UploadedAsset {
+  url: string;
+  publicId: string;
+  originalName?: string;
+  size?: number;
+}
+
 export default function NewPropertyPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -63,7 +79,20 @@ export default function NewPropertyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; publicId: string; preview?: string }[]>([]);
+  const [uploadedVideos, setUploadedVideos] = useState<Array<UploadedAsset & { title: string; thumbnailUrl?: string }>>([]);
+  const [uploadedDocuments, setUploadedDocuments] = useState<Array<UploadedAsset & { name: string; type: string }>>([]);
+  const [droneMap, setDroneMap] = useState<{
+    mapUrl: string;
+    publicId?: string;
+    thumbnailUrl?: string;
+    resolution: string;
+    capturedAt: string;
+    notes: string;
+  } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
+  const [uploadingReportField, setUploadingReportField] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -86,6 +115,56 @@ export default function NewPropertyPage() {
     roadAccess: false,
     roadWidth: "",
     boundaryWall: false,
+    soilType: "",
+    waterSource: "",
+    irrigation: "",
+    cropHistory: "",
+    annualYield: "",
+    isNAOrder: false,
+    isTPScheme: false,
+    zonalType: "",
+    ownershipType: "",
+    surveyNumber: "",
+    hasClearTitle: false,
+    isDisputeFree: false,
+    encumbrance: "",
+  });
+  const [nearbyLocations, setNearbyLocations] = useState([{ name: "", distanceKm: "", category: "" }]);
+  const [soilReport, setSoilReport] = useState({
+    soilType: "",
+    ph: "",
+    nitrogen: "",
+    phosphorus: "",
+    potassium: "",
+    organicCarbon: "",
+    texture: "",
+    fertility: "",
+    suitableCrops: "",
+    reportUrl: "",
+    testedAt: "",
+  });
+  const [waterReport, setWaterReport] = useState({
+    waterTableDepth: "",
+    waterQuality: "",
+    tdsLevel: "",
+    borewellCount: "",
+    borewellDepth: "",
+    canalDistance: "",
+    riverDistance: "",
+    rainfallAvg: "",
+    reportUrl: "",
+    testedAt: "",
+  });
+  const [legalReport, setLegalReport] = useState({
+    titleStatus: "",
+    encumbranceCheck: false,
+    encumbranceResult: "",
+    litigationCheck: false,
+    litigationResult: "",
+    naOrderVerified: false,
+    tpSchemeVerified: false,
+    revenueRecordOk: false,
+    reportUrl: "",
   });
 
   useEffect(() => {
@@ -155,6 +234,48 @@ export default function NewPropertyPage() {
 
   const maxImages = selectedPlan?.maxImages ?? 0;
   const hasUnlimitedImages = maxImages === -1;
+  const supportsSoilReports = Boolean(selectedPlan?.hasSoilData);
+  const supportsWaterReports = Boolean(selectedPlan?.hasWaterData);
+  const supportsLegalReports = Boolean(selectedPlan?.hasLegalCheck);
+  const supportsDroneMap = Boolean(selectedPlan?.hasDroneMap);
+  const supportsVideos = Boolean(selectedPlan && selectedPlan.maxVideos !== 0);
+
+  const hasSoilSubmission = Boolean(
+    soilReport.soilType.trim() ||
+    soilReport.ph ||
+    soilReport.nitrogen ||
+    soilReport.phosphorus ||
+    soilReport.potassium ||
+    soilReport.organicCarbon ||
+    soilReport.texture.trim() ||
+    soilReport.fertility.trim() ||
+    soilReport.suitableCrops.trim() ||
+    soilReport.reportUrl.trim() ||
+    soilReport.testedAt
+  );
+  const hasWaterSubmission = Boolean(
+    waterReport.waterTableDepth ||
+    waterReport.waterQuality.trim() ||
+    waterReport.tdsLevel ||
+    waterReport.borewellCount ||
+    waterReport.borewellDepth ||
+    waterReport.canalDistance ||
+    waterReport.riverDistance ||
+    waterReport.rainfallAvg ||
+    waterReport.reportUrl.trim() ||
+    waterReport.testedAt
+  );
+  const hasLegalSubmission = Boolean(
+    legalReport.titleStatus.trim() ||
+    legalReport.encumbranceCheck ||
+    legalReport.encumbranceResult.trim() ||
+    legalReport.litigationCheck ||
+    legalReport.litigationResult.trim() ||
+    legalReport.naOrderVerified ||
+    legalReport.tpSchemeVerified ||
+    legalReport.revenueRecordOk ||
+    legalReport.reportUrl.trim()
+  );
 
   const handleImageUpload = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
@@ -196,6 +317,152 @@ export default function NewPropertyPage() {
     }
   }, [uploadedImages.length, maxImages, session]);
 
+  const uploadFiles = useCallback(
+    async (endpoint: "videos" | "documents", fieldName: "videos" | "documents", files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      if (fileArray.length === 0) return [];
+
+      const formData = new FormData();
+      fileArray.forEach((file) => formData.append(fieldName, file));
+
+      const response = await fetch(`${API_BASE}/upload/${endpoint}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session!.user.accessToken}` },
+        body: formData,
+      });
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || `Failed to upload ${endpoint}`);
+      }
+
+      return data.data as UploadedAsset[];
+    },
+    [session]
+  );
+
+  const handleVideoUpload = useCallback(async (files: FileList | File[]) => {
+    if (!supportsVideos) {
+      setError("Your current plan does not include listing videos.");
+      return;
+    }
+
+    setUploadingVideos(true);
+    setError(null);
+
+    try {
+      const uploaded = await uploadFiles("videos", "videos", files);
+      setUploadedVideos((prev) => [
+        ...prev,
+        ...uploaded.map((asset) => ({
+          ...asset,
+          title: asset.originalName?.replace(/\.[^.]+$/, "") || "Listing video",
+        })),
+      ]);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload videos");
+    } finally {
+      setUploadingVideos(false);
+    }
+  }, [supportsVideos, uploadFiles]);
+
+  const handleDocumentUpload = useCallback(async (files: FileList | File[]) => {
+    setUploadingDocuments(true);
+    setError(null);
+
+    try {
+      const uploaded = await uploadFiles("documents", "documents", files);
+      setUploadedDocuments((prev) => [
+        ...prev,
+        ...uploaded.map((asset) => ({
+          ...asset,
+          name: asset.originalName || "Document",
+          type: "supporting_document",
+        })),
+      ]);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload documents");
+    } finally {
+      setUploadingDocuments(false);
+    }
+  }, [uploadFiles]);
+
+  const handleReportUpload = useCallback(async (
+    reportKind: "soil" | "water" | "legal",
+    files: FileList | File[]
+  ) => {
+    if (reportKind === "soil" && !supportsSoilReports) {
+      setError("Your current plan does not include soil reports.");
+      return;
+    }
+    if (reportKind === "water" && !supportsWaterReports) {
+      setError("Your current plan does not include water reports.");
+      return;
+    }
+    if (reportKind === "legal" && !supportsLegalReports) {
+      setError("Your current plan does not include legal verification data.");
+      return;
+    }
+
+    setUploadingReportField(reportKind);
+    setError(null);
+
+    try {
+      const [uploaded] = await uploadFiles("documents", "documents", files);
+      if (!uploaded?.url) {
+        throw new Error("No file was uploaded");
+      }
+
+      if (reportKind === "soil") {
+        setSoilReport((prev) => ({ ...prev, reportUrl: uploaded.url }));
+      } else if (reportKind === "water") {
+        setWaterReport((prev) => ({ ...prev, reportUrl: uploaded.url }));
+      } else {
+        setLegalReport((prev) => ({ ...prev, reportUrl: uploaded.url }));
+      }
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload report");
+    } finally {
+      setUploadingReportField(null);
+    }
+  }, [supportsLegalReports, supportsSoilReports, supportsWaterReports, uploadFiles]);
+
+  const handleDroneMapUpload = useCallback(async (files: FileList | File[]) => {
+    if (!supportsDroneMap) {
+      setError("Your current plan does not include drone maps.");
+      return;
+    }
+
+    setUploadingDocuments(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      Array.from(files).slice(0, 1).forEach((file) => formData.append("images", file));
+      const response = await fetch(`${API_BASE}/upload/images`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session!.user.accessToken}` },
+        body: formData,
+      });
+      const data = await response.json();
+      if (!data.success || !data.data?.[0]?.url) {
+        throw new Error(data.error || "Failed to upload drone map");
+      }
+
+      setDroneMap((prev) => ({
+        mapUrl: data.data[0].url,
+        publicId: data.data[0].publicId,
+        thumbnailUrl: data.data[0].url,
+        resolution: prev?.resolution || "",
+        capturedAt: prev?.capturedAt || "",
+        notes: prev?.notes || "",
+      }));
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload drone map");
+    } finally {
+      setUploadingDocuments(false);
+    }
+  }, [session, supportsDroneMap]);
+
   const removeImage = async (index: number) => {
     const img = uploadedImages[index];
     try {
@@ -215,12 +482,52 @@ export default function NewPropertyPage() {
     }
   }, [handleImageUpload]);
 
+  const updateNearbyLocation = (index: number, field: "name" | "distanceKm" | "category", value: string) => {
+    setNearbyLocations((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+  };
+
+  const addNearbyLocation = () => {
+    setNearbyLocations((prev) =>
+      prev.length >= 7 ? prev : [...prev, { name: "", distanceKm: "", category: "" }]
+    );
+  };
+
+  const removeNearbyLocation = (index: number) => {
+    setNearbyLocations((prev) => (prev.length === 1 ? [{ name: "", distanceKm: "", category: "" }] : prev.filter((_, i) => i !== index)));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
 
     try {
+      if (hasSoilSubmission && !supportsSoilReports) {
+        setError("Your current plan does not include soil reports.");
+        setSubmitting(false);
+        return;
+      }
+      if (hasWaterSubmission && !supportsWaterReports) {
+        setError("Your current plan does not include water reports.");
+        setSubmitting(false);
+        return;
+      }
+      if (hasLegalSubmission && !supportsLegalReports) {
+        setError("Your current plan does not include legal verification data.");
+        setSubmitting(false);
+        return;
+      }
+      if (uploadedVideos.length > 0 && !supportsVideos) {
+        setError("Your current plan does not include listing videos.");
+        setSubmitting(false);
+        return;
+      }
+      if (droneMap?.mapUrl && !supportsDroneMap) {
+        setError("Your current plan does not include drone maps.");
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         title: form.title,
         description: form.description,
@@ -239,6 +546,101 @@ export default function NewPropertyPage() {
         roadAccess: form.roadAccess,
         roadWidth: form.roadWidth ? parseFloat(form.roadWidth) : undefined,
         boundaryWall: form.boundaryWall,
+        soilType: form.soilType || undefined,
+        waterSource: form.waterSource || undefined,
+        irrigation: form.irrigation || undefined,
+        cropHistory: form.cropHistory || undefined,
+        annualYield: form.annualYield || undefined,
+        isNAOrder: form.isNAOrder,
+        isTPScheme: form.isTPScheme,
+        zonalType: form.zonalType || undefined,
+        ownershipType: form.ownershipType || undefined,
+        surveyNumber: form.surveyNumber || undefined,
+        hasClearTitle: form.hasClearTitle,
+        isDisputeFree: form.isDisputeFree,
+        encumbrance: form.encumbrance || undefined,
+        nearbyLocations: nearbyLocations
+          .filter((item) => item.name.trim() && item.distanceKm.trim())
+          .map((item) => ({
+            name: item.name.trim(),
+            distanceKm: Number(item.distanceKm),
+            category: item.category.trim() || undefined,
+          })),
+        soilData: soilReport.soilType.trim()
+          ? {
+              soilType: soilReport.soilType.trim(),
+              ph: toOptionalNumber(soilReport.ph),
+              nitrogen: toOptionalNumber(soilReport.nitrogen),
+              phosphorus: toOptionalNumber(soilReport.phosphorus),
+              potassium: toOptionalNumber(soilReport.potassium),
+              organicCarbon: toOptionalNumber(soilReport.organicCarbon),
+              texture: soilReport.texture.trim() || undefined,
+              fertility: soilReport.fertility.trim() || undefined,
+              suitableCrops: soilReport.suitableCrops.trim() || undefined,
+              reportUrl: soilReport.reportUrl.trim() || undefined,
+              testedAt: soilReport.testedAt || undefined,
+            }
+          : undefined,
+        waterData:
+          waterReport.waterTableDepth ||
+          waterReport.waterQuality ||
+          waterReport.tdsLevel ||
+          waterReport.borewellCount ||
+          waterReport.borewellDepth ||
+          waterReport.canalDistance ||
+          waterReport.riverDistance ||
+          waterReport.rainfallAvg ||
+          waterReport.reportUrl ||
+          waterReport.testedAt
+            ? {
+                waterTableDepth: toOptionalNumber(waterReport.waterTableDepth),
+                waterQuality: waterReport.waterQuality.trim() || undefined,
+                tdsLevel: toOptionalNumber(waterReport.tdsLevel),
+                borewellCount: toOptionalNumber(waterReport.borewellCount),
+                borewellDepth: toOptionalNumber(waterReport.borewellDepth),
+                canalDistance: toOptionalNumber(waterReport.canalDistance),
+                riverDistance: toOptionalNumber(waterReport.riverDistance),
+                rainfallAvg: toOptionalNumber(waterReport.rainfallAvg),
+                reportUrl: waterReport.reportUrl.trim() || undefined,
+                testedAt: waterReport.testedAt || undefined,
+              }
+            : undefined,
+        legalCheck: legalReport.titleStatus.trim()
+          ? {
+              titleStatus: legalReport.titleStatus.trim(),
+              encumbranceCheck: legalReport.encumbranceCheck,
+              encumbranceResult: legalReport.encumbranceResult.trim() || undefined,
+              litigationCheck: legalReport.litigationCheck,
+              litigationResult: legalReport.litigationResult.trim() || undefined,
+              naOrderVerified: legalReport.naOrderVerified,
+              tpSchemeVerified: legalReport.tpSchemeVerified,
+              revenueRecordOk: legalReport.revenueRecordOk,
+              reportUrl: legalReport.reportUrl.trim() || undefined,
+            }
+          : undefined,
+        videos: uploadedVideos.map((video, index) => ({
+          url: video.url,
+          publicId: video.publicId,
+          title: video.title || `Listing video ${index + 1}`,
+          thumbnailUrl: video.thumbnailUrl,
+          isPrimary: index === 0,
+          order: index,
+        })),
+        documents: uploadedDocuments.map((document) => ({
+          name: document.name,
+          url: document.url,
+          publicId: document.publicId,
+          type: document.type,
+        })),
+        droneMap: droneMap?.mapUrl
+          ? {
+              mapUrl: droneMap.mapUrl,
+              thumbnailUrl: droneMap.thumbnailUrl || droneMap.mapUrl,
+              resolution: droneMap.resolution || undefined,
+              capturedAt: droneMap.capturedAt || undefined,
+              notes: droneMap.notes || undefined,
+            }
+          : undefined,
       };
 
       const res = await fetch(`${API_BASE}/properties`, {
@@ -837,6 +1239,280 @@ export default function NewPropertyPage() {
             </div>
           </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.43 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gold/10 rounded-lg">
+                <MapPin className="w-4 h-4 text-gold" />
+              </div>
+              <h2 className="font-display text-xl font-semibold text-cream">
+                Nearby Locations
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {nearbyLocations.map((location, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-[1.6fr_0.8fr_1fr_auto] gap-3">
+                  <input
+                    value={location.name}
+                    onChange={(e) => updateNearbyLocation(index, "name", e.target.value)}
+                    placeholder="Location name"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={location.distanceKm}
+                    onChange={(e) => updateNearbyLocation(index, "distanceKm", e.target.value)}
+                    placeholder="Distance (km)"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40"
+                  />
+                  <input
+                    value={location.category}
+                    onChange={(e) => updateNearbyLocation(index, "category", e.target.value)}
+                    placeholder="Type e.g. School"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeNearbyLocation(index)}
+                    className="px-4 py-3 text-sm font-body text-red-400 border border-red-500/20 rounded-xl hover:bg-red-500/10"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-cream/35">Add up to 7 nearby landmarks, schools, roads, or hubs.</p>
+                <button
+                  type="button"
+                  onClick={addNearbyLocation}
+                  disabled={nearbyLocations.length >= 7}
+                  className="px-4 py-2 text-xs font-body text-gold border border-gold/20 rounded-lg disabled:opacity-40"
+                >
+                  Add Nearby Location
+                </button>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.44 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gold/10 rounded-lg">
+                <Layers className="w-4 h-4 text-gold" />
+              </div>
+              <h2 className="font-display text-xl font-semibold text-cream">
+                Seller Data
+              </h2>
+            </div>
+
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-body text-cream/60 mb-2">Soil Type</label>
+                  <input name="soilType" value={form.soilType} onChange={handleChange} placeholder="e.g., Black cotton soil" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+                </div>
+                <div>
+                  <label className="block text-sm font-body text-cream/60 mb-2">Water Source</label>
+                  <input name="waterSource" value={form.waterSource} onChange={handleChange} placeholder="e.g., Borewell, canal" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-body text-cream/60 mb-2">Irrigation</label>
+                  <input name="irrigation" value={form.irrigation} onChange={handleChange} placeholder="e.g., Drip irrigation" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+                </div>
+                <div>
+                  <label className="block text-sm font-body text-cream/60 mb-2">Annual Yield</label>
+                  <input name="annualYield" value={form.annualYield} onChange={handleChange} placeholder="e.g., 120 quintals soybean" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-body text-cream/60 mb-2">Crop History</label>
+                <textarea name="cropHistory" value={form.cropHistory} onChange={handleChange} rows={3} placeholder="Past crops, seasons, rotations..." className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40 resize-none" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-body text-cream/60 mb-2">Ownership Type</label>
+                  <input name="ownershipType" value={form.ownershipType} onChange={handleChange} placeholder="e.g., Freehold" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+                </div>
+                <div>
+                  <label className="block text-sm font-body text-cream/60 mb-2">Survey Number</label>
+                  <input name="surveyNumber" value={form.surveyNumber} onChange={handleChange} placeholder="Survey / plot reference" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" name="hasClearTitle" checked={form.hasClearTitle} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
+                  <span className="text-sm font-body text-cream/60">Clear title available</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" name="isDisputeFree" checked={form.isDisputeFree} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
+                  <span className="text-sm font-body text-cream/60">Dispute free</span>
+                </label>
+              </div>
+
+              {selectedPlanCategory === "RESIDENTIAL_PLOT" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="isNAOrder" checked={form.isNAOrder} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
+                    <span className="text-sm font-body text-cream/60">NA Order</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="isTPScheme" checked={form.isTPScheme} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
+                    <span className="text-sm font-body text-cream/60">TP Scheme</span>
+                  </label>
+                  <input name="zonalType" value={form.zonalType} onChange={handleChange} placeholder="Zonal type" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-body text-cream/60 mb-2">Encumbrance Notes</label>
+                <textarea name="encumbrance" value={form.encumbrance} onChange={handleChange} rows={3} placeholder="Loan, lien, or legal remarks if any" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40 resize-none" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.46 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
+          >
+            <h2 className="font-display text-xl font-semibold text-cream mb-6">Soil Report Submission</h2>
+            {!supportsSoilReports && (
+              <p className="-mt-3 mb-5 text-xs text-earth-terracotta">
+                Your current plan does not include soil reports. Upgrade to unlock this section.
+              </p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <input value={soilReport.soilType} onChange={(e) => setSoilReport((prev) => ({ ...prev, soilType: e.target.value }))} placeholder="Report soil type" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input value={soilReport.texture} onChange={(e) => setSoilReport((prev) => ({ ...prev, texture: e.target.value }))} placeholder="Texture" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.ph} onChange={(e) => setSoilReport((prev) => ({ ...prev, ph: e.target.value }))} placeholder="pH" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input value={soilReport.fertility} onChange={(e) => setSoilReport((prev) => ({ ...prev, fertility: e.target.value }))} placeholder="Fertility" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.nitrogen} onChange={(e) => setSoilReport((prev) => ({ ...prev, nitrogen: e.target.value }))} placeholder="Nitrogen" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.phosphorus} onChange={(e) => setSoilReport((prev) => ({ ...prev, phosphorus: e.target.value }))} placeholder="Phosphorus" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.potassium} onChange={(e) => setSoilReport((prev) => ({ ...prev, potassium: e.target.value }))} placeholder="Potassium" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.01" value={soilReport.organicCarbon} onChange={(e) => setSoilReport((prev) => ({ ...prev, organicCarbon: e.target.value }))} placeholder="Organic carbon %" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="date" value={soilReport.testedAt} onChange={(e) => setSoilReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm focus:outline-none focus:border-gold/40" />
+              <input value={soilReport.reportUrl} onChange={(e) => setSoilReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+            </div>
+            <label className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsSoilReports ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+              {uploadingReportField === "soil" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {supportsSoilReports ? "Upload Soil Report" : "Soil Report Locked"}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                disabled={!supportsSoilReports}
+                onChange={(event) => {
+                  if (event.target.files) handleReportUpload("soil", event.target.files);
+                  event.target.value = "";
+                }}
+                className="hidden"
+              />
+            </label>
+            <textarea value={soilReport.suitableCrops} onChange={(e) => setSoilReport((prev) => ({ ...prev, suitableCrops: e.target.value }))} rows={3} placeholder="Suitable crops (comma separated)" className="w-full mt-5 px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40 resize-none" />
+            <p className="mt-3 text-xs text-cream/35">Submitted soil reports will remain pending until admin approval.</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.47 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
+          >
+            <h2 className="font-display text-xl font-semibold text-cream mb-6">Water Report Submission</h2>
+            {!supportsWaterReports && (
+              <p className="-mt-3 mb-5 text-xs text-earth-terracotta">
+                Your current plan does not include water reports. Upgrade to unlock this section.
+              </p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <input type="number" step="0.1" value={waterReport.waterTableDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterTableDepth: e.target.value }))} placeholder="Water table depth (ft)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input value={waterReport.waterQuality} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterQuality: e.target.value }))} placeholder="Water quality" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.tdsLevel} onChange={(e) => setWaterReport((prev) => ({ ...prev, tdsLevel: e.target.value }))} placeholder="TDS level" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" value={waterReport.borewellCount} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellCount: e.target.value }))} placeholder="Borewell count" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.borewellDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellDepth: e.target.value }))} placeholder="Borewell depth" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.canalDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, canalDistance: e.target.value }))} placeholder="Canal distance (km)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.riverDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, riverDistance: e.target.value }))} placeholder="River distance (km)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.rainfallAvg} onChange={(e) => setWaterReport((prev) => ({ ...prev, rainfallAvg: e.target.value }))} placeholder="Average rainfall (mm/year)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input type="date" value={waterReport.testedAt} onChange={(e) => setWaterReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm focus:outline-none focus:border-gold/40" />
+              <input value={waterReport.reportUrl} onChange={(e) => setWaterReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Water report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+            </div>
+            <label className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsWaterReports ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+              {uploadingReportField === "water" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {supportsWaterReports ? "Upload Water Report" : "Water Report Locked"}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                disabled={!supportsWaterReports}
+                onChange={(event) => {
+                  if (event.target.files) handleReportUpload("water", event.target.files);
+                  event.target.value = "";
+                }}
+                className="hidden"
+              />
+            </label>
+            <p className="mt-3 text-xs text-cream/35">Water reports are hidden from buyers until admin approval.</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.48 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-8"
+          >
+            <h2 className="font-display text-xl font-semibold text-cream mb-6">Legal Check Submission</h2>
+            {!supportsLegalReports && (
+              <p className="-mt-3 mb-5 text-xs text-earth-terracotta">
+                Your current plan does not include legal verification data. Upgrade to unlock this section.
+              </p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <input value={legalReport.titleStatus} onChange={(e) => setLegalReport((prev) => ({ ...prev, titleStatus: e.target.value }))} placeholder="Title status e.g. clear" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input value={legalReport.reportUrl} onChange={(e) => setLegalReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Legal report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input value={legalReport.encumbranceResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceResult: e.target.value }))} placeholder="Encumbrance result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+              <input value={legalReport.litigationResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationResult: e.target.value }))} placeholder="Litigation result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
+            </div>
+            <label className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsLegalReports ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+              {uploadingReportField === "legal" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {supportsLegalReports ? "Upload Legal Report" : "Legal Report Locked"}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                disabled={!supportsLegalReports}
+                onChange={(event) => {
+                  if (event.target.files) handleReportUpload("legal", event.target.files);
+                  event.target.value = "";
+                }}
+                className="hidden"
+              />
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.encumbranceCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Encumbrance checked</span></label>
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.litigationCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Litigation checked</span></label>
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.naOrderVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, naOrderVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">NA order verified</span></label>
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.tpSchemeVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, tpSchemeVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">TP scheme verified</span></label>
+              <label className="flex items-center gap-3 cursor-pointer md:col-span-2"><input type="checkbox" checked={legalReport.revenueRecordOk} onChange={(e) => setLegalReport((prev) => ({ ...prev, revenueRecordOk: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Revenue records matched</span></label>
+            </div>
+            <p className="mt-3 text-xs text-cream/35">Legal checks become visible as verified only after admin approval.</p>
+          </motion.div>
+
           {/* Section: Property Images */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -921,6 +1597,243 @@ export default function NewPropertyPage() {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.46 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gold/10 rounded-lg">
+                  <Video className="w-4 h-4 text-gold" />
+                </div>
+                <div>
+                  <h2 className="font-display text-xl font-semibold text-cream">Listing Videos</h2>
+                  <p className="text-xs text-cream/35 mt-1">Upload walkthrough videos for supported plans.</p>
+                  {!supportsVideos && (
+                    <p className="mt-2 text-xs text-earth-terracotta">
+                      Your current plan does not include listing videos.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <span className="text-xs font-body text-cream/40">
+                {uploadedVideos.length} / {selectedPlan?.maxVideos === -1 ? "Unlimited" : selectedPlan?.maxVideos ?? 0} videos
+              </span>
+            </div>
+
+            <div className="rounded-xl border border-dashed border-cream/10 bg-onyx-800/20 p-5">
+              <label className={`inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsVideos ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+                {uploadingVideos ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {supportsVideos ? "Upload Videos" : "Video Upload Locked"}
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  multiple
+                  disabled={!supportsVideos}
+                  onChange={(event) => {
+                    if (event.target.files) handleVideoUpload(event.target.files);
+                    event.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+              <p className="mt-2 text-xs text-cream/35">
+                {supportsVideos ? "MP4, WebM, or MOV up to 100MB each." : "Upgrade to a plan with video support to use this section."}
+              </p>
+            </div>
+
+            {uploadedVideos.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {uploadedVideos.map((video, index) => (
+                  <div key={video.publicId} className="rounded-xl border border-cream/8 bg-onyx-800/30 p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                      <video src={video.url} controls className="h-28 w-full rounded-lg bg-black md:w-56" />
+                      <div className="flex-1">
+                        <label className="mb-2 block text-xs uppercase tracking-wide text-cream/40">Video Title</label>
+                        <input
+                          value={video.title}
+                          onChange={(event) =>
+                            setUploadedVideos((prev) =>
+                              prev.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, title: event.target.value } : item
+                              )
+                            )
+                          }
+                          className="w-full rounded-xl border border-cream/10 bg-onyx-900/40 px-4 py-3 text-sm text-cream focus:border-gold/40 focus:outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setUploadedVideos((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}
+                        className="self-start rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 hover:bg-red-500/10"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.47 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gold/10 rounded-lg">
+                <FileArchive className="w-4 h-4 text-gold" />
+              </div>
+              <div>
+                <h2 className="font-display text-xl font-semibold text-cream">Property Documents</h2>
+                <p className="text-xs text-cream/35 mt-1">Upload brochure, title proof, maps, extracts, or approvals.</p>
+              </div>
+            </div>
+
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
+              {uploadingDocuments ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              Upload Documents
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,image/jpeg,image/png"
+                multiple
+                onChange={(event) => {
+                  if (event.target.files) handleDocumentUpload(event.target.files);
+                  event.target.value = "";
+                }}
+                className="hidden"
+              />
+            </label>
+
+            {uploadedDocuments.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {uploadedDocuments.map((document, index) => (
+                  <div key={document.publicId} className="grid gap-3 rounded-xl border border-cream/8 bg-onyx-800/30 p-4 md:grid-cols-[1.3fr_1fr_auto]">
+                    <div>
+                      <label className="mb-2 block text-xs uppercase tracking-wide text-cream/40">Document Name</label>
+                      <input
+                        value={document.name}
+                        onChange={(event) =>
+                          setUploadedDocuments((prev) =>
+                            prev.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, name: event.target.value } : item
+                            )
+                          )
+                        }
+                        className="w-full rounded-xl border border-cream/10 bg-onyx-900/40 px-4 py-3 text-sm text-cream focus:border-gold/40 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-xs uppercase tracking-wide text-cream/40">Type</label>
+                      <select
+                        value={document.type}
+                        onChange={(event) =>
+                          setUploadedDocuments((prev) =>
+                            prev.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, type: event.target.value } : item
+                            )
+                          )
+                        }
+                        className="w-full rounded-xl border border-cream/10 bg-onyx-900/40 px-4 py-3 text-sm text-cream focus:border-gold/40 focus:outline-none"
+                      >
+                        <option value="supporting_document">Supporting Document</option>
+                        <option value="title_deed">Title Deed</option>
+                        <option value="7_12_extract">7/12 Extract</option>
+                        <option value="mutation">Mutation</option>
+                        <option value="site_map">Site Map</option>
+                        <option value="approval">Approval</option>
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setUploadedDocuments((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}
+                      className="self-end rounded-lg border border-red-500/20 px-3 py-2 text-xs text-red-400 hover:bg-red-500/10"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.48 }}
+            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-8"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gold/10 rounded-lg">
+                <Satellite className="w-4 h-4 text-gold" />
+              </div>
+              <div>
+                <h2 className="font-display text-xl font-semibold text-cream">Drone Map</h2>
+                <p className="text-xs text-cream/35 mt-1">Add an orthographic survey or plotted drone view if your plan supports it.</p>
+                {!supportsDroneMap && (
+                  <p className="mt-2 text-xs text-earth-terracotta">
+                    Your current plan does not include drone maps.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <label className={`inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsDroneMap ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+              {uploadingDocuments ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {supportsDroneMap ? "Upload Drone Map" : "Drone Map Locked"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={!supportsDroneMap}
+                onChange={(event) => {
+                  if (event.target.files) handleDroneMapUpload(event.target.files);
+                  event.target.value = "";
+                }}
+                className="hidden"
+              />
+            </label>
+
+            {droneMap?.mapUrl && (
+              <div className="mt-4 space-y-4">
+                <img src={droneMap.mapUrl} alt="Drone map preview" className="h-56 w-full rounded-xl object-cover" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <input
+                    value={droneMap.resolution}
+                    onChange={(event) => setDroneMap((prev) => prev ? { ...prev, resolution: event.target.value } : prev)}
+                    placeholder="Resolution e.g. 5cm/px"
+                    className="w-full rounded-xl border border-cream/10 bg-onyx-900/40 px-4 py-3 text-sm text-cream focus:border-gold/40 focus:outline-none"
+                  />
+                  <input
+                    type="date"
+                    value={droneMap.capturedAt ? droneMap.capturedAt.slice(0, 10) : ""}
+                    onChange={(event) =>
+                      setDroneMap((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              capturedAt: event.target.value ? new Date(event.target.value).toISOString() : "",
+                            }
+                          : prev
+                      )
+                    }
+                    className="w-full rounded-xl border border-cream/10 bg-onyx-900/40 px-4 py-3 text-sm text-cream focus:border-gold/40 focus:outline-none"
+                  />
+                </div>
+                <textarea
+                  value={droneMap.notes}
+                  onChange={(event) => setDroneMap((prev) => prev ? { ...prev, notes: event.target.value } : prev)}
+                  rows={3}
+                  placeholder="Drone capture notes, survey boundary context, or quality remarks"
+                  className="w-full rounded-xl border border-cream/10 bg-onyx-900/40 px-4 py-3 text-sm text-cream focus:border-gold/40 focus:outline-none"
+                />
               </div>
             )}
           </motion.div>

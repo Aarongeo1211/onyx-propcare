@@ -2,6 +2,7 @@ import { Router } from "express";
 import { PlanCategory, PlanType, prisma } from "@onyx/db";
 import { getSingleQueryParam } from "../utils/request";
 import { logger } from "../lib/logger";
+import { getRazorpayPublicConfig } from "../services/razorpay";
 
 export const planRoutes = Router();
 
@@ -29,7 +30,15 @@ planRoutes.get("/", async (req, res) => {
       orderBy: [{ sortOrder: "asc" }, { price: "asc" }],
     });
 
-    res.json({ success: true, data: plans });
+    const paymentConfig = getRazorpayPublicConfig();
+
+    res.json({
+      success: true,
+      data: plans,
+      meta: {
+        paymentsEnabled: paymentConfig.enabled,
+      },
+    });
   } catch (err) {
     logger.error({ err }, "Error fetching plans");
     res.status(500).json({ success: false, error: "Failed to fetch plans" });

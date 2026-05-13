@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -25,6 +25,20 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const setGoogleRoleCookie = () => {
+    document.cookie = "onyx-auth-role=BUYER; Path=/; Max-Age=600; SameSite=Lax";
+  };
+
+  const redirectAfterAuth = async () => {
+    const session = await getSession();
+    const role = session?.user?.role;
+    router.push(
+      role === "SELLER" || role === "AGENT" || role === "ADMIN" || role === "SUPER_ADMIN"
+        ? "/dashboard"
+        : "/"
+    );
+    router.refresh();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +55,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push("/");
-        router.refresh();
+        await redirectAfterAuth();
       }
     } catch {
       setError("An unexpected error occurred");
@@ -274,7 +287,10 @@ export default function LoginPage() {
           <motion.div custom={7} variants={fadeUp} className="mt-6">
             <button
               type="button"
-              onClick={() => signIn("google", { callbackUrl: "/" })}
+              onClick={() => {
+                setGoogleRoleCookie();
+                signIn("google", { callbackUrl: "/auth/complete" });
+              }}
               className="w-full h-12 flex items-center justify-center gap-3 rounded-lg border border-cream/10 bg-onyx-900/40 hover:bg-onyx-900/70 hover:border-cream/20 transition-all duration-300 group"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">

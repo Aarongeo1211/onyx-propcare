@@ -37,6 +37,20 @@ interface PropertyImage {
   order: number;
 }
 
+interface PropertyVideo {
+  id: string;
+  url: string;
+  title: string | null;
+  thumbnailUrl: string | null;
+}
+
+interface PropertyDocument {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+}
+
 interface SoilData {
   soilType: string;
   ph: number | null;
@@ -48,6 +62,7 @@ interface SoilData {
   fertility: string | null;
   suitableCrops: string | null;
   testedAt: string | null;
+  reportUrl?: string | null;
 }
 
 interface WaterData {
@@ -60,9 +75,11 @@ interface WaterData {
   riverDistance: number | null;
   rainfallAvg: number | null;
   testedAt: string | null;
+  reportUrl?: string | null;
 }
 
 interface LegalCheck {
+  approvalStatus: string;
   titleStatus: string;
   encumbranceCheck: boolean;
   encumbranceResult: string | null;
@@ -71,6 +88,7 @@ interface LegalCheck {
   revenueRecordOk: boolean;
   verifiedBy: string | null;
   verifiedAt: string | null;
+  reportUrl?: string | null;
 }
 
 interface DroneMap {
@@ -101,6 +119,7 @@ interface PropertyDetail {
   pincode: string | null;
   latitude: number | null;
   longitude: number | null;
+  nearbyLocations: Array<{ name: string; distanceKm: number; category?: string | null }> | null;
   totalArea: number;
   areaUnit: string;
   facing: string | null;
@@ -113,6 +132,8 @@ interface PropertyDetail {
   isFeatured: boolean;
   viewCount: number;
   images: PropertyImage[];
+  videos: PropertyVideo[];
+  documents: PropertyDocument[];
   owner: { id: string; name: string; avatar: string | null; phone: string | null };
   soilData: SoilData | null;
   waterData: WaterData | null;
@@ -144,7 +165,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
     async function load() {
       try {
         const res = await apiFetch<{ success: boolean; data: PropertyDetail }>(
-          `/properties/${resolvedParams.slug}`
+          `/properties/${resolvedParams.slug}`,
+          session?.user?.accessToken ? { token: session.user.accessToken } : undefined
         );
         setProperty(res.data);
 
@@ -325,7 +347,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
                   {getPropertyTypeLabel(property.type)}
                 </Badge>
                 {property.listingType === "LEASE" && <Badge variant="outline">Lease</Badge>}
-                {property.hasClearTitle && (
+                {property.legalCheck?.approvalStatus === "APPROVED" && (
                   <Badge variant="success">
                     <ShieldCheck className="w-3 h-3 mr-1" />
                     Verified
@@ -391,6 +413,77 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
                 {property.description}
               </div>
             </motion.div>
+
+            {property.nearbyLocations && property.nearbyLocations.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18 }}
+                className="mb-10"
+              >
+                <h2 className="font-display text-xl font-semibold text-cream mb-4">Nearby Locations</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {property.nearbyLocations.slice(0, 7).map((location, index) => (
+                    <div key={`${location.name}-${index}`} className="rounded-xl border border-cream/8 bg-onyx-900/30 p-4">
+                      <p className="text-sm font-medium text-cream">{location.name}</p>
+                      <p className="text-xs text-cream/35 mt-1">
+                        {location.distanceKm} km away
+                        {location.category ? ` • ${location.category}` : ""}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {property.videos && property.videos.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.19 }}
+                className="mb-10"
+              >
+                <h2 className="font-display text-xl font-semibold text-cream mb-4">Walkthrough Videos</h2>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {property.videos.map((video) => (
+                    <div key={video.id} className="rounded-xl border border-cream/8 bg-onyx-900/30 p-4">
+                      <video
+                        src={video.url}
+                        controls
+                        className="h-64 w-full rounded-lg bg-black object-cover"
+                        poster={video.thumbnailUrl || undefined}
+                      />
+                      <p className="mt-3 text-sm font-medium text-cream">{video.title || "Listing video"}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {property.documents && property.documents.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.195 }}
+                className="mb-10"
+              >
+                <h2 className="font-display text-xl font-semibold text-cream mb-4">Documents</h2>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {property.documents.map((document) => (
+                    <a
+                      key={document.id}
+                      href={document.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-xl border border-cream/8 bg-onyx-900/30 p-4 transition-colors hover:border-gold/20 hover:bg-onyx-900/50"
+                    >
+                      <p className="text-sm font-medium text-cream">{document.name}</p>
+                      <p className="mt-1 text-xs uppercase tracking-wide text-cream/35">{document.type.replace(/_/g, " ")}</p>
+                    </a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
             {/* ── Data Tabs ───────────────────────────────── */}
             {hasDataTabs && (
@@ -685,6 +778,11 @@ function SoilDataTab({ data }: { data: SoilData }) {
       {data.testedAt && (
         <p className="text-xs text-cream/25">Tested on {new Date(data.testedAt).toLocaleDateString("en-IN")}</p>
       )}
+      {data.reportUrl && (
+        <a href={data.reportUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm text-gold hover:text-gold-light">
+          Open soil report
+        </a>
+      )}
     </div>
   );
 }
@@ -703,6 +801,11 @@ function WaterDataTab({ data }: { data: WaterData }) {
       </div>
       {data.testedAt && (
         <p className="text-xs text-cream/25">Tested on {new Date(data.testedAt).toLocaleDateString("en-IN")}</p>
+      )}
+      {data.reportUrl && (
+        <a href={data.reportUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm text-gold hover:text-gold-light">
+          Open water report
+        </a>
       )}
     </div>
   );
@@ -738,6 +841,11 @@ function LegalCheckTab({ data }: { data: LegalCheck }) {
           Verified by {data.verifiedBy}
           {data.verifiedAt && ` on ${new Date(data.verifiedAt).toLocaleDateString("en-IN")}`}
         </p>
+      )}
+      {data.reportUrl && (
+        <a href={data.reportUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm text-gold hover:text-gold-light">
+          Open legal report
+        </a>
       )}
     </div>
   );

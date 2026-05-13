@@ -25,22 +25,28 @@ function formatLimit(value: number, label: string) {
 export default function DashboardSubscriptionPage() {
   const { data: session } = useSession();
   const [usage, setUsage] = useState<SubscriptionUsage | null>(null);
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchUsage() {
-      if (!session?.user?.accessToken) {
-        return;
-      }
-
       try {
-        const response = await fetch(`${API_BASE}/subscriptions/my/usage`, {
-          headers: { Authorization: `Bearer ${session.user.accessToken}` },
-        });
-        const payload = await response.json();
+        const plansResponse = await fetch(`${API_BASE}/plans`);
+        const plansPayload = await plansResponse.json();
 
-        if (payload.success) {
-          setUsage(payload.data ?? null);
+        if (plansPayload.success) {
+          setPaymentsEnabled(Boolean(plansPayload.meta?.paymentsEnabled));
+        }
+
+        if (session?.user?.accessToken) {
+          const response = await fetch(`${API_BASE}/subscriptions/my/usage`, {
+            headers: { Authorization: `Bearer ${session.user.accessToken}` },
+          });
+          const payload = await response.json();
+
+          if (payload.success) {
+            setUsage(payload.data ?? null);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch subscription usage:", error);
@@ -89,10 +95,18 @@ export default function DashboardSubscriptionPage() {
             <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-cream/50">
               Activate a pack to unlock category-aware listing limits, featured placement, and the media allowance tied to your seller inventory.
             </p>
+            {!paymentsEnabled && (
+              <div className="mx-auto mt-5 max-w-lg rounded-2xl border border-earth-green/20 bg-earth-green/10 px-4 py-3 text-left text-sm text-cream/65">
+                <p className="font-medium text-earth-green">Free seller onboarding is available now.</p>
+                <p className="mt-1">
+                  Paid packs will unlock here automatically once Razorpay is configured in production.
+                </p>
+              </div>
+            )}
             <Link href="/pricing" className="mt-8 inline-flex">
               <Button>
                 <Sparkles className="h-4 w-4" />
-                View Plans
+                {paymentsEnabled ? "View Plans" : "Start With Free Plan"}
               </Button>
             </Link>
           </div>
