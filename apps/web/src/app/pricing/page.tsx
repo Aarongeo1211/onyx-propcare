@@ -328,7 +328,7 @@ export default function PricingPage() {
                 {freePlan?.name ?? "Free listing pack"}
               </h2>
               <p className="mt-3 text-sm text-cream/55">
-                A lightweight entry pack for trying the workflow, validating seller access, and publishing one basic listing.
+                A lightweight entry pack for trying the workflow, validating seller access, and publishing up to 10 listings.
               </p>
 
               <div className="mt-6 flex items-end gap-2">
@@ -337,7 +337,7 @@ export default function PricingPage() {
               </div>
 
               <div className="mt-6 space-y-3">
-                {(freePlan?.features ?? ["Basic listing", "Low visibility", "1 listing slot"]).map((feature) => (
+                {(freePlan?.features ?? ["Basic listing", "Low visibility", "10 listing slots"]).map((feature) => (
                   <div key={feature} className="flex items-start gap-3 text-sm text-cream/70">
                     <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-earth-green" />
                     <span>{feature}</span>

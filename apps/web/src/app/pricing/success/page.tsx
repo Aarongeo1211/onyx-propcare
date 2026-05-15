@@ -9,7 +9,7 @@ import { ArrowRight, Check, Sparkles } from "lucide-react";
 const PLAN_CONTENT: Record<string, { title: string; description: string }> = {
   FREE_ALL: {
     title: "Free Pack Activated",
-    description: "You can now publish one basic listing and test the full seller workflow before moving to a paid plan.",
+    description: "You can now publish up to 10 listings and test the full seller workflow before moving to a paid plan.",
   },
   BASIC_FARMLAND: {
     title: "Basic Farmland Pack Activated",

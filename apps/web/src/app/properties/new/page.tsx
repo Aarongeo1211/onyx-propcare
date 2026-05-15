@@ -234,49 +234,6 @@ export default function NewPropertyPage() {
 
   const maxImages = selectedPlan?.maxImages ?? 0;
   const hasUnlimitedImages = maxImages === -1;
-  const supportsSoilReports = Boolean(selectedPlan?.hasSoilData);
-  const supportsWaterReports = Boolean(selectedPlan?.hasWaterData);
-  const supportsLegalReports = Boolean(selectedPlan?.hasLegalCheck);
-  const supportsDroneMap = Boolean(selectedPlan?.hasDroneMap);
-  const supportsVideos = Boolean(selectedPlan && selectedPlan.maxVideos !== 0);
-
-  const hasSoilSubmission = Boolean(
-    soilReport.soilType.trim() ||
-    soilReport.ph ||
-    soilReport.nitrogen ||
-    soilReport.phosphorus ||
-    soilReport.potassium ||
-    soilReport.organicCarbon ||
-    soilReport.texture.trim() ||
-    soilReport.fertility.trim() ||
-    soilReport.suitableCrops.trim() ||
-    soilReport.reportUrl.trim() ||
-    soilReport.testedAt
-  );
-  const hasWaterSubmission = Boolean(
-    waterReport.waterTableDepth ||
-    waterReport.waterQuality.trim() ||
-    waterReport.tdsLevel ||
-    waterReport.borewellCount ||
-    waterReport.borewellDepth ||
-    waterReport.canalDistance ||
-    waterReport.riverDistance ||
-    waterReport.rainfallAvg ||
-    waterReport.reportUrl.trim() ||
-    waterReport.testedAt
-  );
-  const hasLegalSubmission = Boolean(
-    legalReport.titleStatus.trim() ||
-    legalReport.encumbranceCheck ||
-    legalReport.encumbranceResult.trim() ||
-    legalReport.litigationCheck ||
-    legalReport.litigationResult.trim() ||
-    legalReport.naOrderVerified ||
-    legalReport.tpSchemeVerified ||
-    legalReport.revenueRecordOk ||
-    legalReport.reportUrl.trim()
-  );
-
   const handleImageUpload = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     const allowed = fileArray.filter(
@@ -341,11 +298,6 @@ export default function NewPropertyPage() {
   );
 
   const handleVideoUpload = useCallback(async (files: FileList | File[]) => {
-    if (!supportsVideos) {
-      setError("Your current plan does not include listing videos.");
-      return;
-    }
-
     setUploadingVideos(true);
     setError(null);
 
@@ -363,7 +315,7 @@ export default function NewPropertyPage() {
     } finally {
       setUploadingVideos(false);
     }
-  }, [supportsVideos, uploadFiles]);
+  }, [uploadFiles]);
 
   const handleDocumentUpload = useCallback(async (files: FileList | File[]) => {
     setUploadingDocuments(true);
@@ -390,19 +342,6 @@ export default function NewPropertyPage() {
     reportKind: "soil" | "water" | "legal",
     files: FileList | File[]
   ) => {
-    if (reportKind === "soil" && !supportsSoilReports) {
-      setError("Your current plan does not include soil reports.");
-      return;
-    }
-    if (reportKind === "water" && !supportsWaterReports) {
-      setError("Your current plan does not include water reports.");
-      return;
-    }
-    if (reportKind === "legal" && !supportsLegalReports) {
-      setError("Your current plan does not include legal verification data.");
-      return;
-    }
-
     setUploadingReportField(reportKind);
     setError(null);
 
@@ -424,14 +363,9 @@ export default function NewPropertyPage() {
     } finally {
       setUploadingReportField(null);
     }
-  }, [supportsLegalReports, supportsSoilReports, supportsWaterReports, uploadFiles]);
+  }, [uploadFiles]);
 
   const handleDroneMapUpload = useCallback(async (files: FileList | File[]) => {
-    if (!supportsDroneMap) {
-      setError("Your current plan does not include drone maps.");
-      return;
-    }
-
     setUploadingDocuments(true);
     setError(null);
 
@@ -461,7 +395,7 @@ export default function NewPropertyPage() {
     } finally {
       setUploadingDocuments(false);
     }
-  }, [session, supportsDroneMap]);
+  }, [session]);
 
   const removeImage = async (index: number) => {
     const img = uploadedImages[index];
@@ -502,32 +436,6 @@ export default function NewPropertyPage() {
     setSubmitting(true);
 
     try {
-      if (hasSoilSubmission && !supportsSoilReports) {
-        setError("Your current plan does not include soil reports.");
-        setSubmitting(false);
-        return;
-      }
-      if (hasWaterSubmission && !supportsWaterReports) {
-        setError("Your current plan does not include water reports.");
-        setSubmitting(false);
-        return;
-      }
-      if (hasLegalSubmission && !supportsLegalReports) {
-        setError("Your current plan does not include legal verification data.");
-        setSubmitting(false);
-        return;
-      }
-      if (uploadedVideos.length > 0 && !supportsVideos) {
-        setError("Your current plan does not include listing videos.");
-        setSubmitting(false);
-        return;
-      }
-      if (droneMap?.mapUrl && !supportsDroneMap) {
-        setError("Your current plan does not include drone maps.");
-        setSubmitting(false);
-        return;
-      }
-
       const payload = {
         title: form.title,
         description: form.description,
@@ -796,12 +704,9 @@ export default function NewPropertyPage() {
                 icon: Camera,
               },
               {
-                label:
-                  selectedPlan?.maxVideos && selectedPlan.maxVideos > 0
-                    ? `${selectedPlan.maxVideos} video limit`
-                    : "No video uploads",
-                available: Boolean(selectedPlan?.maxVideos && selectedPlan.maxVideos > 0),
-                icon: Camera,
+                label: "Videos, reports, and drone uploads enabled",
+                available: true,
+                icon: Video,
               },
               {
                 label: `${eligiblePlans.length} eligible pack${eligiblePlans.length === 1 ? "" : "s"}`,
@@ -1395,11 +1300,6 @@ export default function NewPropertyPage() {
             className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
           >
             <h2 className="font-display text-xl font-semibold text-cream mb-6">Soil Report Submission</h2>
-            {!supportsSoilReports && (
-              <p className="-mt-3 mb-5 text-xs text-earth-terracotta">
-                Your current plan does not include soil reports. Upgrade to unlock this section.
-              </p>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input value={soilReport.soilType} onChange={(e) => setSoilReport((prev) => ({ ...prev, soilType: e.target.value }))} placeholder="Report soil type" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
               <input value={soilReport.texture} onChange={(e) => setSoilReport((prev) => ({ ...prev, texture: e.target.value }))} placeholder="Texture" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
@@ -1412,13 +1312,12 @@ export default function NewPropertyPage() {
               <input type="date" value={soilReport.testedAt} onChange={(e) => setSoilReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm focus:outline-none focus:border-gold/40" />
               <input value={soilReport.reportUrl} onChange={(e) => setSoilReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
             </div>
-            <label className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsSoilReports ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+            <label className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
               {uploadingReportField === "soil" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {supportsSoilReports ? "Upload Soil Report" : "Soil Report Locked"}
+              Upload Soil Report
               <input
                 type="file"
                 accept=".pdf,.doc,.docx,image/jpeg,image/png"
-                disabled={!supportsSoilReports}
                 onChange={(event) => {
                   if (event.target.files) handleReportUpload("soil", event.target.files);
                   event.target.value = "";
@@ -1437,11 +1336,6 @@ export default function NewPropertyPage() {
             className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
           >
             <h2 className="font-display text-xl font-semibold text-cream mb-6">Water Report Submission</h2>
-            {!supportsWaterReports && (
-              <p className="-mt-3 mb-5 text-xs text-earth-terracotta">
-                Your current plan does not include water reports. Upgrade to unlock this section.
-              </p>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input type="number" step="0.1" value={waterReport.waterTableDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterTableDepth: e.target.value }))} placeholder="Water table depth (ft)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
               <input value={waterReport.waterQuality} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterQuality: e.target.value }))} placeholder="Water quality" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
@@ -1454,13 +1348,12 @@ export default function NewPropertyPage() {
               <input type="date" value={waterReport.testedAt} onChange={(e) => setWaterReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm focus:outline-none focus:border-gold/40" />
               <input value={waterReport.reportUrl} onChange={(e) => setWaterReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Water report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
             </div>
-            <label className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsWaterReports ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+            <label className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
               {uploadingReportField === "water" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {supportsWaterReports ? "Upload Water Report" : "Water Report Locked"}
+              Upload Water Report
               <input
                 type="file"
                 accept=".pdf,.doc,.docx,image/jpeg,image/png"
-                disabled={!supportsWaterReports}
                 onChange={(event) => {
                   if (event.target.files) handleReportUpload("water", event.target.files);
                   event.target.value = "";
@@ -1468,7 +1361,7 @@ export default function NewPropertyPage() {
                 className="hidden"
               />
             </label>
-            <p className="mt-3 text-xs text-cream/35">Water reports are hidden from buyers until admin approval.</p>
+            <p className="mt-3 text-xs text-cream/35">Water reports stay attached to the listing while admin approval metadata remains available for review.</p>
           </motion.div>
 
           <motion.div
@@ -1478,24 +1371,18 @@ export default function NewPropertyPage() {
             className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-8"
           >
             <h2 className="font-display text-xl font-semibold text-cream mb-6">Legal Check Submission</h2>
-            {!supportsLegalReports && (
-              <p className="-mt-3 mb-5 text-xs text-earth-terracotta">
-                Your current plan does not include legal verification data. Upgrade to unlock this section.
-              </p>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input value={legalReport.titleStatus} onChange={(e) => setLegalReport((prev) => ({ ...prev, titleStatus: e.target.value }))} placeholder="Title status e.g. clear" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
               <input value={legalReport.reportUrl} onChange={(e) => setLegalReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Legal report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
               <input value={legalReport.encumbranceResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceResult: e.target.value }))} placeholder="Encumbrance result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
               <input value={legalReport.litigationResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationResult: e.target.value }))} placeholder="Litigation result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40" />
             </div>
-            <label className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsLegalReports ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+            <label className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
               {uploadingReportField === "legal" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {supportsLegalReports ? "Upload Legal Report" : "Legal Report Locked"}
+              Upload Legal Report
               <input
                 type="file"
                 accept=".pdf,.doc,.docx,image/jpeg,image/png"
-                disabled={!supportsLegalReports}
                 onChange={(event) => {
                   if (event.target.files) handleReportUpload("legal", event.target.files);
                   event.target.value = "";
@@ -1614,28 +1501,22 @@ export default function NewPropertyPage() {
                 </div>
                 <div>
                   <h2 className="font-display text-xl font-semibold text-cream">Listing Videos</h2>
-                  <p className="text-xs text-cream/35 mt-1">Upload walkthrough videos for supported plans.</p>
-                  {!supportsVideos && (
-                    <p className="mt-2 text-xs text-earth-terracotta">
-                      Your current plan does not include listing videos.
-                    </p>
-                  )}
+                  <p className="text-xs text-cream/35 mt-1">Upload walkthrough videos for this listing.</p>
                 </div>
               </div>
               <span className="text-xs font-body text-cream/40">
-                {uploadedVideos.length} / {selectedPlan?.maxVideos === -1 ? "Unlimited" : selectedPlan?.maxVideos ?? 0} videos
+                {uploadedVideos.length} / 5 videos
               </span>
             </div>
 
             <div className="rounded-xl border border-dashed border-cream/10 bg-onyx-800/20 p-5">
-              <label className={`inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsVideos ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+              <label className="inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
                 {uploadingVideos ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                {supportsVideos ? "Upload Videos" : "Video Upload Locked"}
+                Upload Videos
                 <input
                   type="file"
                   accept="video/mp4,video/webm,video/quicktime"
                   multiple
-                  disabled={!supportsVideos}
                   onChange={(event) => {
                     if (event.target.files) handleVideoUpload(event.target.files);
                     event.target.value = "";
@@ -1643,9 +1524,7 @@ export default function NewPropertyPage() {
                   className="hidden"
                 />
               </label>
-              <p className="mt-2 text-xs text-cream/35">
-                {supportsVideos ? "MP4, WebM, or MOV up to 100MB each." : "Upgrade to a plan with video support to use this section."}
-              </p>
+              <p className="mt-2 text-xs text-cream/35">MP4, WebM, or MOV up to 100MB each.</p>
             </div>
 
             {uploadedVideos.length > 0 && (
@@ -1777,22 +1656,16 @@ export default function NewPropertyPage() {
               </div>
               <div>
                 <h2 className="font-display text-xl font-semibold text-cream">Drone Map</h2>
-                <p className="text-xs text-cream/35 mt-1">Add an orthographic survey or plotted drone view if your plan supports it.</p>
-                {!supportsDroneMap && (
-                  <p className="mt-2 text-xs text-earth-terracotta">
-                    Your current plan does not include drone maps.
-                  </p>
-                )}
+                <p className="text-xs text-cream/35 mt-1">Add an orthographic survey or plotted drone view for this listing.</p>
               </div>
             </div>
 
-            <label className={`inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold ${supportsDroneMap ? "cursor-pointer hover:bg-gold/10" : "cursor-not-allowed opacity-50"}`}>
+            <label className="inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
               {uploadingDocuments ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {supportsDroneMap ? "Upload Drone Map" : "Drone Map Locked"}
+              Upload Drone Map
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                disabled={!supportsDroneMap}
                 onChange={(event) => {
                   if (event.target.files) handleDroneMapUpload(event.target.files);
                   event.target.value = "";

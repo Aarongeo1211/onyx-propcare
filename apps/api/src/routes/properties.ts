@@ -126,45 +126,19 @@ function getFeatureValidationError(plan: {
       droneMap?: unknown;
       videos?: unknown[];
     }) {
-      if (soilData && !plan.hasSoilData) {
-        return "Your current plan does not include soil reports.";
-      }
-      if (waterData && !plan.hasWaterData) {
-        return "Your current plan does not include water reports.";
-      }
-      if (legalCheck && !plan.hasLegalCheck) {
-        return "Your current plan does not include legal verification data.";
-      }
-      if (droneMap && !plan.hasDroneMap) {
-        return "Your current plan does not include drone maps.";
-      }
-      if (videos && videos.length > 0) {
-        if (plan.maxVideos === 0) {
-          return "Your current plan does not include listing videos.";
-        }
-        if (plan.maxVideos !== -1 && videos.length > plan.maxVideos) {
-          return `Your plan allows up to ${plan.maxVideos} video${plan.maxVideos === 1 ? "" : "s"} per listing.`;
-        }
-      }
-
+      void plan;
+      void soilData;
+      void waterData;
+      void legalCheck;
+      void droneMap;
+      void videos;
       return null;
     },
   };
 }
 
 function sanitizePublicProperty<T>(property: T): T {
-  const record = property as T & {
-    soilData?: { approvalStatus?: string } | null;
-    waterData?: { approvalStatus?: string } | null;
-    legalCheck?: { approvalStatus?: string } | null;
-  };
-
-  return {
-    ...record,
-    soilData: record.soilData?.approvalStatus === "APPROVED" ? record.soilData : null,
-    waterData: record.waterData?.approvalStatus === "APPROVED" ? record.waterData : null,
-    legalCheck: record.legalCheck?.approvalStatus === "APPROVED" ? record.legalCheck : null,
-  };
+  return property;
 }
 
 // GET /api/v1/properties - List properties with filters
