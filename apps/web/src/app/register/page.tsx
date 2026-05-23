@@ -121,19 +121,15 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto-login after registration
-      const signInResult = await signIn("credentials", {
+      // Auto-login after registration so the user has a session for the resend button
+      await signIn("credentials", {
         email: form.email,
         password: form.password,
         redirect: false,
       });
 
-      if (signInResult?.error) {
-        // Registration succeeded but auto-login failed; redirect to login
-        window.location.assign("/login");
-      } else {
-        await redirectAfterAuth();
-      }
+      // Always redirect to email verification pending page
+      window.location.assign("/verify-email/pending");
     } catch {
       setError("An unexpected error occurred");
     } finally {

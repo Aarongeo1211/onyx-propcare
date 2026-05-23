@@ -58,6 +58,17 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
   : "http://localhost:4000/api/v1";
 
+export class ApiError extends Error {
+  code?: string;
+  status: number;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   options?: RequestInit & { token?: string }
@@ -72,8 +83,8 @@ export async function apiFetch<T>(
     ...restOptions,
   });
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || "Request failed");
+    const body = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new ApiError(body.error || "Request failed", res.status, body.code);
   }
   return res.json();
 }

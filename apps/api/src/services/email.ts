@@ -1,38 +1,61 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { logger } from "../lib/logger";
 import { env } from "../config/env";
 
-const SMTP_FROM = env.SMTP_FROM || "Onyx Propcare <noreply@onyxpropcare.com>";
-const isConfigured = Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
+const EMAIL_FROM = env.SMTP_FROM || "Onyx Propcare <contact@onyxpropcare.com>";
 
-if (!isConfigured) {
-  logger.warn("SMTP not configured. Emails will be logged but not sent.");
-}
+// ─── Resend (preferred on Railway — uses HTTPS, no SMTP port blocking) ────────
+const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
-const transporter = isConfigured
+// ─── Nodemailer SMTP (fallback for local/self-hosted) ─────────────────────────
+const smtpConfigured = Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
+const transporter = smtpConfigured
   ? nodemailer.createTransport({
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
       secure: env.SMTP_PORT === 465,
       auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+      connectionTimeout: 15_000,
+      greetingTimeout: 15_000,
     })
   : null;
-let deliveryDisabled = false;
+
+if (!resend && !transporter) {
+  logger.warn("No email provider configured (set RESEND_API_KEY or SMTP_* vars). Emails will be logged only.");
+} else {
+  logger.info({ provider: resend ? "resend" : "smtp" }, "Email provider initialized");
+}
 
 async function sendMail(to: string, subject: string, html: string) {
-  if (!transporter || deliveryDisabled) {
-    logger.info({ to, subject }, "[Email NoOp]");
+  // 1. Try Resend (HTTPS — works on Railway)
+  if (resend) {
+    const { error } = await resend.emails.send({ from: EMAIL_FROM, to, subject, html });
+    if (error) {
+      logger.error({ error, to, subject }, "Resend email failed");
+    } else {
+      logger.info({ to, subject }, "Email sent via Resend");
+    }
     return;
   }
-  try {
-    await transporter.sendMail({ from: SMTP_FROM, to, subject, html });
-  } catch (err) {
-    deliveryDisabled = true;
-    logger.warn({ err }, "Email delivery disabled after SMTP failure");
+
+  // 2. Fall back to SMTP (nodemailer)
+  if (transporter) {
+    try {
+      await transporter.sendMail({ from: EMAIL_FROM, to, subject, html });
+      logger.info({ to, subject }, "Email sent via SMTP");
+    } catch (err) {
+      logger.error({ err, to, subject }, "SMTP email failed");
+    }
+    return;
   }
+
+  // 3. No provider — log only
+  logger.info({ to, subject }, "[Email NoOp] no provider configured");
 }
 
 function layout(title: string, body: string) {
+  const logoUrl = `${env.APP_URL}/icon.png`;
   return `
 <!DOCTYPE html>
 <html>
@@ -40,9 +63,7 @@ function layout(title: string, body: string) {
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:Arial,Helvetica,sans-serif;">
   <div style="max-width:600px;margin:0 auto;padding:40px 24px;">
     <div style="text-align:center;margin-bottom:32px;">
-      <span style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#b8943f);color:#0a0a0a;font-weight:bold;font-size:20px;width:40px;height:40px;line-height:40px;border-radius:8px;transform:rotate(45deg);">
-        <span style="display:inline-block;transform:rotate(-45deg);">O</span>
-      </span>
+      <img src="${logoUrl}" alt="Onyx Propcare" width="72" height="72" style="display:inline-block;border-radius:12px;" />
       <div style="color:#f5f0e8;font-size:18px;font-weight:600;letter-spacing:2px;margin-top:8px;">ONYX PROPCARE</div>
     </div>
     <div style="background:#141414;border:1px solid #222;border-radius:12px;padding:32px;">
@@ -124,4 +145,22 @@ export async function sendWelcomeEmail(to: string, name: string) {
      <p ${textStyle}>Get started by browsing verified listings or creating your first property listing.</p>`
   );
   await sendMail(to, "Welcome to Onyx Propcare", html);
+}
+
+export async function sendVerificationEmail(
+  to: string,
+  name: string,
+  verifyUrl: string
+) {
+  const html = layout(
+    "Verify Your Email Address",
+    `<p ${textStyle}>Hi ${name},</p>
+     <p ${textStyle}>Thanks for signing up! Please verify your email address to unlock all features, including listing properties for sale or rent.</p>
+     <div style="text-align:center;margin:28px 0;">
+       <a href="${verifyUrl}" ${btnStyle}>Verify Email Address</a>
+     </div>
+     <p style="color:#888;font-size:13px;margin:0 0 8px 0;">This link expires in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
+     <p style="color:#555;font-size:12px;margin:0;">Or copy this link into your browser:<br/><span style="color:#C9A84C;word-break:break-all;">${verifyUrl}</span></p>`
+  );
+  await sendMail(to, "Verify your email – Onyx Propcare", html);
 }

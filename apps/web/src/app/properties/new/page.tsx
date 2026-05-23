@@ -28,6 +28,7 @@ import {
 import type { SubscriptionUsage } from "@onyx/types";
 import { INDIAN_STATES, AREA_UNITS } from "@onyx/types";
 import { becomeSeller, hasSellerAccess } from "@/lib/seller";
+import { ApiError } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
@@ -79,6 +80,9 @@ export default function NewPropertyPage() {
   const [usage, setUsage] = useState<SubscriptionUsage | null>(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [upgradingSeller, setUpgradingSeller] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [verificationResent, setVerificationResent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; publicId: string; preview?: string }[]>([]);
@@ -227,9 +231,33 @@ export default function NewPropertyPage() {
 
       await fetchUsage(data.data.token);
     } catch (upgradeError) {
-      setError(upgradeError instanceof Error ? upgradeError.message : "Failed to upgrade account");
+      if (upgradeError instanceof ApiError && upgradeError.code === "EMAIL_NOT_VERIFIED") {
+        setEmailNotVerified(true);
+      } else {
+        setError(upgradeError instanceof Error ? upgradeError.message : "Failed to upgrade account");
+      }
     } finally {
       setUpgradingSeller(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!session?.user?.accessToken || resendingVerification || verificationResent) return;
+    setResendingVerification(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      await fetch(`${API_URL}/api/v1/auth/send-verification`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.user.accessToken}`,
+        },
+      });
+      setVerificationResent(true);
+    } catch {
+      // silent — user can try again
+    } finally {
+      setResendingVerification(false);
     }
   }
 
@@ -682,25 +710,53 @@ export default function NewPropertyPage() {
               </div>
             )}
 
+            {emailNotVerified && (
+              <div className="mt-6 rounded-2xl border border-gold/20 bg-gold/5 p-5">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gold">Email verification required</p>
+                    <p className="mt-1 text-sm text-cream/50">
+                      Please verify your email address before becoming a seller. Check your inbox for a verification link.
+                    </p>
+                    {verificationResent ? (
+                      <p className="mt-3 text-sm text-green-400">✓ Verification email resent — check your inbox.</p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resendingVerification}
+                        className="mt-3 text-sm text-gold underline underline-offset-2 hover:text-gold/80 disabled:opacity-60"
+                      >
+                        {resendingVerification ? "Sending…" : "Resend verification email"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={handleBecomeSeller}
-                disabled={upgradingSeller}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-6 py-3 text-sm font-medium text-onyx-950 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {upgradingSeller ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Upgrading Account...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4" />
-                    Become a Seller
-                  </>
-                )}
-              </button>
+              {!emailNotVerified && (
+                <button
+                  type="button"
+                  onClick={handleBecomeSeller}
+                  disabled={upgradingSeller}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-6 py-3 text-sm font-medium text-onyx-950 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {upgradingSeller ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Upgrading Account...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4" />
+                      Become a Seller
+                    </>
+                  )}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => router.push("/")}

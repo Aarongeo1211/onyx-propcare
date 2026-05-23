@@ -132,10 +132,12 @@ adminRoutes.get(
   async (req, res) => {
     try {
       const status = getSingleQueryParam(req.query.status);
+      const featured = getSingleQueryParam(req.query.featured);
       const page = getQueryNumber(req.query.page, 1);
       const limit = getQueryNumber(req.query.limit, 20);
       const where: Record<string, unknown> = {};
       if (status) where.status = status;
+      if (featured === "true") where.isFeatured = true;
 
       const pageNum = Math.max(1, page);
       const limitNum = Math.min(100, Math.max(1, limit));
@@ -415,6 +417,40 @@ adminRoutes.patch(
     } catch (err) {
       logger.error({ err }, "Error updating property status");
       res.status(500).json({ success: false, error: "Failed to update status" });
+    }
+  }
+);
+
+adminRoutes.patch(
+  "/properties/:id/featured",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const { featured } = z.object({ featured: z.boolean() }).parse(req.body);
+      const property = await prisma.property.update({
+        where: { id: String(req.params.id) },
+        data: {
+          isFeatured: featured,
+          featuredAt: featured ? new Date() : null,
+        },
+        select: { id: true, title: true, isFeatured: true, featuredAt: true },
+      });
+      await logAudit(req, {
+        action: featured ? "FEATURE_PROPERTY" : "UNFEATURE_PROPERTY",
+        entity: "property",
+        entityId: property.id,
+        details: { isFeatured: featured },
+      });
+      // Bust the featured properties cache so the homepage reflects the change immediately
+      await cache.del("properties:featured");
+      res.json({ success: true, data: property });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: err.errors });
+      }
+      logger.error({ err }, "Error toggling featured status");
+      res.status(500).json({ success: false, error: "Failed to update featured status" });
     }
   }
 );

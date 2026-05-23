@@ -2,10 +2,11 @@ import type { Request } from "express";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutBucketCorsCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v2 as cloudinary, type UploadApiResponse } from "cloudinary";
 import { env } from "../config/env";
+import { logger } from "./logger";
 
 export type StorageMode = "railway-bucket" | "cloudinary" | "local";
 
@@ -110,8 +111,8 @@ function toLocalFolder(folder: string) {
   return folder.replace(/^onyx-propcare\//, "");
 }
 
-function buildAssetUrl(req: Request, objectKey: string) {
-  return `${req.protocol}://${req.get("host")}/api/v1/upload/files/${encodeURIComponent(objectKey)}`;
+export function buildAssetUrl(apiBase: string, objectKey: string) {
+  return `${apiBase}/api/v1/upload/files/${encodeURIComponent(objectKey)}`;
 }
 
 async function uploadToCloudinary(
@@ -163,8 +164,9 @@ async function uploadToBucket(
     })
   );
 
+  const apiBase = `${req.protocol}://${req.get("host")}`;
   return {
-    url: buildAssetUrl(req, objectKey),
+    url: buildAssetUrl(apiBase, objectKey),
     publicId: objectKey,
     originalName: file.originalname,
     size: file.size,
@@ -181,8 +183,9 @@ async function saveToLocalUploads(req: Request, file: Express.Multer.File, folde
 
   await fs.writeFile(absolutePath, file.buffer);
 
+  const apiBase = `${req.protocol}://${req.get("host")}`;
   return {
-    url: `${req.protocol}://${req.get("host")}/uploads/${toLocalFolder(folder)}/${safeName}`,
+    url: `${apiBase}/uploads/${toLocalFolder(folder)}/${safeName}`,
     publicId: `local/${toLocalFolder(folder)}/${safeName}`,
     originalName: file.originalname,
     size: file.size,
@@ -243,6 +246,74 @@ export async function getFileAccessUrl(objectKey: string, download = false) {
     }),
     { expiresIn: 60 * 10 }
   );
+}
+
+/**
+ * Generate a presigned PUT URL so the browser can upload a file directly to the
+ * bucket without routing the bytes through the API server.
+ *
+ * Returns null when not in bucket mode (caller should fall back to server upload).
+ */
+export async function createPresignedUploadUrl(
+  folder: string,
+  filename: string,
+  contentType: string,
+  expiresIn = 300 // 5 minutes
+): Promise<{ uploadUrl: string; objectKey: string } | null> {
+  if (storageMode !== "railway-bucket" || !bucketClient || !process.env.AWS_S3_BUCKET_NAME) {
+    return null;
+  }
+
+  const ext = filename.includes(".")
+    ? filename.split(".").pop()!.toLowerCase()
+    : contentType.split("/")[1] || "bin";
+  const objectKey = `${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+  const uploadUrl = await getSignedUrl(
+    bucketClient,
+    new PutObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: objectKey,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    }),
+    { expiresIn }
+  );
+
+  return { uploadUrl, objectKey };
+}
+
+/**
+ * Set CORS rules on the bucket so browsers can PUT directly via presigned URLs.
+ * Called once at API startup — safe to call multiple times (idempotent PUT).
+ */
+export async function configureBucketCors(allowedOrigins: string[]) {
+  if (storageMode !== "railway-bucket" || !bucketClient || !process.env.AWS_S3_BUCKET_NAME) {
+    return;
+  }
+
+  try {
+    await bucketClient.send(
+      new PutBucketCorsCommand({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        CORSConfiguration: {
+          CORSRules: [
+            {
+              AllowedOrigins: allowedOrigins,
+              AllowedMethods: ["GET", "PUT", "HEAD"],
+              AllowedHeaders: ["Content-Type", "Content-Disposition", "Cache-Control"],
+              ExposeHeaders: ["ETag"],
+              MaxAgeSeconds: 3600,
+            },
+          ],
+        },
+      })
+    );
+    logger.info({ origins: allowedOrigins }, "Bucket CORS configured for direct uploads");
+  } catch (err) {
+    // Non-fatal — server-side upload still works as fallback
+    logger.warn({ err }, "Could not configure bucket CORS (presigned uploads may not work from browser)");
+  }
 }
 
 export function getStorageSettingsSummary() {

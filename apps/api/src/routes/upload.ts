@@ -4,7 +4,7 @@ import { prisma } from "@onyx/db";
 import { z } from "zod";
 import { optionalAuth, requireAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
-import { deleteFile, getFileAccessUrl, storageMode, uploadFile } from "../lib/storage";
+import { buildAssetUrl, createPresignedUploadUrl, deleteFile, getFileAccessUrl, storageMode, uploadFile } from "../lib/storage";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
@@ -122,6 +122,88 @@ uploadRoutes.post("/documents", requireAuth, documentUpload.array("documents", 1
     res.status(500).json({ success: false, error: "Failed to upload documents" });
   }
 });
+
+// ─── Presigned upload URL endpoints (browser → bucket direct upload) ──────────
+
+const presignVideoSchema = z.object({
+  filename: z.string().min(1).max(255),
+  contentType: z.enum(["video/mp4", "video/webm", "video/quicktime"]),
+  size: z.number().int().positive().max(VIDEO_MAX_FILE_SIZE, { message: "Video too large. Maximum size is 100MB." }),
+});
+
+const presignDocumentSchema = z.object({
+  filename: z.string().min(1).max(255),
+  contentType: z.enum([
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "image/jpeg",
+    "image/png",
+  ]),
+  size: z.number().int().positive().max(DOCUMENT_MAX_FILE_SIZE, { message: "Document too large. Maximum size is 10MB." }),
+});
+
+uploadRoutes.post("/presign/video", requireAuth, async (req, res) => {
+  try {
+    if (storageMode !== "railway-bucket") {
+      return res.status(400).json({ success: false, error: "Presigned uploads require bucket storage" });
+    }
+    const { filename, contentType, size } = presignVideoSchema.parse(req.body);
+    const result = await createPresignedUploadUrl("onyx-propcare/videos", filename, contentType);
+    if (!result) {
+      return res.status(500).json({ success: false, error: "Failed to generate upload URL" });
+    }
+    const apiBase = `${req.protocol}://${req.get("host")}`;
+    res.json({
+      success: true,
+      data: {
+        uploadUrl: result.uploadUrl,
+        objectKey: result.objectKey,
+        fileUrl: buildAssetUrl(apiBase, result.objectKey),
+        originalName: filename,
+        size,
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: error.errors[0].message });
+    }
+    logger.error({ err: error }, "Video presign error");
+    res.status(500).json({ success: false, error: "Failed to generate upload URL" });
+  }
+});
+
+uploadRoutes.post("/presign/document", requireAuth, async (req, res) => {
+  try {
+    if (storageMode !== "railway-bucket") {
+      return res.status(400).json({ success: false, error: "Presigned uploads require bucket storage" });
+    }
+    const { filename, contentType, size } = presignDocumentSchema.parse(req.body);
+    const result = await createPresignedUploadUrl("onyx-propcare/documents", filename, contentType);
+    if (!result) {
+      return res.status(500).json({ success: false, error: "Failed to generate upload URL" });
+    }
+    const apiBase = `${req.protocol}://${req.get("host")}`;
+    res.json({
+      success: true,
+      data: {
+        uploadUrl: result.uploadUrl,
+        objectKey: result.objectKey,
+        fileUrl: buildAssetUrl(apiBase, result.objectKey),
+        originalName: filename,
+        size,
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: error.errors[0].message });
+    }
+    logger.error({ err: error }, "Document presign error");
+    res.status(500).json({ success: false, error: "Failed to generate upload URL" });
+  }
+});
+
+// ─── Property images (metadata only — files already uploaded) ─────────────────
 
 const propertyImagesSchema = z.object({
   propertyId: z.string(),

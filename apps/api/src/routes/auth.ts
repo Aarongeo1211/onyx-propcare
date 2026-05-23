@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "@onyx/db";
 import { requireAuth, JWT_SECRET } from "../middleware/auth";
-import { sendPasswordResetEmail, sendWelcomeEmail } from "../services/email";
+import { sendPasswordResetEmail, sendWelcomeEmail, sendVerificationEmail } from "../services/email";
 import { isLocked, recordFailure, clearFailures } from "../middleware/loginAttempts";
 import { verifyGoogleIdToken, isGoogleConfigured } from "../services/google";
 import { logger } from "../lib/logger";
@@ -67,6 +67,19 @@ authRoutes.post("/register", async (req, res) => {
     });
 
     sendWelcomeEmail(user.email, user.name).catch((err) => logger.error({ err }, "welcome email failed"));
+
+    // Generate and send email verification token
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const verifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { verifyToken, verifyTokenExpiry: verifyExpiry },
+    });
+    const verifyUrl = `${env.APP_URL || "https://onyxpropcare.com"}/verify-email?token=${verifyToken}`;
+    sendVerificationEmail(user.email, user.name, verifyUrl).catch((err) =>
+      logger.error({ err }, "verification email failed")
+    );
+
     res.status(201).json({ success: true, data: user });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -272,6 +285,74 @@ authRoutes.post("/reset-password", async (req, res) => {
   } catch (err) {
     logger.error({ err }, "Reset password error");
     res.status(500).json({ success: false, error: "Failed to reset password" });
+  }
+});
+
+// GET /api/v1/auth/verify-email?token=xxx — verifies email address
+authRoutes.get("/verify-email", async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token || typeof token !== "string") {
+      return res.status(400).json({ success: false, error: "Verification token is required" });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        verifyToken: token,
+        verifyTokenExpiry: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, error: "Invalid or expired verification token" });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: new Date(), verifyToken: null, verifyTokenExpiry: null },
+    });
+
+    res.json({ success: true, message: "Email verified successfully" });
+  } catch (err) {
+    logger.error({ err }, "Email verification error");
+    res.status(500).json({ success: false, error: "Failed to verify email" });
+  }
+});
+
+// POST /api/v1/auth/send-verification — resend verification email (authenticated)
+authRoutes.post("/send-verification", requireAuth, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { id: true, name: true, email: true, emailVerified: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({ success: false, error: "Email is already verified" });
+    }
+
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const verifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { verifyToken, verifyTokenExpiry: verifyExpiry },
+    });
+
+    const verifyUrl = `${env.APP_URL}/verify-email?token=${verifyToken}`;
+    sendVerificationEmail(user.email, user.name, verifyUrl).catch((err) =>
+      logger.error({ err }, "Resend verification email failed")
+    );
+
+    res.json({ success: true, message: "Verification email sent" });
+  } catch (err) {
+    logger.error({ err }, "Send verification error");
+    res.status(500).json({ success: false, error: "Failed to send verification email" });
   }
 });
 

@@ -30,6 +30,8 @@ model User {
   isActive      Boolean   @default(true)
   resetToken       String?
   resetTokenExpiry DateTime?
+  verifyToken      String?
+  verifyTokenExpiry DateTime?
 
   // Relations
   properties    Property[]

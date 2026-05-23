@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, CheckCircle, XCircle, Archive, RotateCcw } from "lucide-react";
+import { Search, CheckCircle, XCircle, Archive, RotateCcw, Star } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
@@ -15,6 +15,8 @@ interface Property {
   price: number;
   district: string;
   state: string;
+  isFeatured: boolean;
+  featuredAt?: string | null;
   owner?: { name: string; email: string } | null;
   createdAt: string;
   videos?: Array<{ url: string }>;
@@ -71,7 +73,9 @@ export default function PropertiesPage() {
         limit: "12",
       });
 
-      if (statusFilter !== "ALL") {
+      if (statusFilter === "FEATURED") {
+        params.set("featured", "true");
+      } else if (statusFilter !== "ALL") {
         params.set("status", statusFilter);
       }
 
@@ -148,6 +152,38 @@ export default function PropertiesPage() {
     }
   }
 
+  async function handleToggleFeatured(propertyId: string, currentlyFeatured: boolean) {
+    if (!session) return;
+    const token = (session.user as any).accessToken;
+    setActionLoading(`${propertyId}-featured`);
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/admin/properties/${propertyId}/featured`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ featured: !currentlyFeatured }),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setProperties((prev) =>
+          prev.map((p) =>
+            p.id === propertyId
+              ? { ...p, isFeatured: !currentlyFeatured, featuredAt: !currentlyFeatured ? new Date().toISOString() : null }
+              : p
+          )
+        );
+      } else {
+        alert(data.error || "Failed to update featured status");
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   async function handleDataReview(
     propertyId: string,
     section: "soil" | "water" | "legal",
@@ -211,7 +247,7 @@ export default function PropertiesPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {["ALL", "PENDING_REVIEW", "ACTIVE", "DRAFT", "REJECTED", "INACTIVE"].map((status) => (
+          {["ALL", "PENDING_REVIEW", "ACTIVE", "FEATURED", "DRAFT", "REJECTED", "INACTIVE"].map((status) => (
             <button
               key={status}
               onClick={() => {
@@ -275,7 +311,15 @@ export default function PropertiesPage() {
                   >
                     <td className="px-5 py-4">
                       <div>
-                        <p className="text-sm font-medium text-cream">{property.title}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-cream">{property.title}</p>
+                          {property.isFeatured && (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-gold/10 px-2 py-0.5 text-[10px] text-gold">
+                              <Star className="h-2.5 w-2.5 fill-gold" />
+                              Featured
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-cream/25 mt-1">
                           Added {new Date(property.createdAt).toLocaleDateString("en-IN")}
                         </p>
@@ -396,6 +440,21 @@ export default function PropertiesPage() {
                           >
                             <RotateCcw className="h-3.5 w-3.5" />
                             Reactivate
+                          </button>
+                        )}
+
+                        {property.status === "ACTIVE" && (
+                          <button
+                            onClick={() => handleToggleFeatured(property.id, property.isFeatured)}
+                            disabled={actionLoading === `${property.id}-featured`}
+                            title={property.isFeatured ? "Remove from featured" : "Add to featured"}
+                            className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-colors ${
+                              property.isFeatured
+                                ? "border-gold/30 bg-gold/10 text-gold hover:bg-gold/5"
+                                : "border-cream/10 text-cream/40 hover:border-gold/20 hover:text-gold"
+                            }`}
+                          >
+                            <Star className={`h-4 w-4 ${property.isFeatured ? "fill-gold" : ""}`} />
                           </button>
                         )}
 

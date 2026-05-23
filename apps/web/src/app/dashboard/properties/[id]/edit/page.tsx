@@ -358,25 +358,64 @@ export default function EditPropertyPage() {
     }
   }, [totalImages, session]);
 
-  const uploadFiles = useCallback(
-    async (endpoint: "videos" | "documents", fieldName: "videos" | "documents", files: FileList | File[]) => {
+  /**
+   * Upload files directly to the bucket via presigned PUT URLs.
+   * Falls back to server-side upload if bucket storage is not active
+   * (e.g. local dev using Cloudinary or local disk).
+   */
+  const uploadViaPresigned = useCallback(
+    async (kind: "video" | "document", files: FileList | File[]): Promise<UploadedAsset[]> => {
       const fileArray = Array.from(files);
       if (fileArray.length === 0) return [];
 
-      const formData = new FormData();
-      fileArray.forEach((file) => formData.append(fieldName, file));
+      return Promise.all(
+        fileArray.map(async (file) => {
+          // Step 1 — ask the API for a presigned PUT URL
+          const presignRes = await fetch(`${API_BASE}/upload/presign/${kind}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session!.user.accessToken}`,
+            },
+            body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
+          });
 
-      const response = await fetch(`${API_BASE}/upload/${endpoint}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session!.user.accessToken}` },
-        body: formData,
-      });
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || `Failed to upload ${endpoint}`);
-      }
+          const presignData = await presignRes.json();
 
-      return data.data as UploadedAsset[];
+          // Bucket storage not active — fall back to server-side upload
+          if (!presignRes.ok && presignRes.status === 400 && presignData.error?.includes("bucket")) {
+            const fieldName = kind === "video" ? "videos" : "documents";
+            const endpoint = kind === "video" ? "videos" : "documents";
+            const formData = new FormData();
+            formData.append(fieldName, file);
+            const fallbackRes = await fetch(`${API_BASE}/upload/${endpoint}`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${session!.user.accessToken}` },
+              body: formData,
+            });
+            const fallbackData = await fallbackRes.json();
+            if (!fallbackData.success) throw new Error(fallbackData.error || `Failed to upload ${kind}`);
+            return fallbackData.data[0] as UploadedAsset;
+          }
+
+          if (!presignData.success) throw new Error(presignData.error || `Failed to get upload URL`);
+
+          const { uploadUrl, fileUrl, objectKey, originalName, size } = presignData.data;
+
+          // Step 2 — PUT the file bytes directly to the bucket (no API hop)
+          const putRes = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
+
+          if (!putRes.ok) {
+            throw new Error(`Direct upload failed (${putRes.status} ${putRes.statusText})`);
+          }
+
+          return { url: fileUrl, publicId: objectKey, originalName, size } as UploadedAsset;
+        })
+      );
     },
     [session]
   );
@@ -385,7 +424,7 @@ export default function EditPropertyPage() {
     setUploadingVideos(true);
     setError(null);
     try {
-      const uploaded = await uploadFiles("videos", "videos", files);
+      const uploaded = await uploadViaPresigned("video", files);
       setUploadedVideos((prev) => [
         ...prev,
         ...uploaded.map((asset) => ({
@@ -398,13 +437,13 @@ export default function EditPropertyPage() {
     } finally {
       setUploadingVideos(false);
     }
-  }, [uploadFiles]);
+  }, [uploadViaPresigned]);
 
   const handleDocumentUpload = useCallback(async (files: FileList | File[]) => {
     setUploadingDocuments(true);
     setError(null);
     try {
-      const uploaded = await uploadFiles("documents", "documents", files);
+      const uploaded = await uploadViaPresigned("document", files);
       setUploadedDocuments((prev) => [
         ...prev,
         ...uploaded.map((asset) => ({
@@ -418,7 +457,7 @@ export default function EditPropertyPage() {
     } finally {
       setUploadingDocuments(false);
     }
-  }, [uploadFiles]);
+  }, [uploadViaPresigned]);
 
   const handleReportUpload = useCallback(async (
     reportKind: "soil" | "water" | "legal",
@@ -427,7 +466,7 @@ export default function EditPropertyPage() {
     setUploadingReportField(reportKind);
     setError(null);
     try {
-      const [uploaded] = await uploadFiles("documents", "documents", files);
+      const [uploaded] = await uploadViaPresigned("document", files);
       if (!uploaded?.url) {
         throw new Error("No file was uploaded");
       }
@@ -444,7 +483,7 @@ export default function EditPropertyPage() {
     } finally {
       setUploadingReportField(null);
     }
-  }, [uploadFiles]);
+  }, [uploadViaPresigned]);
 
   const handleDroneMapUpload = useCallback(async (files: FileList | File[]) => {
     setUploadingDocuments(true);

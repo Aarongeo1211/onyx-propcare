@@ -27,6 +27,7 @@ import {
   invalidCsrfTokenError,
 } from "./middleware/csrf";
 import { optionalAuth } from "./middleware/auth";
+import { configureBucketCors } from "./lib/storage";
 
 function getWorkspaceRoot() {
   const cwd = process.cwd();
@@ -135,6 +136,11 @@ app.use(
 
 app.listen(env.PORT, () => {
   logger.info({ port: env.PORT, env: env.NODE_ENV }, "API server started");
+
+  // Configure bucket CORS so browsers can PUT files directly via presigned URLs.
+  // Runs asynchronously — startup is not blocked if this fails.
+  const corsOrigins = configuredOrigins.length > 0 ? configuredOrigins : ["*"];
+  configureBucketCors(corsOrigins).catch(() => {/* already logged inside */});
 });
 
 export default app;

@@ -38,6 +38,7 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(), // Resend.com API key — preferred over SMTP for Railway deploys
 
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
 });

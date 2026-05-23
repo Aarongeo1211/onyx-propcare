@@ -24,7 +24,7 @@ FROM base AS runner
 ENV NODE_ENV=production
 RUN apt-get update -y && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodeapp
-# Only copy compiled output and production node_modules — no source or tsx
+# esbuild bundles everything except @prisma/client; copy node_modules for Prisma engine + client
 COPY --from=build --chown=nodeapp:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nodeapp:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=build --chown=nodeapp:nodejs /app/packages ./packages
