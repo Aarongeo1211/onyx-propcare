@@ -1,56 +1,10 @@
 import { Router } from "express";
 import multer from "multer";
-import fs from "node:fs/promises";
-import path from "node:path";
-import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { prisma } from "@onyx/db";
 import { z } from "zod";
 import { requireAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
-import { env } from "../config/env";
-
-function hasRealCredential(value?: string | null) {
-  if (!value) return false;
-  const normalized = value.trim().toLowerCase();
-  if (!normalized) return false;
-
-  return ![
-    "your_cloud_name",
-    "your_api_key",
-    "your_api_secret",
-    "your_email@gmail.com",
-    "your_app_password",
-    "changeme",
-    "replace_me",
-  ].includes(normalized);
-}
-
-function getWorkspaceRoot() {
-  const cwd = process.cwd();
-  return cwd.endsWith(path.join("apps", "api")) ? path.resolve(cwd, "..", "..") : cwd;
-}
-
-function getUploadRoot() {
-  if (!env.UPLOAD_DIR) {
-    return path.join(getWorkspaceRoot(), "uploads");
-  }
-
-  return path.isAbsolute(env.UPLOAD_DIR)
-    ? env.UPLOAD_DIR
-    : path.join(getWorkspaceRoot(), env.UPLOAD_DIR);
-}
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-const isCloudinaryConfigured = Boolean(
-  hasRealCredential(process.env.CLOUDINARY_CLOUD_NAME) &&
-    hasRealCredential(process.env.CLOUDINARY_API_KEY) &&
-    hasRealCredential(process.env.CLOUDINARY_API_SECRET)
-);
+import { deleteFile, getFileAccessUrl, storageMode, uploadFile } from "../lib/storage";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
@@ -64,7 +18,6 @@ const DOCUMENT_TYPES = [
 const IMAGE_MAX_FILE_SIZE = 5 * 1024 * 1024;
 const VIDEO_MAX_FILE_SIZE = 100 * 1024 * 1024;
 const DOCUMENT_MAX_FILE_SIZE = 10 * 1024 * 1024;
-const LOCAL_UPLOAD_ROOT = getUploadRoot();
 
 function createUploader(allowedTypes: string[], maxFileSize: number, maxFiles: number) {
   return multer({
@@ -83,81 +36,6 @@ function createUploader(allowedTypes: string[], maxFileSize: number, maxFiles: n
 const imageUpload = createUploader(IMAGE_TYPES, IMAGE_MAX_FILE_SIZE, 10);
 const videoUpload = createUploader(VIDEO_TYPES, VIDEO_MAX_FILE_SIZE, 3);
 const documentUpload = createUploader(DOCUMENT_TYPES, DOCUMENT_MAX_FILE_SIZE, 10);
-
-type UploadedFilePayload = {
-  url: string;
-  publicId: string;
-  originalName?: string;
-  size?: number;
-};
-
-function uploadToCloudinary(
-  buffer: Buffer,
-  mimetype: string,
-  options: { folder: string; resourceType: "image" | "video" | "raw"; format?: string }
-): Promise<UploadedFilePayload> {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: options.folder,
-        resource_type: options.resourceType,
-        format: options.format,
-      },
-      (error, result) => {
-        if (error || !result) return reject(error || new Error("Upload failed"));
-        const uploadResult = result as UploadApiResponse;
-        resolve({
-          url: uploadResult.secure_url,
-          publicId: uploadResult.public_id,
-          size: uploadResult.bytes,
-        });
-      }
-    );
-    stream.end(buffer);
-  });
-}
-
-async function saveToLocalUploads(
-  req: import("express").Request,
-  file: Express.Multer.File,
-  folder: string
-) {
-  const targetDir = path.join(LOCAL_UPLOAD_ROOT, folder);
-  await fs.mkdir(targetDir, { recursive: true });
-
-  const extension = file.mimetype === "image/jpeg"
-    ? "jpg"
-    : file.originalname.includes(".")
-      ? file.originalname.split(".").pop()
-      : file.mimetype.split("/")[1];
-  const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
-  const absolutePath = path.join(targetDir, safeName);
-
-  await fs.writeFile(absolutePath, file.buffer);
-
-  return {
-    url: `${req.protocol}://${req.get("host")}/uploads/${folder}/${safeName}`,
-    publicId: `local/${folder}/${safeName}`,
-    originalName: file.originalname,
-    size: file.size,
-  };
-}
-
-async function uploadFile(
-  req: import("express").Request,
-  file: Express.Multer.File,
-  options: { folder: string; resourceType: "image" | "video" | "raw"; format?: string }
-) {
-  if (isCloudinaryConfigured) {
-    const uploaded = await uploadToCloudinary(file.buffer, file.mimetype, options);
-    return {
-      ...uploaded,
-      originalName: file.originalname,
-    };
-  }
-
-  return saveToLocalUploads(req, file, options.folder.replace("onyx-propcare/", ""));
-}
 
 export const uploadRoutes = Router();
 
@@ -304,11 +182,34 @@ uploadRoutes.post("/property-images", requireAuth, async (req, res) => {
   }
 });
 
+uploadRoutes.get("/files/:objectKey(*)", async (req, res) => {
+  try {
+    const raw = (req.params.objectKey || req.params[0] || "") as string;
+    const objectKey = raw ? decodeURIComponent(raw) : "";
+    if (!objectKey) {
+      return res.status(400).json({ success: false, error: "Missing file key" });
+    }
+
+    if (storageMode !== "railway-bucket") {
+      return res.status(404).json({ success: false, error: "Bucket storage is not enabled" });
+    }
+
+    const signedUrl = await getFileAccessUrl(objectKey, req.query.download === "1");
+    if (!signedUrl) {
+      return res.status(404).json({ success: false, error: "File not found" });
+    }
+
+    res.redirect(signedUrl);
+  } catch (error) {
+    logger.error({ err: error }, "File access error");
+    res.status(500).json({ success: false, error: "Failed to access file" });
+  }
+});
+
 uploadRoutes.delete("/images/:publicId(*)", requireAuth, async (req, res) => {
   try {
     const publicId = req.params.publicId as string;
     const filename = publicId.split("/").pop() || "";
-    const isLocalUpload = publicId.startsWith("local/");
 
     const image = await prisma.propertyImage.findFirst({
       where: { url: { contains: filename } },
@@ -322,13 +223,7 @@ uploadRoutes.delete("/images/:publicId(*)", requireAuth, async (req, res) => {
       await prisma.propertyImage.delete({ where: { id: image.id } });
     }
 
-    if (isLocalUpload) {
-      const relativeFolder = publicId.replace(/^local\//, "").split("/").slice(0, -1).join(path.sep);
-      const absolutePath = path.join(LOCAL_UPLOAD_ROOT, relativeFolder, filename);
-      await fs.rm(absolutePath, { force: true });
-    } else if (isCloudinaryConfigured) {
-      await cloudinary.uploader.destroy(publicId);
-    }
+    await deleteFile(publicId);
 
     res.json({ success: true, message: "Image deleted" });
   } catch (error) {
