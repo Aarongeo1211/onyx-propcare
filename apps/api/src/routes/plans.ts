@@ -3,6 +3,7 @@ import { PlanCategory, PlanType, prisma } from "@onyx/db";
 import { getSingleQueryParam } from "../utils/request";
 import { logger } from "../lib/logger";
 import { getRazorpayPublicConfig } from "../services/razorpay";
+import { cache } from "../lib/redis";
 
 export const planRoutes = Router();
 
@@ -21,6 +22,13 @@ planRoutes.get("/", async (req, res) => {
       ? (typeParam as PlanType)
       : undefined;
 
+    const cacheKey = `plans:list:${category ?? "all"}:${type ?? "all"}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      const paymentConfig = getRazorpayPublicConfig();
+      return res.json({ success: true, data: cached, meta: { paymentsEnabled: paymentConfig.enabled } });
+    }
+
     const plans = await prisma.plan.findMany({
       where: {
         isActive: true,
@@ -29,6 +37,8 @@ planRoutes.get("/", async (req, res) => {
       },
       orderBy: [{ sortOrder: "asc" }, { price: "asc" }],
     });
+
+    await cache.set(cacheKey, plans, 300);
 
     const paymentConfig = getRazorpayPublicConfig();
 

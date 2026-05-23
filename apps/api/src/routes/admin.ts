@@ -5,6 +5,11 @@ import { requireAuth, requireRole } from "../middleware/auth";
 import { getQueryNumber, getSingleQueryParam } from "../utils/request";
 import { logger } from "../lib/logger";
 import { logAudit } from "../middleware/audit";
+import { getStorageSettingsSummary } from "../lib/storage";
+import { cache } from "../lib/redis";
+
+const ADMIN_STATS_CACHE_KEY = "admin:stats";
+const ADMIN_STATS_TTL = 60;
 
 export const adminRoutes = Router();
 
@@ -46,7 +51,7 @@ const defaultPlatformSettings = [
     label: "Media Storage Mode",
     category: "Infrastructure",
     description: "Current storage mode for listing media uploads.",
-    value: { mode: process.env.CLOUDINARY_CLOUD_NAME ? "cloudinary" : "local", localPath: "/uploads" },
+    value: getStorageSettingsSummary(),
   },
   {
     key: "payment_mode",
@@ -72,6 +77,9 @@ adminRoutes.get(
   requireRole("ADMIN", "SUPER_ADMIN"),
   async (_req, res) => {
     try {
+      const cached = await cache.get(ADMIN_STATS_CACHE_KEY);
+      if (cached) return res.json({ success: true, data: cached });
+
       const [
         totalProperties, activeListings, totalInquiries,
         totalUsers, activeUsers, recentInquiries,
@@ -97,19 +105,19 @@ adminRoutes.get(
         prisma.refundRequest.count({ where: { status: { in: ["PENDING", "UNDER_REVIEW"] } } }),
       ]);
 
-      res.json({
-        success: true,
-        data: {
-          totalProperties, activeListings, totalInquiries, totalUsers, activeUsers,
-          newInquiries: recentInquiries,
-          recentInquiries,
-          totalViews: totalViews._sum.viewCount ?? 0,
-          pendingCallbacks,
-          pendingRefunds,
-          propertiesByType: Object.fromEntries(propertiesByType.map((p: { type: string; _count: { _all: number } }) => [p.type, p._count._all])),
-          propertiesByState: Object.fromEntries(propertiesByState.map((p: { state: string; _count: { _all: number } }) => [p.state, p._count._all])),
-        },
-      });
+      const data = {
+        totalProperties, activeListings, totalInquiries, totalUsers, activeUsers,
+        newInquiries: recentInquiries,
+        recentInquiries,
+        totalViews: totalViews._sum.viewCount ?? 0,
+        pendingCallbacks,
+        pendingRefunds,
+        propertiesByType: Object.fromEntries(propertiesByType.map((p: { type: string; _count: { _all: number } }) => [p.type, p._count._all])),
+        propertiesByState: Object.fromEntries(propertiesByState.map((p: { state: string; _count: { _all: number } }) => [p.state, p._count._all])),
+      };
+
+      await cache.set(ADMIN_STATS_CACHE_KEY, data, ADMIN_STATS_TTL);
+      res.json({ success: true, data });
     } catch (err) {
       logger.error({ err }, "Error fetching admin stats");
       res.status(500).json({ success: false, error: "Failed to fetch stats" });
@@ -247,7 +255,28 @@ adminRoutes.get(
       const settings = await prisma.platformSetting.findMany({
         orderBy: [{ category: "asc" }, { label: "asc" }],
       });
-      res.json({ success: true, data: settings });
+      const storageSummary = getStorageSettingsSummary();
+      const data = settings.some((setting) => setting.key === "media_storage_mode")
+        ? settings.map((setting) =>
+            setting.key === "media_storage_mode"
+              ? { ...setting, value: storageSummary }
+              : setting
+          )
+        : [
+            ...settings,
+            {
+              id: "runtime-media-storage-mode",
+              key: "media_storage_mode",
+              label: "Media Storage Mode",
+              category: "Infrastructure",
+              description: "Current storage mode for listing media uploads.",
+              value: storageSummary,
+              updatedBy: null,
+              updatedAt: new Date(),
+              createdAt: new Date(),
+            },
+          ];
+      res.json({ success: true, data });
     } catch (err) {
       logger.error({ err }, "Error fetching platform settings");
       res.status(500).json({ success: false, error: "Failed to fetch settings" });
@@ -379,6 +408,7 @@ adminRoutes.patch(
         data: { status, ...(status === "ACTIVE" ? { featuredAt: new Date() } : {}) },
       });
       await logAudit(req, { action: "UPDATE_STATUS", entity: "property", entityId: property.id, details: { status } });
+      cache.del(ADMIN_STATS_CACHE_KEY);
       res.json({ success: true, data: property });
     } catch (err) {
       logger.error({ err }, "Error updating property status");
@@ -398,6 +428,7 @@ adminRoutes.delete(
         data: { status: "INACTIVE", isFeatured: false, featuredAt: null },
       });
       await logAudit(req, { action: "ARCHIVE", entity: "property", entityId: property.id });
+      cache.del(ADMIN_STATS_CACHE_KEY);
       res.json({ success: true, data: property, message: "Property archived successfully" });
     } catch (err) {
       logger.error({ err }, "Error archiving property");
@@ -548,6 +579,7 @@ adminRoutes.patch(
       });
 
       await logAudit(req, { action: "UPDATE_USER", entity: "user", entityId: targetId, details: data as Record<string, unknown> });
+      if (data.isActive !== undefined) cache.del(ADMIN_STATS_CACHE_KEY);
       res.json({ success: true, data: updated });
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -581,6 +613,7 @@ adminRoutes.delete(
       });
 
       await logAudit(req, { action: "DEACTIVATE_USER", entity: "user", entityId: targetId });
+      cache.del(ADMIN_STATS_CACHE_KEY);
       res.json({ success: true, data: updated, message: "User deactivated" });
     } catch (err) {
       logger.error({ err }, "Error deactivating user");
