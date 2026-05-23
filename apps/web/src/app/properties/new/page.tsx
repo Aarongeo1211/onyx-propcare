@@ -104,7 +104,7 @@ export default function NewPropertyPage() {
     title: "",
     description: "",
     type: "FARMLAND",
-    listingType: "SALE" as "SALE" | "LEASE",
+    listingType: "SALE" as "SALE" | "LEASE" | "RENT",
     price: "",
     state: "",
     district: "",
