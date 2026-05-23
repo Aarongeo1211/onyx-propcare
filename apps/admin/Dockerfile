@@ -11,6 +11,8 @@ COPY packages/config/package.json packages/config/package.json
 RUN pnpm install --frozen-lockfile --filter=@onyx/admin...
 
 FROM base AS build
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY --from=deps /app ./
 COPY apps/admin ./apps/admin
 COPY packages ./packages
