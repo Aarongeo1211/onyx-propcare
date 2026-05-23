@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { prisma } from "@onyx/db";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth";
+import { optionalAuth, requireAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
 import { deleteFile, getFileAccessUrl, storageMode, uploadFile } from "../lib/storage";
 
@@ -182,12 +182,20 @@ uploadRoutes.post("/property-images", requireAuth, async (req, res) => {
   }
 });
 
-uploadRoutes.get("/files/:objectKey(*)", async (req, res) => {
+// Documents require authentication; images and videos are public
+const PRIVATE_KEY_PREFIXES = ["onyx-propcare/documents"];
+
+uploadRoutes.get("/files/:objectKey(*)", optionalAuth, async (req, res) => {
   try {
     const raw = (req.params.objectKey || req.params[0] || "") as string;
     const objectKey = raw ? decodeURIComponent(raw) : "";
     if (!objectKey) {
       return res.status(400).json({ success: false, error: "Missing file key" });
+    }
+
+    const isPrivate = PRIVATE_KEY_PREFIXES.some((prefix) => objectKey.startsWith(prefix));
+    if (isPrivate && !req.user) {
+      return res.status(401).json({ success: false, error: "Authentication required to access this file" });
     }
 
     if (storageMode !== "railway-bucket") {

@@ -137,7 +137,16 @@ function getFeatureValidationError(plan: {
   };
 }
 
-function sanitizePublicProperty<T>(property: T): T {
+function sanitizePublicProperty<T extends { owner?: { phone?: string | null } | null }>(
+  property: T,
+  isAuthenticated: boolean
+): T {
+  if (!isAuthenticated && property.owner) {
+    // Strip phone number from public (unauthenticated) responses
+    const { phone: _phone, ...ownerWithoutPhone } = property.owner;
+    void _phone;
+    return { ...property, owner: ownerWithoutPhone };
+  }
   return property;
 }
 
@@ -415,28 +424,23 @@ propertyRoutes.get("/:slug", optionalAuth, async (req, res) => {
       return res.status(404).json({ success: false, error: "Property not found" });
     }
 
-    await prisma.property.update({
-      where: { id: property.id },
-      data: { viewCount: { increment: 1 } },
-    });
+    // Respond immediately — track view count asynchronously so it never slows the page load
+    res.json({ success: true, data: sanitizePublicProperty(property, Boolean(req.user)) });
 
-    if (req.user) {
-      await prisma.propertyView.upsert({
-        where: {
-          propertyId_userId: {
-            propertyId: property.id,
-            userId: req.user.id,
-          },
-        },
-        update: { viewedAt: new Date() },
-        create: {
-          propertyId: property.id,
-          userId: req.user.id,
-        },
-      });
-    }
-
-    res.json({ success: true, data: sanitizePublicProperty(property) });
+    const userId = req.user?.id;
+    Promise.all([
+      prisma.property.update({
+        where: { id: property.id },
+        data: { viewCount: { increment: 1 } },
+      }),
+      userId
+        ? prisma.propertyView.upsert({
+            where: { propertyId_userId: { propertyId: property.id, userId } },
+            update: { viewedAt: new Date() },
+            create: { propertyId: property.id, userId },
+          })
+        : Promise.resolve(),
+    ]).catch((err) => logger.error({ err }, "Failed to record property view"));
   } catch (error) {
     logger.error({ err: error }, "Error fetching property");
     res.status(500).json({ success: false, error: "Failed to fetch property" });

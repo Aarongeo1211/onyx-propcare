@@ -402,9 +402,11 @@ adminRoutes.patch(
   requireRole("ADMIN", "SUPER_ADMIN"),
   async (req, res) => {
     try {
-      const { status } = req.body;
+      const { status } = z.object({
+        status: z.enum(["ACTIVE", "PENDING_REVIEW", "REJECTED", "INACTIVE", "DRAFT", "SOLD"]),
+      }).parse(req.body);
       const property = await prisma.property.update({
-        where: { id: String(String(req.params.id)) },
+        where: { id: String(req.params.id) },
         data: { status, ...(status === "ACTIVE" ? { featuredAt: new Date() } : {}) },
       });
       await logAudit(req, { action: "UPDATE_STATUS", entity: "property", entityId: property.id, details: { status } });

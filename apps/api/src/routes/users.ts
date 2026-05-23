@@ -1,10 +1,15 @@
 import { Router } from "express";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "@onyx/db";
-import { requireAuth } from "../middleware/auth";
+import { JWT_SECRET, requireAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
 
 export const userRoutes = Router();
+
+function signToken(user: { id: string; email: string; name: string; role: string }) {
+  return jwt.sign(user, JWT_SECRET, { expiresIn: "7d" });
+}
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
@@ -61,6 +66,82 @@ userRoutes.patch("/me", requireAuth, async (req, res) => {
     }
     logger.error({ err }, "Error updating profile");
     res.status(500).json({ success: false, error: "Failed to update profile" });
+  }
+});
+
+userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+
+    if (!currentUser) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    if (!currentUser.isActive) {
+      return res.status(403).json({ success: false, error: "Account is deactivated" });
+    }
+
+    if (currentUser.role !== "BUYER") {
+      const token = signToken({
+        id: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.name,
+        role: currentUser.role,
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          token,
+          user: currentUser,
+        },
+      });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: currentUser.id },
+      data: { role: "SELLER" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+
+    const token = signToken({
+      id: updatedUser.id,
+      email: updatedUser.email,
+      name: updatedUser.name,
+      role: updatedUser.role,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        user: updatedUser,
+      },
+    });
+  } catch (err) {
+    logger.error({ err }, "Error upgrading buyer to seller");
+    res.status(500).json({ success: false, error: "Failed to upgrade account" });
   }
 });
 
@@ -203,12 +284,12 @@ userRoutes.get("/me/stats", requireAuth, async (req, res) => {
     }
 
     const [
-      totalProperties, activeListings, properties,
+      totalProperties, activeListings, viewsAggregate,
       totalInquiries, newInquiries, subscription, recentInquiries, callbackCount,
     ] = await Promise.all([
       prisma.property.count({ where: { ownerId: userId } }),
       prisma.property.count({ where: { ownerId: userId, status: "ACTIVE" } }),
-      prisma.property.findMany({ where: { ownerId: userId }, select: { viewCount: true } }),
+      prisma.property.aggregate({ where: { ownerId: userId }, _sum: { viewCount: true } }),
       prisma.inquiry.count({ where: { property: { ownerId: userId } } }),
       prisma.inquiry.count({ where: { property: { ownerId: userId }, status: "NEW" } }),
       prisma.subscription.findFirst({
@@ -228,7 +309,7 @@ userRoutes.get("/me/stats", requireAuth, async (req, res) => {
       prisma.callbackRequest.count({ where: { property: { ownerId: userId } } }),
     ]);
 
-    const totalViews = properties.reduce((sum, p) => sum + p.viewCount, 0);
+    const totalViews = viewsAggregate._sum.viewCount ?? 0;
 
     res.json({
       success: true,
@@ -264,10 +345,10 @@ userRoutes.get("/:id", async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: req.params.id },
       select: {
-        id: true, name: true, avatar: true, role: true, createdAt: true,
+        id: true, name: true, avatar: true, createdAt: true,
         properties: {
           where: { status: "ACTIVE" },
-          select: { id: true, title: true, slug: true, price: true, type: true },
+          select: { id: true, title: true, slug: true, price: true, type: true, listingType: true },
         },
       },
     });
