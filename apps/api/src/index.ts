@@ -52,7 +52,7 @@ const defaultAllowedOrigins = [
   "http://localhost:3101",
 ];
 const configuredOrigins = env.CORS_ORIGINS
-  ? env.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)
+  ? env.CORS_ORIGINS.split(/[\s,]+/).map((o) => o.trim()).filter(Boolean)
   : defaultAllowedOrigins;
 
 app.set("trust proxy", 1);

@@ -23,8 +23,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=build /app/apps/admin/.next/standalone ./
 COPY --from=build /app/apps/admin/.next/static ./apps/admin/.next/static
-COPY --from=build /app/apps/admin/public ./apps/admin/public
 USER nextjs
-EXPOSE 3001
-ENV PORT=3001
+EXPOSE 8080
+ENV HOSTNAME=0.0.0.0
+ENV PORT=8080
 CMD ["node", "apps/admin/server.js"]
