@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, CheckCircle, XCircle, Archive } from "lucide-react";
+import { Search, CheckCircle, XCircle, Archive, RotateCcw } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
@@ -387,14 +387,28 @@ export default function PropertiesPage() {
                           </>
                         )}
 
-                        <button
-                          onClick={() => handleArchive(property.id)}
-                          disabled={actionLoading === property.id}
-                          className="inline-flex h-9 items-center gap-2 rounded-xl border border-cream/10 px-3 text-xs text-cream/50 hover:border-gold/20 hover:text-gold"
-                        >
-                          <Archive className="h-3.5 w-3.5" />
-                          Archive
-                        </button>
+                        {(property.status === "INACTIVE" || property.status === "REJECTED") && (
+                          <button
+                            onClick={() => handleStatusChange(property.id, "PENDING_REVIEW")}
+                            disabled={actionLoading === property.id}
+                            className="inline-flex h-9 items-center gap-2 rounded-xl border border-emerald-500/20 px-3 text-xs text-emerald-400 hover:bg-emerald-500/10"
+                            title="Send back to review queue"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            Reactivate
+                          </button>
+                        )}
+
+                        {property.status !== "INACTIVE" && (
+                          <button
+                            onClick={() => handleArchive(property.id)}
+                            disabled={actionLoading === property.id}
+                            className="inline-flex h-9 items-center gap-2 rounded-xl border border-cream/10 px-3 text-xs text-cream/50 hover:border-red-500/20 hover:text-red-400"
+                          >
+                            <Archive className="h-3.5 w-3.5" />
+                            Archive
+                          </button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>
