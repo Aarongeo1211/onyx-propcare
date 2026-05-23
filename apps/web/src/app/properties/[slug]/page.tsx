@@ -160,6 +160,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
   const [callbackSent, setCallbackSent] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -235,6 +236,34 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
       console.error("Callback request failed:", error);
     } finally {
       setCallbackSending(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!property) return;
+    const url = window.location.href;
+    const shareData = {
+      title: property.title,
+      text: `${property.title} — ${property.district}, ${property.state} | Onyx Propcare`,
+      url,
+    };
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      }
+    } catch {
+      // user cancelled or clipboard unavailable — try clipboard fallback
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      } catch {
+        // nothing we can do
+      }
     }
   };
 
@@ -561,9 +590,16 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
                       </Button>
                     </a>
                   )}
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="w-4 h-4" />
-                  </Button>
+                  <div className="relative">
+                    <Button variant="ghost" size="sm" onClick={handleShare} title="Share property">
+                      <Share2 className={`w-4 h-4 transition-colors ${shareCopied ? "text-emerald-400" : ""}`} />
+                    </Button>
+                    {shareCopied && (
+                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-onyx-800 border border-cream/10 px-2.5 py-1 text-[11px] text-emerald-400 shadow-lg pointer-events-none">
+                        Link copied!
+                      </span>
+                    )}
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"

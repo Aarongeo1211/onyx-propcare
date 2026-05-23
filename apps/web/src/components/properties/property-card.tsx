@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Maximize2, Droplets, ShieldCheck, Route } from "lucide-react";
+import { MapPin, Maximize2, Droplets, ShieldCheck, Route, Share2, Check } from "lucide-react";
 import { Badge } from "@onyx/ui";
 import {
   formatPrice,
@@ -41,6 +42,35 @@ interface PropertyCardProps {
 export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
   const imageUrl = property.images?.[0]?.url || "/images/placeholder-property.jpg";
   const imageAlt = property.images?.[0]?.alt || property.title;
+  const [shareCopied, setShareCopied] = useState(false);
+
+  async function handleShare(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/properties/${property.slug}`;
+    const shareData = {
+      title: property.title,
+      text: `${property.title} — ${property.district}, ${property.state} | Onyx Propcare`,
+      url,
+    };
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      } catch {
+        // nothing
+      }
+    }
+  }
 
   return (
     <motion.div
@@ -148,12 +178,32 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
                 </div>
               )}
 
-              {/* Price per unit on right */}
-              {property.totalArea > 0 && (
-                <span className="ml-auto text-xs text-cream/30">
-                  {formatPrice(property.price / property.totalArea)}/{property.areaUnit.replace(/s$/, "")}
-                </span>
-              )}
+              {/* Share + Price per unit on right */}
+              <div className="ml-auto flex items-center gap-2">
+                {property.totalArea > 0 && (
+                  <span className="text-xs text-cream/30">
+                    {formatPrice(property.price / property.totalArea)}/{property.areaUnit.replace(/s$/, "")}
+                  </span>
+                )}
+                <div className="relative">
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center justify-center w-6 h-6 rounded-lg text-cream/30 hover:text-cream/70 hover:bg-cream/5 transition-colors"
+                    title="Share property"
+                  >
+                    {shareCopied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Share2 className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                  {shareCopied && (
+                    <span className="absolute -top-7 right-0 whitespace-nowrap rounded-lg bg-onyx-800 border border-cream/10 px-2 py-0.5 text-[10px] text-emerald-400 shadow-lg pointer-events-none">
+                      Copied!
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
