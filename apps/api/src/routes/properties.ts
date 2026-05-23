@@ -137,15 +137,14 @@ function getFeatureValidationError(plan: {
   };
 }
 
-function sanitizePublicProperty<T extends { owner?: { phone?: string | null } | null }>(
-  property: T,
-  isAuthenticated: boolean
-): T {
-  if (!isAuthenticated && property.owner) {
-    // Strip phone number from public (unauthenticated) responses
-    const { phone: _phone, ...ownerWithoutPhone } = property.owner;
-    void _phone;
-    return { ...property, owner: ownerWithoutPhone };
+function sanitizePublicProperty<T>(property: T, isAuthenticated: boolean): T {
+  if (!isAuthenticated) {
+    const p = property as unknown as { owner?: Record<string, unknown> | null };
+    if (p.owner && "phone" in p.owner) {
+      const { phone: _phone, ...ownerWithoutPhone } = p.owner;
+      void _phone;
+      return { ...property, owner: ownerWithoutPhone } as T;
+    }
   }
   return property;
 }
@@ -245,7 +244,7 @@ propertyRoutes.get("/", async (req, res) => {
 
     res.json({
       success: true,
-      data: properties.map((property) => sanitizePublicProperty(property)),
+      data: properties.map((property) => sanitizePublicProperty(property, Boolean(req.user))),
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -316,7 +315,7 @@ propertyRoutes.get("/compare", async (req, res) => {
       },
     });
 
-    res.json({ success: true, data: properties.map((property) => sanitizePublicProperty(property)) });
+    res.json({ success: true, data: properties.map((property) => sanitizePublicProperty(property, Boolean(req.user))) });
   } catch (error) {
     logger.error({ err: error }, "Error fetching comparison properties");
     res.status(500).json({ success: false, error: "Failed to fetch comparison properties" });

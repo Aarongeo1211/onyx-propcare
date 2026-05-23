@@ -19,6 +19,12 @@ const schema = z.object({
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
   UPLOAD_DIR: z.string().optional(),
+  AWS_ENDPOINT_URL: z.string().url().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+  AWS_S3_BUCKET_NAME: z.string().optional(),
+  AWS_DEFAULT_REGION: z.string().optional(),
+  AWS_URL_STYLE: z.enum(["path", "virtual-host"]).optional(),
 
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),

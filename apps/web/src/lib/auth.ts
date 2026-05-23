@@ -99,18 +99,35 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = user.role || "BUYER";
         token.avatar = user.image ?? null;
         token.accessToken = user.accessToken;
       }
+
+      if (trigger === "update" && session) {
+        if (session.name) {
+          token.name = session.name;
+        }
+        if ((session as { role?: string }).role) {
+          token.role = (session as { role: string }).role;
+        }
+        if ((session as { avatar?: string | null }).avatar !== undefined) {
+          token.avatar = (session as { avatar?: string | null }).avatar ?? null;
+        }
+        if ((session as { accessToken?: string }).accessToken) {
+          token.accessToken = (session as { accessToken: string }).accessToken;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name = token.name as string;
         session.user.role = token.role as string;
         session.user.avatar = token.avatar as string | null;
         session.user.accessToken = token.accessToken as string;

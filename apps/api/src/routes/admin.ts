@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "@onyx/db";
-import { requireAuth, requireRole } from "../middleware/auth";
+import { requireAuth, requireRole, blockUserToken, unblockUserToken } from "../middleware/auth";
 import { getQueryNumber, getSingleQueryParam } from "../utils/request";
 import { logger } from "../lib/logger";
 import { logAudit } from "../middleware/audit";
@@ -581,7 +581,13 @@ adminRoutes.patch(
       });
 
       await logAudit(req, { action: "UPDATE_USER", entity: "user", entityId: targetId, details: data as Record<string, unknown> });
-      if (data.isActive !== undefined) cache.del(ADMIN_STATS_CACHE_KEY);
+      if (data.isActive === false) {
+        blockUserToken(targetId).catch(() => {}); // invalidate existing JWT immediately
+        cache.del(ADMIN_STATS_CACHE_KEY);
+      } else if (data.isActive === true) {
+        unblockUserToken(targetId).catch(() => {}); // lift the blocklist entry on re-activation
+        cache.del(ADMIN_STATS_CACHE_KEY);
+      }
       res.json({ success: true, data: updated });
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -615,6 +621,7 @@ adminRoutes.delete(
       });
 
       await logAudit(req, { action: "DEACTIVATE_USER", entity: "user", entityId: targetId });
+      blockUserToken(targetId).catch(() => {}); // invalidate existing JWT immediately
       cache.del(ADMIN_STATS_CACHE_KEY);
       res.json({ success: true, data: updated, message: "User deactivated" });
     } catch (err) {

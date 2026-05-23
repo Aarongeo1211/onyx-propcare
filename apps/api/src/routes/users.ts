@@ -81,6 +81,7 @@ userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
         role: true,
         avatar: true,
         isActive: true,
+        emailVerified: true,
         createdAt: true,
       },
     });
@@ -91,6 +92,16 @@ userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
 
     if (!currentUser.isActive) {
       return res.status(403).json({ success: false, error: "Account is deactivated" });
+    }
+
+    // Require email verification before allowing seller upgrade.
+    // Google-authenticated accounts are auto-verified; email/password accounts must verify first.
+    if (!currentUser.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        error: "Please verify your email address before upgrading to a seller account.",
+        code: "EMAIL_NOT_VERIFIED",
+      });
     }
 
     if (currentUser.role !== "BUYER") {

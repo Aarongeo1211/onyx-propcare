@@ -17,12 +17,18 @@ COPY --from=deps /app/packages ./packages
 COPY apps/api ./apps/api
 COPY packages ./packages
 RUN pnpm --filter=@onyx/db db:generate
+# Compile TypeScript to dist/ — no tsx in production
+RUN pnpm --filter=@onyx/api build:prod
 
 FROM base AS runner
 ENV NODE_ENV=production
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/api ./apps/api
-COPY --from=build /app/packages ./packages
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodeapp
+# Only copy compiled output and production node_modules — no source or tsx
+COPY --from=build --chown=nodeapp:nodejs /app/node_modules ./node_modules
+COPY --from=build --chown=nodeapp:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=build --chown=nodeapp:nodejs /app/packages ./packages
 WORKDIR /app/apps/api
+USER nodeapp
 EXPOSE 4000
-CMD ["pnpm", "start"]
+CMD ["node", "dist/index.js"]

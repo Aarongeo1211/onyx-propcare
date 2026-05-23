@@ -84,7 +84,7 @@ authRoutes.post("/login", async (req, res) => {
       return res.status(400).json({ success: false, error: "Email and password are required" });
     }
 
-    const lockStatus = isLocked(email);
+    const lockStatus = await isLocked(email);
     if (lockStatus.locked) {
       return res.status(429).json({
         success: false,
@@ -95,7 +95,7 @@ authRoutes.post("/login", async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email: String(email).toLowerCase() } });
 
     if (!user || !user.passwordHash) {
-      recordFailure(email);
+      await recordFailure(email);
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
 
@@ -105,11 +105,11 @@ authRoutes.post("/login", async (req, res) => {
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      recordFailure(email);
+      await recordFailure(email);
       return res.status(401).json({ success: false, error: "Invalid email or password" });
     }
 
-    clearFailures(email);
+    await clearFailures(email);
     const token = signToken({ id: user.id, email: user.email, name: user.name, role: user.role });
 
     res.json({
