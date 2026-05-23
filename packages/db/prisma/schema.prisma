@@ -103,6 +103,7 @@ enum PropertyStatus {
 enum ListingType {
   SALE
   LEASE
+  RENT
 }
 
 enum ApprovalStatus {

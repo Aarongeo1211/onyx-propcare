@@ -23,9 +23,11 @@ import {
   Video,
   FileArchive,
   Satellite,
+  UserPlus,
 } from "lucide-react";
 import type { SubscriptionUsage } from "@onyx/types";
 import { INDIAN_STATES, AREA_UNITS } from "@onyx/types";
+import { becomeSeller, hasSellerAccess } from "@/lib/seller";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
@@ -72,10 +74,11 @@ interface UploadedAsset {
 }
 
 export default function NewPropertyPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [usage, setUsage] = useState<SubscriptionUsage | null>(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
+  const [upgradingSeller, setUpgradingSeller] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; publicId: string; preview?: string }[]>([]);
@@ -174,14 +177,19 @@ export default function NewPropertyPage() {
     }
 
     if (status === "authenticated" && session?.user?.accessToken) {
-      fetchUsage();
-    }
-  }, [status, session]);
+      if (!hasSellerAccess(session.user.role)) {
+        setLoadingUsage(false);
+        return;
+      }
 
-  async function fetchUsage() {
+      fetchUsage(session.user.accessToken);
+    }
+  }, [router, session, status]);
+
+  async function fetchUsage(accessToken: string) {
     try {
       const res = await fetch(`${API_BASE}/subscriptions/my/usage`, {
-        headers: { Authorization: `Bearer ${session!.user.accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data = await res.json();
 
@@ -195,6 +203,33 @@ export default function NewPropertyPage() {
       router.push("/pricing");
     } finally {
       setLoadingUsage(false);
+    }
+  }
+
+  async function handleBecomeSeller() {
+    if (!session?.user?.accessToken) {
+      router.push("/login");
+      return;
+    }
+
+    setUpgradingSeller(true);
+    setError(null);
+
+    try {
+      const data = await becomeSeller(session.user.accessToken);
+
+      await update({
+        role: data.data.user.role,
+        accessToken: data.data.token,
+        avatar: data.data.user.avatar,
+        name: data.data.user.name,
+      });
+
+      await fetchUsage(data.data.token);
+    } catch (upgradeError) {
+      setError(upgradeError instanceof Error ? upgradeError.message : "Failed to upgrade account");
+    } finally {
+      setUpgradingSeller(false);
     }
   }
 
@@ -608,6 +643,78 @@ export default function NewPropertyPage() {
     );
   }
 
+  if (!hasSellerAccess(session?.user?.role)) {
+    return (
+      <div className="min-h-screen bg-onyx-950">
+        <div className="max-w-3xl mx-auto px-6 py-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-3xl border border-gold/15 bg-onyx-900/60 p-8 md:p-10 shadow-2xl shadow-black/30"
+          >
+            <div className="inline-flex items-center gap-2 rounded-full border border-gold/20 bg-gold/10 px-4 py-2 text-xs uppercase tracking-[0.25em] text-gold/70">
+              Seller Onboarding
+            </div>
+            <h1 className="mt-6 font-display text-3xl md:text-4xl font-semibold text-cream">
+              Turn Your Buyer Account Into a Seller Account
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm md:text-base font-body leading-relaxed text-cream/45">
+              You can use the same account to browse and list properties. Upgrade once, and we will
+              take you straight into the listing workflow and seller plans.
+            </p>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {[
+                "Keep the same Google or email account",
+                "Unlock seller dashboard and listing plans",
+                "Start publishing properties without re-registering",
+              ].map((item) => (
+                <div key={item} className="rounded-2xl border border-cream/8 bg-onyx-950/60 p-4 text-sm text-cream/55">
+                  {item}
+                </div>
+              ))}
+            </div>
+
+            {error && (
+              <div className="mt-6 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-300">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleBecomeSeller}
+                disabled={upgradingSeller}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-gold px-6 py-3 text-sm font-medium text-onyx-950 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {upgradingSeller ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Upgrading Account...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4" />
+                    Become a Seller
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/")}
+                className="rounded-xl border border-cream/10 px-6 py-3 text-sm text-cream/60 hover:border-gold/30 hover:text-gold"
+              >
+                Continue Browsing
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   if (!usage) {
     return null; // Will redirect
   }
@@ -853,7 +960,7 @@ export default function NewPropertyPage() {
                     Listing Type *
                   </label>
                   <div className="flex gap-3">
-                    {(["SALE", "LEASE"] as const).map((lt) => (
+                    {(["SALE", "LEASE", "RENT"] as const).map((lt) => (
                       <button
                         key={lt}
                         type="button"
@@ -866,7 +973,7 @@ export default function NewPropertyPage() {
                             : "bg-onyx-800/50 border-cream/10 text-cream/40 hover:border-cream/20"
                         }`}
                       >
-                        {lt === "SALE" ? "For Sale" : "For Lease"}
+                        {lt === "SALE" ? "For Sale" : lt === "LEASE" ? "For Lease" : "For Rent"}
                       </button>
                     ))}
                   </div>

@@ -116,7 +116,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
       {/* Listing Type */}
       <FilterSection title="Listing Type" isOpen={openSections.listing} onToggle={() => toggleSection("listing")}>
         <div className="flex gap-2">
-          {(["SALE", "LEASE"] as const).map((lt) => (
+          {(["SALE", "LEASE", "RENT"] as const).map((lt) => (
             <button
               key={lt}
               onClick={() => updateFilter("listingType", filters.listingType === lt ? undefined : lt)}
@@ -126,7 +126,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
                   : "bg-onyx-900/40 text-cream/40 border border-cream/8 hover:border-cream/15 hover:text-cream/60"
               }`}
             >
-              {lt === "SALE" ? "Buy" : "Lease"}
+              {lt === "SALE" ? "Buy" : lt === "LEASE" ? "Lease" : "Rent"}
             </button>
           ))}
         </div>

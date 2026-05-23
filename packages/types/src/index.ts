@@ -15,7 +15,7 @@ export type PropertyStatus =
   | "INACTIVE"
   | "REJECTED";
 
-export type ListingType = "SALE" | "LEASE";
+export type ListingType = "SALE" | "LEASE" | "RENT";
 
 export type InquiryStatus =
   | "NEW"

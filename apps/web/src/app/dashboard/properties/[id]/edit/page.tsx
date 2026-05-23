@@ -87,7 +87,7 @@ export default function EditPropertyPage() {
     title: "",
     description: "",
     type: "FARMLAND",
-    listingType: "SALE" as "SALE" | "LEASE",
+    listingType: "SALE" as "SALE" | "LEASE" | "RENT",
     price: "",
     state: "",
     district: "",
@@ -802,7 +802,7 @@ export default function EditPropertyPage() {
                   <div>
                     <label className={labelClass}>Listing Type *</label>
                     <div className="flex gap-3">
-                      {(["SALE", "LEASE"] as const).map((lt) => (
+                      {(["SALE", "LEASE", "RENT"] as const).map((lt) => (
                         <button
                           key={lt}
                           type="button"
@@ -813,7 +813,7 @@ export default function EditPropertyPage() {
                               : "bg-onyx-800/50 border-cream/10 text-cream/40 hover:border-cream/20"
                           }`}
                         >
-                          {lt === "SALE" ? "For Sale" : "For Lease"}
+                          {lt === "SALE" ? "For Sale" : lt === "LEASE" ? "For Lease" : "For Rent"}
                         </button>
                       ))}
                     </div>

@@ -71,6 +71,9 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               {property.listingType === "LEASE" && (
                 <Badge variant="outline">Lease</Badge>
               )}
+              {property.listingType === "RENT" && (
+                <Badge variant="outline">Rent</Badge>
+              )}
             </div>
 
             {/* Featured badge + Compare button */}
@@ -88,6 +91,9 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               </span>
               {property.listingType === "LEASE" && (
                 <span className="text-cream/50 text-xs ml-1">/year</span>
+              )}
+              {property.listingType === "RENT" && (
+                <span className="text-cream/50 text-xs ml-1">/mo</span>
               )}
             </div>
           </div>
