@@ -341,14 +341,18 @@ export async function streamBucketFile(
     })
   );
 
+  const isDocument = objectKey.startsWith("onyx-propcare/documents");
   const status = rangeHeader ? 206 : 200;
   const headers: Record<string, string> = {
     "Content-Type": s3Response.ContentType || "application/octet-stream",
     "Accept-Ranges": "bytes",
     // Allow browsers to cache public media aggressively; documents get a shorter TTL
-    "Cache-Control": objectKey.startsWith("onyx-propcare/documents")
-      ? "private, max-age=600"
-      : "public, max-age=31536000, immutable",
+    "Cache-Control": isDocument ? "private, max-age=600" : "public, max-age=31536000, immutable",
+    // Helmet sets CORP: same-origin globally, which blocks cross-origin <img>/<video> loads
+    // (e.g. admin.onyxpropcare.com loading images from the API origin).
+    // Override to cross-origin for public media so any page can embed it;
+    // keep same-origin for private documents.
+    "Cross-Origin-Resource-Policy": isDocument ? "same-origin" : "cross-origin",
   };
 
   if (s3Response.ContentLength != null) {
