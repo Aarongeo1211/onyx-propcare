@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -27,6 +28,8 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
   : "http://localhost:4000/api/v1";
+
+const LocationPicker = dynamic(() => import("@/components/properties/location-picker"), { ssr: false });
 
 const PROPERTY_TYPES = [
   { value: "FARMLAND", label: "Farmland" },
@@ -64,6 +67,10 @@ export default function EditPropertyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ latitude: number | null; longitude: number | null }>({
+    latitude: null,
+    longitude: null,
+  });
   const [existingImages, setExistingImages] = useState<{ id: string; url: string; isPrimary: boolean; order: number }[]>([]);
   const [newImages, setNewImages] = useState<{ url: string; publicId: string }[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<Array<UploadedAsset & { title: string; thumbnailUrl?: string }>>([]);
@@ -227,6 +234,10 @@ export default function EditPropertyPage() {
             notes: p.droneMap.notes || "",
           });
         }
+        setCoordinates({
+          latitude: typeof p.latitude === "number" ? p.latitude : null,
+          longitude: typeof p.longitude === "number" ? p.longitude : null,
+        });
         setForm({
           title: p.title || "",
           description: p.description || "",
@@ -332,6 +343,31 @@ export default function EditPropertyPage() {
       [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
+
+  function handleLocationResolved(location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    state: string;
+    district: string;
+    village: string;
+    taluka: string;
+    pincode: string;
+  }) {
+    setCoordinates({
+      latitude: location.latitude,
+      longitude: location.longitude,
+    });
+    setForm((prev) => ({
+      ...prev,
+      address: location.address || prev.address,
+      state: location.state || prev.state,
+      district: location.district || prev.district,
+      village: location.village || prev.village,
+      taluka: location.taluka || prev.taluka,
+      pincode: location.pincode || prev.pincode,
+    }));
+  }
 
   const totalImages = existingImages.length + newImages.length;
 
@@ -598,6 +634,8 @@ export default function EditPropertyPage() {
         state: form.state,
         district: form.district,
         address: form.address,
+        latitude: coordinates.latitude ?? undefined,
+        longitude: coordinates.longitude ?? undefined,
         totalArea: parseFloat(form.totalArea),
         areaUnit: form.areaUnit,
         roadAccess: form.roadAccess,
@@ -917,6 +955,18 @@ export default function EditPropertyPage() {
               </div>
 
               <div className="space-y-5">
+                <LocationPicker
+                  latitude={coordinates.latitude}
+                  longitude={coordinates.longitude}
+                  address={form.address}
+                  state={form.state}
+                  district={form.district}
+                  village={form.village}
+                  taluka={form.taluka}
+                  pincode={form.pincode}
+                  onLocationResolved={handleLocationResolved}
+                />
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className={labelClass}>State *</label>

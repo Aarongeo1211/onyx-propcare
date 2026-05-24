@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -33,6 +34,8 @@ import { ApiError } from "@/lib/utils";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
   : "http://localhost:4000/api/v1";
+
+const LocationPicker = dynamic(() => import("@/components/properties/location-picker"), { ssr: false });
 
 const PROPERTY_TYPES = [
   { value: "FARMLAND", label: "Farmland" },
@@ -83,6 +86,10 @@ export default function NewPropertyPage() {
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [resendingVerification, setResendingVerification] = useState(false);
   const [verificationResent, setVerificationResent] = useState(false);
+  const [coordinates, setCoordinates] = useState<{ latitude: number | null; longitude: number | null }>({
+    latitude: null,
+    longitude: null,
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; publicId: string; preview?: string }[]>([]);
@@ -273,6 +280,31 @@ export default function NewPropertyPage() {
         type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
+
+  function handleLocationResolved(location: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    state: string;
+    district: string;
+    village: string;
+    taluka: string;
+    pincode: string;
+  }) {
+    setCoordinates({
+      latitude: location.latitude,
+      longitude: location.longitude,
+    });
+    setForm((prev) => ({
+      ...prev,
+      address: location.address || prev.address,
+      state: location.state || prev.state,
+      district: location.district || prev.district,
+      village: location.village || prev.village,
+      taluka: location.taluka || prev.taluka,
+      pincode: location.pincode || prev.pincode,
+    }));
+  }
 
   const selectedPlanCategory = useMemo(
     () => getPlanCategoryForPropertyType(form.type),
@@ -511,6 +543,8 @@ export default function NewPropertyPage() {
         taluka: form.taluka || undefined,
         pincode: form.pincode || undefined,
         address: form.address,
+        latitude: coordinates.latitude ?? undefined,
+        longitude: coordinates.longitude ?? undefined,
         totalArea: parseFloat(form.totalArea),
         areaUnit: form.areaUnit,
         facing: form.facing || undefined,
@@ -1077,6 +1111,18 @@ export default function NewPropertyPage() {
             </div>
 
             <div className="space-y-5">
+              <LocationPicker
+                latitude={coordinates.latitude}
+                longitude={coordinates.longitude}
+                address={form.address}
+                state={form.state}
+                district={form.district}
+                village={form.village}
+                taluka={form.taluka}
+                pincode={form.pincode}
+                onLocationResolved={handleLocationResolved}
+              />
+
               {/* State + District */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>

@@ -551,14 +551,30 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
             )}
 
             {/* ── Map Section ─────────────────────────────── */}
-            {property.latitude && property.longitude && (
+            {property.latitude !== null && property.longitude !== null && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
                 className="mb-10"
               >
-                <h2 className="font-display text-xl font-semibold text-cream mb-4">Location</h2>
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="font-display text-xl font-semibold text-cream">Location</h2>
+                    <p className="mt-1 text-sm text-cream/35">
+                      Exact property pin based on the seller&apos;s selected map location.
+                    </p>
+                  </div>
+                  <a
+                    href={`https://www.openstreetmap.org/?mlat=${property.latitude}&mlon=${property.longitude}#map=16/${property.latitude}/${property.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Open in OpenStreetMap
+                  </a>
+                </div>
                 <div className="rounded-xl overflow-hidden border border-cream/8 h-[400px]">
                   <PropertyMap lat={property.latitude} lng={property.longitude} title={property.title} />
                 </div>
