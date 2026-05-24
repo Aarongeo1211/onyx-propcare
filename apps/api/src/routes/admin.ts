@@ -174,6 +174,39 @@ adminRoutes.get(
   }
 );
 
+// GET /admin/properties/:id — full property detail for admin review modal
+adminRoutes.get(
+  "/properties/:id",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const property = await prisma.property.findUnique({
+        where: { id: String(req.params.id) },
+        include: {
+          images: { orderBy: { order: "asc" } },
+          videos: { orderBy: { order: "asc" } },
+          documents: { orderBy: { name: "asc" } },
+          droneMap: true,
+          owner: { select: { id: true, name: true, email: true, phone: true, avatar: true } },
+          soilData: true,
+          waterData: true,
+          legalCheck: true,
+        },
+      });
+
+      if (!property) {
+        return res.status(404).json({ success: false, error: "Property not found" });
+      }
+
+      res.json({ success: true, data: property });
+    } catch (err) {
+      logger.error({ err }, "Error fetching admin property detail");
+      res.status(500).json({ success: false, error: "Failed to fetch property" });
+    }
+  }
+);
+
 adminRoutes.get(
   "/refund-requests",
   requireAuth,
