@@ -300,7 +300,7 @@ export default function LocationPicker(props: LocationPickerProps) {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
+    <div className="relative isolate space-y-4 rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
       <div className="flex flex-col gap-3 lg:flex-row">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/25" />
@@ -316,7 +316,7 @@ export default function LocationPicker(props: LocationPickerProps) {
           />
 
           {searchOpen && (searching || results.length > 0) && (
-            <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-cream/10 bg-onyx-900 shadow-2xl shadow-black/40">
+            <div className="absolute z-[1200] mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-cream/10 bg-onyx-900 shadow-2xl shadow-black/40">
               {searching ? (
                 <div className="flex items-center gap-2 px-4 py-3 text-sm text-cream/45">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -350,7 +350,7 @@ export default function LocationPicker(props: LocationPickerProps) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr),280px]">
-        <div className="overflow-hidden rounded-2xl border border-cream/10">
+        <div className="relative z-0 overflow-hidden rounded-2xl border border-cream/10">
           <div ref={mapRef} className="h-[320px] w-full" />
         </div>
 
