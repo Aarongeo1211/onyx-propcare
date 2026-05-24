@@ -224,6 +224,7 @@ propertyRoutes.get("/", async (req, res) => {
         where,
         include: {
           images: { where: { isPrimary: true }, take: 1 },
+          videos: { select: { url: true }, take: 1 },
           owner: { select: { id: true, name: true, avatar: true } },
           soilData: { select: { soilType: true, fertility: true, approvalStatus: true } },
           waterData: { select: { waterQuality: true, waterTableDepth: true, approvalStatus: true } },

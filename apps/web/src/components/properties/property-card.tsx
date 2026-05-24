@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Maximize2, Droplets, ShieldCheck, Route, Share2, Check } from "lucide-react";
+import { MapPin, Maximize2, Droplets, ShieldCheck, Route, Share2, Check, PlayCircle } from "lucide-react";
 import { Badge } from "@onyx/ui";
 import {
   formatPrice,
@@ -29,6 +29,7 @@ export interface PropertyCardData {
   hasClearTitle: boolean;
   isFeatured: boolean;
   images: { url: string; alt?: string | null }[];
+  videos?: { url: string }[];
   soilData?: { soilType: string; fertility?: string | null } | null;
   waterData?: { waterSource?: string | null; waterQuality?: string | null } | null;
   legalCheck?: { titleStatus: string } | null;
@@ -106,10 +107,16 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               )}
             </div>
 
-            {/* Featured badge + Compare button */}
+            {/* Featured badge + Video badge + Compare button */}
             <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
               {property.isFeatured && (
                 <Badge variant="default">Featured</Badge>
+              )}
+              {property.videos && property.videos.length > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 px-2 py-1 text-[10px] font-medium text-white">
+                  <PlayCircle className="w-3 h-3 text-gold" />
+                  Video Tour
+                </span>
               )}
               <CompareButton propertyId={property.id} variant="card" />
             </div>

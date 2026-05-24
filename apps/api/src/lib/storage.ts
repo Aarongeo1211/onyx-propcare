@@ -1,4 +1,4 @@
-import type { Request } from "express";
+import type { Request, Response } from "express";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -314,6 +314,58 @@ export async function configureBucketCors(allowedOrigins: string[]) {
     // Non-fatal — server-side upload still works as fallback
     logger.warn({ err }, "Could not configure bucket CORS (presigned uploads may not work from browser)");
   }
+}
+
+/**
+ * Stream a bucket object directly to the HTTP response with full range-request support.
+ * Used for video and document playback so the browser never needs to follow a redirect —
+ * range requests work correctly and videos play in every browser.
+ */
+export async function streamBucketFile(
+  req: Request,
+  res: Response,
+  objectKey: string
+): Promise<void> {
+  if (!bucketClient || !process.env.AWS_S3_BUCKET_NAME) {
+    throw new Error("Bucket storage is not configured");
+  }
+
+  const rangeHeader = req.headers.range as string | undefined;
+  const download = req.query.download === "1";
+
+  const s3Response = await bucketClient.send(
+    new GetObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: objectKey,
+      ...(rangeHeader ? { Range: rangeHeader } : {}),
+    })
+  );
+
+  const status = rangeHeader ? 206 : 200;
+  const headers: Record<string, string> = {
+    "Content-Type": s3Response.ContentType || "application/octet-stream",
+    "Accept-Ranges": "bytes",
+    // Allow browsers to cache public media aggressively; documents get a shorter TTL
+    "Cache-Control": objectKey.startsWith("onyx-propcare/documents")
+      ? "private, max-age=600"
+      : "public, max-age=31536000, immutable",
+  };
+
+  if (s3Response.ContentLength != null) {
+    headers["Content-Length"] = String(s3Response.ContentLength);
+  }
+  if (s3Response.ContentRange) {
+    headers["Content-Range"] = s3Response.ContentRange;
+  }
+  headers["Content-Disposition"] = download
+    ? `attachment; filename="${path.basename(objectKey)}"`
+    : "inline";
+
+  res.writeHead(status, headers);
+
+  // AWS SDK v3 returns a Node.js Readable stream in server environments
+  const body = s3Response.Body as unknown as NodeJS.ReadableStream;
+  body.pipe(res);
 }
 
 export function getStorageSettingsSummary() {

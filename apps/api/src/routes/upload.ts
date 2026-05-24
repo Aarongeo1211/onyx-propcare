@@ -4,7 +4,7 @@ import { prisma } from "@onyx/db";
 import { z } from "zod";
 import { optionalAuth, requireAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
-import { buildAssetUrl, createPresignedUploadUrl, deleteFile, getFileAccessUrl, storageMode, uploadFile } from "../lib/storage";
+import { buildAssetUrl, createPresignedUploadUrl, deleteFile, storageMode, streamBucketFile, uploadFile } from "../lib/storage";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
@@ -284,15 +284,14 @@ uploadRoutes.get("/files/:objectKey(*)", optionalAuth, async (req, res) => {
       return res.status(404).json({ success: false, error: "Bucket storage is not enabled" });
     }
 
-    const signedUrl = await getFileAccessUrl(objectKey, req.query.download === "1");
-    if (!signedUrl) {
-      return res.status(404).json({ success: false, error: "File not found" });
-    }
-
-    res.redirect(signedUrl);
+    // Stream bytes directly — this properly supports browser range requests for
+    // video playback (seek, scrub) without relying on redirect + S3 signed URL chains.
+    await streamBucketFile(req, res, objectKey);
   } catch (error) {
     logger.error({ err: error }, "File access error");
-    res.status(500).json({ success: false, error: "Failed to access file" });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: "Failed to access file" });
+    }
   }
 });
 
