@@ -81,7 +81,12 @@ export default function EditPropertyPage() {
   const [uploadingReportField, setUploadingReportField] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Tracks whether any file was uploaded in this session but the form hasn't been saved yet
+  const hasUnsavedUploads = useRef(false);
   const MAX_IMAGES = 10;
+
+  // Derived: is any upload currently in flight?
+  const isUploading = uploading || uploadingVideos || uploadingDocuments || !!uploadingReportField;
 
   const [form, setForm] = useState({
     title: "",
@@ -161,6 +166,18 @@ export default function EditPropertyPage() {
       fetchProperty();
     }
   }, [session, propertyId]);
+
+  // Warn browser-level exits (tab close, hard refresh, typed URL) when uploads are unsaved
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedUploads.current || newImages.length > 0) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [newImages.length]);
 
   async function fetchProperty() {
     try {
@@ -348,6 +365,7 @@ export default function EditPropertyPage() {
 
       if (data.success) {
         setNewImages((prev) => [...prev, ...data.data]);
+        hasUnsavedUploads.current = true;
       } else {
         setError(data.error || "Failed to upload images");
       }
@@ -432,6 +450,7 @@ export default function EditPropertyPage() {
           title: asset.originalName?.replace(/\.[^.]+$/, "") || "Listing video",
         })),
       ]);
+      hasUnsavedUploads.current = true;
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Failed to upload videos");
     } finally {
@@ -452,6 +471,7 @@ export default function EditPropertyPage() {
           type: "supporting_document",
         })),
       ]);
+      hasUnsavedUploads.current = true;
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Failed to upload documents");
     } finally {
@@ -697,6 +717,7 @@ export default function EditPropertyPage() {
       const data = await res.json();
 
       if (data.success) {
+        hasUnsavedUploads.current = false;
         if (newImages.length > 0) {
           await fetch(`${API_BASE}/upload/property-images`, {
             method: "POST",
@@ -731,6 +752,13 @@ export default function EditPropertyPage() {
     }
   };
 
+  const handleNavigateAway = useCallback(() => {
+    if (hasUnsavedUploads.current || newImages.length > 0) {
+      if (!window.confirm("You have uploaded files that haven't been saved yet. Leave without saving?")) return;
+    }
+    router.push("/dashboard/properties");
+  }, [newImages.length, router]);
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
@@ -759,7 +787,7 @@ export default function EditPropertyPage() {
         >
           {/* Back */}
           <button
-            onClick={() => router.push("/dashboard/properties")}
+            onClick={handleNavigateAway}
             className="flex items-center gap-2 text-sm font-body text-cream/40 hover:text-cream transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -1450,17 +1478,23 @@ export default function EditPropertyPage() {
             <div className="flex items-center justify-end gap-4">
               <button
                 type="button"
-                onClick={() => router.push("/dashboard/properties")}
+                onClick={handleNavigateAway}
                 className="px-6 py-3 text-sm font-body text-cream/50 border border-cream/10 rounded-xl hover:text-cream hover:border-cream/20 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || isUploading}
                 className="group relative px-8 py-3 bg-gradient-to-r from-gold to-gold-light text-onyx-950 font-body font-medium text-sm rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-gold/20 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                title={isUploading ? "Please wait for uploads to finish" : undefined}
               >
-                {submitting ? (
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Uploading…
+                  </>
+                ) : submitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Saving...
