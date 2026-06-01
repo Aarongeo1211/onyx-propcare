@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
 
 const footerLinks = {
@@ -58,11 +58,11 @@ export function Footer() {
             <div className="space-y-3 text-sm text-cream/40">
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-gold/60" />
-                Mumbai, Maharashtra, India
+                Byrathi, Bengaluru, Karnataka 560077
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-gold/60" />
-                +91 98765 43210
+                +91 81470 57801
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-gold/60" />

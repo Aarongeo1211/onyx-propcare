@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
@@ -80,14 +80,14 @@ export function Navbar() {
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5">
               <MapPin className="w-3 h-3" />
-              Pan India Coverage
+              Bengaluru
             </span>
             <span className="flex items-center gap-1.5">
               <Phone className="w-3 h-3" />
-              +91 98765 43210
+              +91 81470 57801
             </span>
           </div>
-          <span>India&apos;s Largest Farmland &amp; Plot Marketplace</span>
+          <span>Pan India Coverage</span>
         </div>
       </div>
 

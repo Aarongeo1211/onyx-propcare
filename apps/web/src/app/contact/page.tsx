@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -136,7 +136,7 @@ export default function ContactPage() {
                       Phone
                     </h4>
                     <p className="text-cream/40 font-body text-sm">
-                      +91 22 4000 1234
+                      +91 81470 57801
                     </p>
                   </div>
                 </div>
@@ -150,13 +150,7 @@ export default function ContactPage() {
                       Office
                     </h4>
                     <p className="text-cream/40 font-body text-sm leading-relaxed">
-                      Onyx Propcare Pvt. Ltd.
-                      <br />
-                      Level 5, Trade Centre
-                      <br />
-                      Bandra Kurla Complex
-                      <br />
-                      Mumbai, Maharashtra 400051
+                      Onyx Propcare Pvt. Ltd.<br />1st Floor, No.36, Shop No.4, Bidarahalli Hobli,<br />Dr SRK Nagar Post, Near Anjaneya Temple,<br />Byrathi, Bengaluru, Bengaluru Urban,<br />Karnataka, 560077
                     </p>
                   </div>
                 </div>

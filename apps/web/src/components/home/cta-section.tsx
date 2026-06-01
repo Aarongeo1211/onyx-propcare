@@ -22,12 +22,12 @@ export function CTASection() {
         >
           <h2 className="heading-lg text-cream mb-6">
             Ready to Discover Your{" "}
-            <span className="text-shimmer">Perfect Land?</span>
+            <span className="text-gradient-gold">Perfect Land?</span>
           </h2>
 
           <p className="text-cream/35 text-sm font-body max-w-lg mx-auto mb-10 leading-relaxed">
-            Join thousands of investors who trust Onyx Propcare for their land
-            acquisitions. Start exploring verified properties across India.
+            Join thousands of investors discovering land opportunities across India
+            with transparent data and expert guidance.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -45,23 +45,6 @@ export function CTASection() {
               Talk to an Expert
             </Link>
           </div>
-        </motion.div>
-
-        {/* Trust badges */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="mt-16 flex flex-wrap justify-center gap-8 text-xs text-cream/20 font-body"
-        >
-          <span>RERA Compliant</span>
-          <span className="text-gold/20">|</span>
-          <span>ISO 9001 Certified</span>
-          <span className="text-gold/20">|</span>
-          <span>DIPP Recognized</span>
-          <span className="text-gold/20">|</span>
-          <span>100% Secure Transactions</span>
         </motion.div>
       </div>
     </section>

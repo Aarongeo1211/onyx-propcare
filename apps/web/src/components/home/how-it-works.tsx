@@ -28,7 +28,7 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section className="relative py-24 lg:py-32 noise-overlay">
+    <section id="how-it-works" className="relative py-24 lg:py-32 noise-overlay">
       {/* Accent glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-gold/[0.02] rounded-full blur-[120px]" />
 
