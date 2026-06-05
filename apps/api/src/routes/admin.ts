@@ -443,8 +443,12 @@ adminRoutes.patch(
       const property = await prisma.property.update({
         where: { id: String(req.params.id) },
         data: { status, ...(status === "ACTIVE" ? { featuredAt: new Date() } : {}) },
+        select: { id: true, status: true, isFeatured: true },
       });
       await logAudit(req, { action: "UPDATE_STATUS", entity: "property", entityId: property.id, details: { status } });
+      // If the property was featured, bust the cache — it may no longer satisfy
+      // WHERE isFeatured=true AND status='ACTIVE' after this change
+      if (property.isFeatured || status === "ACTIVE") cache.del("properties:featured");
       cache.del(ADMIN_STATS_CACHE_KEY);
       res.json({ success: true, data: property });
     } catch (err) {
@@ -499,6 +503,8 @@ adminRoutes.delete(
         data: { status: "INACTIVE", isFeatured: false, featuredAt: null },
       });
       await logAudit(req, { action: "ARCHIVE", entity: "property", entityId: property.id });
+      // Always bust featured cache on archive — property is guaranteed off the list
+      cache.del("properties:featured");
       cache.del(ADMIN_STATS_CACHE_KEY);
       res.json({ success: true, data: property, message: "Property archived successfully" });
     } catch (err) {
