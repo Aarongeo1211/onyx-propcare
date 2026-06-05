@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -10,10 +11,16 @@ import {
   Leaf,
   Building2,
   Play,
+  ShieldCheck,
+  Droplets,
+  Scale,
+  TrendingUp,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { INDIAN_STATES } from "@onyx/types";
+import { formatArea, formatPrice } from "@/lib/utils";
+import type { PropertyCardData } from "@/components/properties/property-card";
 
 const stats = [
   { value: 12500, suffix: "+", label: "Properties Listed" },
@@ -23,6 +30,24 @@ const stats = [
 ];
 
 const quickStates = ["Maharashtra", "Karnataka", "Tamil Nadu", "Gujarat", "Rajasthan"];
+
+const journeyCards = [
+  {
+    title: "Verified Farmland",
+    description: "Soil, water, access and title stacked into one decision flow.",
+    href: "/properties?type=FARMLAND",
+  },
+  {
+    title: "Residential Plots",
+    description: "Shortlist investor-grade plotted land with faster local discovery.",
+    href: "/properties?type=RESIDENTIAL_PLOT",
+  },
+  {
+    title: "ROI Calculator",
+    description: "Model returns before you talk to anyone or book a visit.",
+    href: "/calculator",
+  },
+];
 
 function AnimatedCounter({
   value,
@@ -70,38 +95,384 @@ const staggerContainer = {
   hidden: {},
   visible: {
     transition: {
-      staggerChildren: 0.12,
-      delayChildren: 0.1,
+      staggerChildren: 0.1,
+      delayChildren: 0.08,
     },
   },
 };
 
 const fadeUpItem = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.65, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 };
 
-export function HeroSection() {
+interface SearchPanelProps {
+  activeTab: "FARMLAND" | "RESIDENTIAL_PLOT";
+  onTabChange: (tab: "FARMLAND" | "RESIDENTIAL_PLOT") => void;
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  selectedState: string;
+  showStateDropdown: boolean;
+  onToggleDropdown: () => void;
+  onStateSelect: (state: string) => void;
+  onSearch: () => void;
+  onQuickState: (state: string) => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  compact?: boolean;
+}
+
+function SearchPanel({
+  activeTab,
+  onTabChange,
+  searchQuery,
+  onSearchQueryChange,
+  selectedState,
+  showStateDropdown,
+  onToggleDropdown,
+  onStateSelect,
+  onSearch,
+  onQuickState,
+  onKeyDown,
+  compact = false,
+}: SearchPanelProps) {
+  const tabClass = compact ? "px-3.5 py-2 text-xs rounded-xl" : "px-5 py-2.5 text-sm rounded-t-2xl";
+  const wrapperClass = compact ? "rounded-2xl p-2.5" : "rounded-[1.6rem] p-3";
+  const inputClass = compact ? "px-3 py-2.5 text-sm" : "px-4 py-3.5 text-sm";
+  const buttonClass = compact ? "px-4 py-2.5 text-sm rounded-xl" : "px-6 py-3.5 text-sm rounded-2xl";
+  const showQuickActions = !compact;
+
+  return (
+    <div className={compact ? "w-full" : "max-w-3xl"}>
+      <div className={`flex flex-wrap gap-1.5 ${compact ? "mb-2.5" : "mb-3"}`}>
+        {[
+          { key: "FARMLAND" as const, label: "Farmlands", icon: Leaf },
+          { key: "RESIDENTIAL_PLOT" as const, label: "Plots", icon: Building2 },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => onTabChange(tab.key)}
+            className={`flex items-center gap-2 border transition-all duration-300 ${tabClass} ${
+              activeTab === tab.key
+                ? "border-gold/25 bg-onyx-900/90 text-gold shadow-[0_10px_30px_rgba(201,168,76,0.10)]"
+                : "border-transparent bg-transparent text-cream/40 hover:text-cream/70"
+            }`}
+          >
+            <tab.icon className="h-3.5 w-3.5" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={`glass group border-gold/10 shadow-2xl shadow-black/25 ${wrapperClass}`}>
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+          <div className="relative shrink-0">
+            <button
+              onClick={onToggleDropdown}
+              className={`flex w-full items-center gap-2 whitespace-nowrap rounded-2xl border border-cream/8 bg-cream/[0.03] text-left transition-colors hover:border-gold/20 hover:text-cream lg:w-auto lg:border-0 lg:bg-transparent ${compact ? "px-3 py-2.5 text-sm text-cream/60" : "px-4 py-3.5 text-sm text-cream/55"}`}
+            >
+              <MapPin className="h-4 w-4 text-gold/55" />
+              <span className={selectedState ? "text-cream" : ""}>{selectedState || "All India"}</span>
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+            <AnimatePresence>
+              {showStateDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 top-full z-50 mt-2 max-h-60 w-64 overflow-y-auto rounded-2xl border border-cream/10 bg-onyx-900 py-2 shadow-2xl shadow-black/40"
+                >
+                  <button
+                    onClick={() => onStateSelect("")}
+                    className="w-full px-4 py-2 text-left text-sm text-cream/50 transition-colors hover:bg-cream/5 hover:text-cream"
+                  >
+                    All India
+                  </button>
+                  {INDIAN_STATES.map((state) => (
+                    <button
+                      key={state}
+                      onClick={() => onStateSelect(state)}
+                      className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-cream/5 ${
+                        selectedState === state ? "text-gold" : "text-cream/60 hover:text-cream"
+                      }`}
+                    >
+                      {state}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="hidden h-10 w-px bg-cream/8 lg:block" />
+          <div className="relative flex flex-1 items-center">
+            <Search className="pointer-events-none ml-3 hidden h-4.5 w-4.5 text-cream/25 transition-colors group-focus-within:text-gold/65 sm:block" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchQueryChange(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder={
+                activeTab === "FARMLAND"
+                  ? "Search by state, district, taluk or region"
+                  : "Search plots by city, district or locality"
+              }
+              className={`w-full flex-1 bg-transparent text-cream placeholder:text-cream/25 focus:outline-none font-body ${inputClass}`}
+            />
+          </div>
+          <button
+            onClick={onSearch}
+            className={`inline-flex items-center justify-center gap-2 bg-gradient-gold font-medium text-onyx-950 shadow-lg shadow-gold/15 transition-all duration-300 hover:shadow-gold/30 ${buttonClass}`}
+          >
+            Explore
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {showQuickActions && (
+        <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {quickStates.map((state) => (
+              <button
+                key={state}
+                onClick={() => onQuickState(state)}
+                className="rounded-full border border-cream/10 px-3 py-1.5 text-xs text-cream/45 transition-all duration-300 hover:border-gold/30 hover:text-gold/80"
+              >
+                {state}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => {
+              const el = document.getElementById("featured-properties");
+              el?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            className="inline-flex items-center gap-1.5 text-xs text-gold/60 transition-colors hover:text-gold xl:ml-auto"
+          >
+            <Play className="h-3 w-3" />
+            Browse live inventory
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HeroPreview({ properties }: { properties: PropertyCardData[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Auto-advance every 3 s; restarting when user manually picks a dot
+  useEffect(() => {
+    if (properties.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % properties.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [currentIndex, properties.length]);
+
+  const primaryProperty = properties[currentIndex];
+  const secondaryProperty = properties.length > 1
+    ? properties[(currentIndex + 1) % properties.length]
+    : null;
+
+  return (
+    <div className="relative">
+      <div className="absolute -right-14 top-10 hidden h-48 w-48 rounded-full bg-gold/[0.06] blur-[90px] lg:block" />
+      <div className="absolute -left-10 bottom-6 hidden h-32 w-32 rounded-full bg-earth-green/[0.08] blur-[80px] lg:block" />
+
+      <div className="relative grid gap-4">
+        <div className="overflow-hidden rounded-[2rem] border border-cream/10 bg-onyx-900/55 shadow-2xl shadow-black/35 backdrop-blur-sm">
+          <div className="relative aspect-[4/3]">
+            {/* Crossfading image layer */}
+            <AnimatePresence mode="sync">
+              <motion.div
+                key={primaryProperty?.id ?? currentIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.7, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={primaryProperty?.images?.[0]?.url || "/images/placeholder-property.jpg"}
+                  alt={primaryProperty?.images?.[0]?.alt || primaryProperty?.title || "Onyx Propcare featured property"}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="absolute inset-0 bg-gradient-to-t from-onyx-950 via-onyx-950/10 to-transparent" />
+
+            <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-gold/20 bg-onyx-950/60 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-gold/85 backdrop-blur-sm">
+              <Sparkles className="h-3 w-3" />
+              Featured Pick
+            </div>
+
+            {/* Dot indicators — only when multiple properties */}
+            {properties.length > 1 && (
+              <div className="absolute right-4 top-4 flex items-center gap-1.5">
+                {properties.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentIndex(i)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === currentIndex
+                        ? "w-5 bg-gold"
+                        : "w-1.5 bg-cream/30 hover:bg-cream/50"
+                    }`}
+                    aria-label={`Go to featured property ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 p-5">
+              {/* Sliding text content */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={primaryProperty?.id ?? currentIndex}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                >
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-cream/10 bg-onyx-950/55 px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-cream/70">
+                      {primaryProperty ? primaryProperty.type.replaceAll("_", " ") : "Verified listing"}
+                    </span>
+                    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-emerald-300">
+                      Legal Ready
+                    </span>
+                  </div>
+                  <h3 className="font-display text-2xl font-semibold text-cream">
+                    {primaryProperty?.title || "Verified land with on-ground due diligence"}
+                  </h3>
+                  <div className="mt-2 flex items-center gap-1.5 text-sm text-cream/65">
+                    <MapPin className="h-4 w-4 text-gold/65" />
+                    <span>
+                      {primaryProperty ? `${primaryProperty.district}, ${primaryProperty.state}` : "Pan-India coverage"}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <div className="font-display text-3xl font-semibold text-gold">
+                        {primaryProperty ? formatPrice(primaryProperty.price) : "Verified pricing"}
+                      </div>
+                      <div className="text-xs uppercase tracking-[0.18em] text-cream/45">
+                        {primaryProperty
+                          ? formatArea(primaryProperty.totalArea, primaryProperty.areaUnit)
+                          : "Soil, water and legal layers included"}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-cream/60">
+                      <div className="rounded-2xl border border-cream/8 bg-onyx-950/45 px-3 py-2">
+                        <div className="mb-1 text-gold/75">Soil</div>
+                        <div>{primaryProperty?.soilData?.soilType || "Analyzed"}</div>
+                      </div>
+                      <div className="rounded-2xl border border-cream/8 bg-onyx-950/45 px-3 py-2">
+                        <div className="mb-1 text-gold/75">Water</div>
+                        <div>{primaryProperty?.waterData?.waterSource || "Mapped"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-[1.6rem] border border-cream/10 bg-onyx-900/55 p-5 shadow-xl shadow-black/20 backdrop-blur-sm">
+            <div className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-gold/70">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Why buyers trust Onyx
+            </div>
+            <div className="space-y-3">
+              {[
+                { icon: Scale, label: "Title clearance", value: "Checked before listing" },
+                { icon: Droplets, label: "Water analysis", value: "Source and quality mapped" },
+                { icon: TrendingUp, label: "Decision support", value: "ROI-ready evaluation flow" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-start gap-3 rounded-2xl border border-cream/8 bg-cream/[0.02] px-3.5 py-3"
+                >
+                  <item.icon className="mt-0.5 h-4 w-4 text-gold/75" />
+                  <div>
+                    <div className="text-sm text-cream/90">{item.label}</div>
+                    <div className="text-xs text-cream/50">{item.value}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-[1.6rem] border border-gold/15 bg-gold/[0.06] p-5 shadow-xl shadow-black/15 backdrop-blur-sm">
+            <div className="mb-3 text-xs uppercase tracking-[0.18em] text-gold/75">
+              Next best region
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={secondaryProperty?.id ?? "fallback"}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              >
+                <h4 className="font-display text-2xl text-cream">
+                  {secondaryProperty ? secondaryProperty.state : "Curated investor regions"}
+                </h4>
+                <p className="mt-2 text-sm leading-relaxed text-cream/55">
+                  {secondaryProperty
+                    ? `${secondaryProperty.district} is already showing live inventory with verified access, pricing and diligence layers.`
+                    : "Browse the strongest live markets first instead of starting from a blank search."}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+            <div className="mt-5 grid grid-cols-2 gap-2.5">
+              {quickStates.slice(0, 4).map((state) => (
+                <div
+                  key={state}
+                  className="rounded-2xl border border-gold/12 bg-onyx-950/35 px-3 py-2 text-xs text-cream/70"
+                >
+                  {state}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function HeroSection({ featuredProperties = [] }: { featuredProperties?: PropertyCardData[] }) {
   const router = useRouter();
   const heroRef = useRef<HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [showStateDropdown, setShowStateDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<"FARMLAND" | "RESIDENTIAL_PLOT">("FARMLAND");
-  const [, setHeroVisible] = useState(true);
+  const [heroVisible, setHeroVisible] = useState(true);
 
   const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const heroScale = useTransform(scrollY, [0, 400], [1, 0.97]);
+  const heroOpacity = useTransform(scrollY, [0, 320], [1, 0.88]);
+  const heroScale = useTransform(scrollY, [0, 320], [1, 0.985]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setHeroVisible(entry.isIntersecting),
-      { threshold: 0.1 }
+      { threshold: 0.35 }
     );
     if (heroRef.current) observer.observe(heroRef.current);
     return () => observer.disconnect();
@@ -126,316 +497,195 @@ export function HeroSection() {
     router.push(`/properties?${params.toString()}`);
   };
 
+  const handleStateSelect = (state: string) => {
+    setSelectedState(state);
+    setShowStateDropdown(false);
+  };
+
   return (
-    <section
-      ref={heroRef}
-      className="relative min-h-[100vh] flex items-center overflow-hidden noise-overlay"
-    >
-      {/* ═══ BACKGROUND ═══ */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-onyx-950 via-onyx-950/95 to-onyx-950" />
-
-        <motion.div
-          animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.05, 1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-40 -right-40 w-[800px] h-[800px] bg-gold/[0.04] rounded-full blur-[120px]"
-        />
-        <motion.div
-          animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.08, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-earth-green/[0.05] rounded-full blur-[100px]"
-        />
-
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 20% 50%, rgba(201,168,76,0.15) 0%, transparent 50%),
-              radial-gradient(circle at 80% 50%, rgba(201,168,76,0.1) 0%, transparent 50%),
-              radial-gradient(circle at 50% 80%, rgba(74,124,89,0.1) 0%, transparent 50%)
-            `,
-          }}
-        />
-
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(201,168,76,0.25) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(201,168,76,0.25) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
-        />
-
-        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-          <line x1="0" y1="100%" x2="100%" y2="0" stroke="rgba(201,168,76,0.05)" strokeWidth="1" />
-          <line x1="15%" y1="100%" x2="100%" y2="15%" stroke="rgba(201,168,76,0.03)" strokeWidth="0.5" />
-          <line x1="0" y1="85%" x2="85%" y2="0" stroke="rgba(201,168,76,0.02)" strokeWidth="0.5" />
-        </svg>
-
-        <svg className="absolute inset-0 w-full h-full opacity-[0.015]" preserveAspectRatio="none">
-          <ellipse cx="75%" cy="30%" rx="500" ry="400" fill="none" stroke="rgba(201,168,76,0.5)" strokeWidth="1" />
-          <ellipse cx="75%" cy="30%" rx="420" ry="330" fill="none" stroke="rgba(201,168,76,0.4)" strokeWidth="0.8" />
-          <ellipse cx="75%" cy="30%" rx="340" ry="260" fill="none" stroke="rgba(201,168,76,0.3)" strokeWidth="0.6" />
-          <ellipse cx="25%" cy="70%" rx="350" ry="280" fill="none" stroke="rgba(74,124,89,0.4)" strokeWidth="1" />
-          <ellipse cx="25%" cy="70%" rx="280" ry="220" fill="none" stroke="rgba(74,124,89,0.3)" strokeWidth="0.6" />
-        </svg>
-      </div>
-
-      {/* ═══ DRONE FLIGHT PATH ═══ */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-[1]" preserveAspectRatio="none">
-        <motion.path
-          d="M 5%,85% Q 25%,50% 45%,75% T 85%,20%"
-          fill="none"
-          stroke="rgba(201,168,76,0.15)"
-          strokeWidth="1.5"
-          strokeDasharray="8 6"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 4, delay: 1.5, ease: "easeInOut" }}
-        />
-        {[
-          { cx: "25%", cy: "50%", delay: 2 },
-          { cx: "45%", cy: "75%", delay: 3 },
-          { cx: "85%", cy: "20%", delay: 4 },
-        ].map((point, i) => (
-          <motion.circle
-            key={i}
-            cx={point.cx}
-            cy={point.cy}
-            r="3"
-            fill="rgba(201,168,76,0.5)"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
-            transition={{ duration: 2, delay: point.delay, repeat: Infinity, repeatDelay: 3 }}
-          />
-        ))}
-      </svg>
-
-      {/* ═══ FLOATING ELEMENTS ═══ */}
-      <motion.div
-        animate={{ y: [-20, 20, -20], rotate: [0, 8, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[25%] right-[12%] w-28 h-28 border border-gold/10 rounded-2xl rotate-12 hidden lg:block z-[1]"
-      />
-      <motion.div
-        animate={{ y: [15, -15, 15], rotate: [0, -10, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[30%] left-[8%] w-20 h-20 border border-gold/8 rounded-full hidden lg:block z-[1]"
-      />
-      <motion.div
-        animate={{ y: [-12, 12, -12], x: [-5, 5, -5] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[45%] right-[6%] w-3 h-3 bg-gold/25 rounded-full hidden lg:block z-[1]"
-      />
-      <motion.div
-        animate={{ y: [10, -10, 10] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute top-[60%] left-[15%] w-2 h-2 bg-gold/20 rounded-full hidden lg:block z-[1]"
-      />
-      <motion.div
-        animate={{ rotate: [0, 90, 0] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute top-[15%] left-[5%] w-4 h-4 border border-gold/12 rotate-45 hidden lg:block z-[1]"
-      />
-
-      {/* ═══ MAIN CONTENT ═══ */}
-      <motion.div
-        style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative z-10 max-w-7xl mx-auto px-6 py-24 lg:py-32 w-full"
-      >
-        <div className="max-w-4xl">
-          <motion.div variants={staggerContainer} initial="hidden" animate="visible">
-            {/* Eyebrow badge */}
-            <motion.div
-              variants={fadeUpItem}
-              className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full glass-gold"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span className="text-xs font-body font-medium text-gold tracking-wide">
-                INDIA&apos;S FIRST DATA-DRIVEN LAND PLATFORM
-              </span>
-            </motion.div>
-
-            {/* Main heading */}
-            <motion.h1 variants={fadeUpItem} className="heading-xl mb-6">
-              <span className="text-cream">Invest in </span>
-              <span className="text-gradient-gold">India&apos;s Finest</span>
-              <br />
-              <span className="text-cream/85 font-medium italic">Land &amp; Plots</span>
-            </motion.h1>
-
-            {/* Subheading */}
-            <motion.p
-              variants={fadeUpItem}
-              className="text-lg lg:text-xl text-cream/50 max-w-2xl mb-3 font-body leading-relaxed"
-            >
-              Verified farmlands &amp; residential plots backed by real data — not broker promises.
-            </motion.p>
-            <motion.p
-              variants={fadeUpItem}
-              className="text-sm lg:text-base text-cream/35 max-w-xl mb-8 font-body"
-            >
-              <span className="text-gold/70">Soil reports</span> ·{" "}
-              <span className="text-gold/70">Water analysis</span> ·{" "}
-              <span className="text-gold/70">Drone surveys</span> ·{" "}
-              <span className="text-gold/70">Legal clearance</span> — all verified before you invest.
-            </motion.p>
-
-            {/* Search bar */}
-            <motion.div variants={fadeUpItem} className="max-w-2xl">
-              <div className="flex gap-1 mb-3">
-                {[
-                  { key: "FARMLAND" as const, label: "Farmlands", icon: Leaf },
-                  { key: "RESIDENTIAL_PLOT" as const, label: "Plots", icon: Building2 },
-                ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`flex items-center gap-2 px-5 py-2 text-sm rounded-t-lg transition-all duration-300 ${
-                      activeTab === tab.key
-                        ? "bg-onyx-900/80 text-gold border-t border-x border-gold/20"
-                        : "text-cream/30 hover:text-cream/50"
-                    }`}
-                  >
-                    <tab.icon className="w-3.5 h-3.5" />
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center glass rounded-xl p-2 group focus-within:border-gold/30 transition-all duration-300">
-                <div className="relative">
-                  <button
-                    onClick={() => setShowStateDropdown(!showStateDropdown)}
-                    className="flex items-center gap-2 px-4 py-3 text-sm text-cream/50 hover:text-cream border-r border-cream/8 whitespace-nowrap transition-colors"
-                  >
-                    <MapPin className="w-4 h-4 text-gold/50" />
-                    <span className={selectedState ? "text-cream" : ""}>
-                      {selectedState || "All India"}
-                    </span>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-                  <AnimatePresence>
-                    {showStateDropdown && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute top-full left-0 z-50 mt-2 w-64 max-h-60 overflow-y-auto py-2 bg-onyx-900 border border-cream/10 rounded-xl shadow-2xl shadow-black/40"
-                      >
-                        <button
-                          onClick={() => { setSelectedState(""); setShowStateDropdown(false); }}
-                          className="w-full text-left px-4 py-2 text-sm text-cream/50 hover:bg-cream/5 hover:text-cream transition-colors"
-                        >
-                          All India
-                        </button>
-                        {INDIAN_STATES.map((state) => (
-                          <button
-                            key={state}
-                            onClick={() => { setSelectedState(state); setShowStateDropdown(false); }}
-                            className={`w-full text-left px-4 py-2 text-sm hover:bg-cream/5 transition-colors ${
-                              selectedState === state ? "text-gold" : "text-cream/60 hover:text-cream"
-                            }`}
-                          >
-                            {state}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <Search className="w-5 h-5 ml-3 text-cream/25 group-focus-within:text-gold/60 transition-colors hidden sm:block" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={activeTab === "FARMLAND" ? "Search by location, district..." : "Search residential plots..."}
-                  className="flex-1 bg-transparent px-4 py-3 text-sm text-cream placeholder:text-cream/25 focus:outline-none font-body"
-                />
-                <button
-                  onClick={handleSearch}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-gold text-onyx-950 font-medium text-sm rounded-lg hover:shadow-lg hover:shadow-gold/20 transition-all duration-300 group/btn"
-                >
-                  Explore
-                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-4">
-                <div className="flex flex-wrap gap-2">
-                  {quickStates.map((state) => (
-                    <button
-                      key={state}
-                      onClick={() => handleQuickState(state)}
-                      className="px-3 py-1.5 text-xs text-cream/30 border border-cream/8 rounded-full hover:border-gold/30 hover:text-gold/70 transition-all duration-300"
-                    >
-                      {state}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => {
-                    const el = document.getElementById("how-it-works");
-                    el?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="flex items-center gap-1.5 text-xs text-gold/50 hover:text-gold transition-colors ml-auto"
-                >
-                  <Play className="w-3 h-3" />
-                  See How It Works
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* ═══ INLINE STATS ═══ */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="max-w-4xl mt-12"
-        >
-          <motion.div variants={fadeUpItem} className="glass-gold rounded-2xl p-6 lg:p-8">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-0 lg:divide-x divide-gold/10">
-              {stats.map((stat) => (
-                <div key={stat.label} className="text-center lg:px-6">
-                  <div className="font-display text-2xl lg:text-3xl font-semibold text-gold mb-1">
-                    <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
-                  </div>
-                  <div className="text-[11px] text-cream/30 font-body uppercase tracking-wider">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
+    <>
+      <AnimatePresence>
+        {!heroVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: -18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-x-0 top-[4.8rem] z-40 px-4 lg:top-[6.6rem]"
+          >
+            <div className="mx-auto max-w-5xl">
+              <SearchPanel
+                compact
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                selectedState={selectedState}
+                showStateDropdown={showStateDropdown}
+                onToggleDropdown={() => setShowStateDropdown((current) => !current)}
+                onStateSelect={handleStateSelect}
+                onSearch={handleSearch}
+                onQuickState={handleQuickState}
+                onKeyDown={handleKeyDown}
+              />
             </div>
           </motion.div>
-        </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.5, duration: 0.8 }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2"
-        >
-          <span className="text-[10px] text-cream/15 uppercase tracking-[0.3em] font-body">Scroll</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-px h-6 bg-gradient-to-b from-gold/30 to-transparent"
+      <section
+        ref={heroRef}
+        className="relative overflow-hidden border-b border-cream/6 noise-overlay"
+      >
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-onyx-950 via-onyx-950/96 to-onyx-950" />
+          <div className="absolute -right-20 top-0 h-[40rem] w-[40rem] rounded-full bg-gold/[0.05] blur-[120px]" />
+          <div className="absolute -left-24 bottom-0 h-[28rem] w-[28rem] rounded-full bg-earth-green/[0.07] blur-[110px]" />
+          <div
+            className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(201,168,76,0.22) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(201,168,76,0.22) 1px, transparent 1px)
+              `,
+              backgroundSize: "72px 72px",
+            }}
           />
-        </motion.div>
-      </motion.div>
+          <div
+            className="absolute inset-0 opacity-[0.035]"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 18% 28%, rgba(201,168,76,0.22) 0%, transparent 30%),
+                radial-gradient(circle at 78% 32%, rgba(201,168,76,0.14) 0%, transparent 28%),
+                radial-gradient(circle at 62% 78%, rgba(74,124,89,0.16) 0%, transparent 28%)
+              `,
+            }}
+          />
+        </div>
 
-      {/* Tight bottom gradient fade — bridges into next section cleanly */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-onyx-950 to-transparent pointer-events-none" />
-    </section>
+        <motion.div
+          style={{ opacity: heroOpacity, scale: heroScale }}
+          className="relative z-10 mx-auto flex min-h-[78svh] w-full max-w-7xl items-center px-6 pb-14 pt-12 lg:min-h-[82svh] lg:pb-16 lg:pt-20"
+        >
+          <div className="grid w-full gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-center">
+            <motion.div variants={staggerContainer} initial="hidden" animate="visible">
+              <motion.div
+                variants={fadeUpItem}
+                className="mb-7 inline-flex items-center gap-2 rounded-full border border-gold/15 bg-gold/[0.06] px-4 py-2"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-gold" />
+                <span className="text-xs font-body font-medium tracking-wide text-gold">
+                  SEARCH-FIRST LAND DISCOVERY FOR INDIA
+                </span>
+              </motion.div>
+
+              <motion.h1 variants={fadeUpItem} className="heading-xl mb-5 max-w-4xl">
+                <span className="text-cream">Find verified </span>
+                <span className="text-gradient-gold">farmland and plots</span>
+                <br />
+                <span className="text-cream/88 text-[0.88em]">without broker fog.</span>
+              </motion.h1>
+
+              <motion.p
+                variants={fadeUpItem}
+                className="mb-3 max-w-2xl text-lg leading-relaxed text-cream/60 lg:text-xl"
+              >
+                Onyx Propcare helps investors search land the way they actually decide:
+                location first, then legal readiness, water, soil, access and pricing clarity.
+              </motion.p>
+              <motion.p
+                variants={fadeUpItem}
+                className="mb-8 max-w-2xl text-sm text-cream/42 lg:text-base"
+              >
+                <span className="text-gold/78">Soil reports</span> ·{" "}
+                <span className="text-gold/78">Water analysis</span> ·{" "}
+                <span className="text-gold/78">Drone surveys</span> ·{" "}
+                <span className="text-gold/78">Legal clearance</span>
+              </motion.p>
+
+              <motion.div
+                variants={fadeUpItem}
+                className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+              >
+                {[
+                  "Search by state, district or locality",
+                  "Verified before inquiry",
+                  "Farmland and plot flows separated",
+                  "Built for serious investors",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-cream/8 bg-onyx-900/35 px-4 py-3 text-sm text-cream/68 backdrop-blur-sm"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </motion.div>
+
+              <motion.div variants={fadeUpItem}>
+                <SearchPanel
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  searchQuery={searchQuery}
+                  onSearchQueryChange={setSearchQuery}
+                  selectedState={selectedState}
+                  showStateDropdown={showStateDropdown}
+                  onToggleDropdown={() => setShowStateDropdown((current) => !current)}
+                  onStateSelect={handleStateSelect}
+                  onSearch={handleSearch}
+                  onQuickState={handleQuickState}
+                  onKeyDown={handleKeyDown}
+                />
+              </motion.div>
+
+              <motion.div
+                variants={fadeUpItem}
+                className="mt-8 grid gap-3 md:grid-cols-3"
+              >
+                {journeyCards.map((card) => (
+                  <button
+                    key={card.title}
+                    onClick={() => router.push(card.href)}
+                    className="group rounded-[1.4rem] border border-cream/8 bg-onyx-900/28 p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/18 hover:bg-onyx-900/45"
+                  >
+                    <div className="mb-2 font-display text-2xl text-cream transition-colors duration-300 group-hover:text-gold">
+                      {card.title}
+                    </div>
+                    <div className="text-sm leading-relaxed text-cream/48">{card.description}</div>
+                  </button>
+                ))}
+              </motion.div>
+
+              <motion.div
+                variants={fadeUpItem}
+                className="mt-8 rounded-[1.6rem] border border-gold/12 bg-gold/[0.05] p-5 backdrop-blur-sm"
+              >
+                <div className="grid grid-cols-2 gap-5 lg:grid-cols-4 lg:gap-3">
+                  {stats.map((stat) => (
+                    <div key={stat.label} className="text-left lg:px-2">
+                      <div className="font-display text-2xl font-semibold text-gold lg:text-3xl">
+                        <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
+                      </div>
+                      <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-cream/38">
+                        {stat.label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+            >
+              <HeroPreview properties={featuredProperties} />
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+    </>
   );
 }
 
