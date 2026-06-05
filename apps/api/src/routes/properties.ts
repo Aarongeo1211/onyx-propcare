@@ -191,20 +191,31 @@ propertyRoutes.get("/", async (req, res) => {
         .map((w) => `${w}:*`)
         .join(" & ");
 
+      let ftsApplied = false;
       if (tsQuery) {
-        const matchingIds: { id: string }[] = await prisma.$queryRawUnsafe(
-          `SELECT id FROM properties WHERE search_vector @@ to_tsquery('english', $1) LIMIT 200`,
-          tsQuery
-        );
-        if (matchingIds.length > 0) {
-          where.id = { in: matchingIds.map((r) => r.id) };
-        } else {
-          where.OR = [
-            { title: { contains: search as string, mode: "insensitive" } },
-            { district: { contains: search as string, mode: "insensitive" } },
-            { state: { contains: search as string, mode: "insensitive" } },
-          ];
+        try {
+          const matchingIds: { id: string }[] = await prisma.$queryRawUnsafe(
+            `SELECT id FROM properties WHERE search_vector @@ to_tsquery('english', $1) LIMIT 200`,
+            tsQuery
+          );
+          if (matchingIds.length > 0) {
+            where.id = { in: matchingIds.map((r) => r.id) };
+            ftsApplied = true;
+          }
+        } catch {
+          // search_vector column not yet created — fall through to text fallback below
         }
+      }
+
+      if (!ftsApplied) {
+        where.OR = [
+          { title: { contains: search as string, mode: "insensitive" } },
+          { district: { contains: search as string, mode: "insensitive" } },
+          { state: { contains: search as string, mode: "insensitive" } },
+          { village: { contains: search as string, mode: "insensitive" } },
+          { taluka: { contains: search as string, mode: "insensitive" } },
+          { address: { contains: search as string, mode: "insensitive" } },
+        ];
       }
     }
 
