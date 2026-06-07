@@ -206,7 +206,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
   return (
     <>
       {/* Mobile filter trigger */}
-      <div className="lg:hidden mb-4">
+      <div className="lg:hidden">
         <Button variant="outline" size="sm" onClick={() => setMobileOpen(true)} className="w-full">
           <SlidersHorizontal className="w-4 h-4" />
           Filters

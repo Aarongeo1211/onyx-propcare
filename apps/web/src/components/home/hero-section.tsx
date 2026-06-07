@@ -168,66 +168,81 @@ function SearchPanel({
       </div>
 
       <div className={`glass group border-gold/10 shadow-2xl shadow-black/25 ${wrapperClass}`}>
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-          <div className="relative shrink-0">
-            <button
-              onClick={onToggleDropdown}
-              className={`flex w-full items-center gap-2 whitespace-nowrap rounded-2xl border border-cream/8 bg-cream/[0.03] text-left transition-colors hover:border-gold/20 hover:text-cream lg:w-auto lg:border-0 lg:bg-transparent ${compact ? "px-3 py-2.5 text-sm text-cream/60" : "px-4 py-3.5 text-sm text-cream/55"}`}
-            >
-              <MapPin className="h-4 w-4 text-gold/55" />
-              <span className={selectedState ? "text-cream" : ""}>{selectedState || "All India"}</span>
-              <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-            <AnimatePresence>
-              {showStateDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute left-0 top-full z-50 mt-2 max-h-60 w-64 overflow-y-auto rounded-2xl border border-cream/10 bg-onyx-900 py-2 shadow-2xl shadow-black/40"
-                >
-                  <button
-                    onClick={() => onStateSelect("")}
-                    className="w-full px-4 py-2 text-left text-sm text-cream/50 transition-colors hover:bg-cream/5 hover:text-cream"
+        <div className="flex flex-col gap-2">
+          {/* Row 1: state dropdown + divider + search input (+ explore on desktop) */}
+          <div className="flex items-center">
+            <div className="relative shrink-0">
+              <button
+                onClick={onToggleDropdown}
+                className={`flex items-center gap-2 whitespace-nowrap rounded-xl border border-cream/8 bg-cream/[0.03] text-left transition-colors hover:border-gold/20 hover:text-cream lg:rounded-2xl lg:border-0 lg:bg-transparent ${compact ? "px-3 py-2 text-sm text-cream/60" : "px-3 py-2.5 text-sm text-cream/55"}`}
+              >
+                <MapPin className="h-4 w-4 text-gold/55" />
+                <span className={selectedState ? "text-cream" : ""}>{selectedState || "All India"}</span>
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              <AnimatePresence>
+                {showStateDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 top-full z-50 mt-2 max-h-60 w-64 overflow-y-auto rounded-2xl border border-cream/10 bg-onyx-900 py-2 shadow-2xl shadow-black/40"
                   >
-                    All India
-                  </button>
-                  {INDIAN_STATES.map((state) => (
                     <button
-                      key={state}
-                      onClick={() => onStateSelect(state)}
-                      className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-cream/5 ${
-                        selectedState === state ? "text-gold" : "text-cream/60 hover:text-cream"
-                      }`}
+                      onClick={() => onStateSelect("")}
+                      className="w-full px-4 py-2 text-left text-sm text-cream/50 transition-colors hover:bg-cream/5 hover:text-cream"
                     >
-                      {state}
+                      All India
                     </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    {INDIAN_STATES.map((state) => (
+                      <button
+                        key={state}
+                        onClick={() => onStateSelect(state)}
+                        className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-cream/5 ${
+                          selectedState === state ? "text-gold" : "text-cream/60 hover:text-cream"
+                        }`}
+                      >
+                        {state}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="mx-2 h-7 w-px bg-cream/8" />
+
+            <div className="relative flex min-w-0 flex-1 items-center">
+              <Search className="pointer-events-none ml-3 hidden h-4.5 w-4.5 text-cream/25 transition-colors group-focus-within:text-gold/65 sm:block" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder={
+                  activeTab === "FARMLAND"
+                    ? "Search by state, district, taluk or region"
+                    : "Search plots by city, district or locality"
+                }
+                className={`w-full flex-1 bg-transparent text-cream placeholder:text-cream/25 focus:outline-none font-body ${inputClass}`}
+              />
+            </div>
+
+            {/* Explore — desktop: inline in the input row */}
+            <button
+              onClick={onSearch}
+              className={`ml-2 hidden shrink-0 items-center justify-center gap-2 bg-gradient-gold font-medium text-onyx-950 shadow-lg shadow-gold/15 transition-all duration-300 hover:shadow-gold/30 lg:inline-flex ${buttonClass}`}
+            >
+              Explore
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
 
-          <div className="hidden h-10 w-px bg-cream/8 lg:block" />
-          <div className="relative flex flex-1 items-center">
-            <Search className="pointer-events-none ml-3 hidden h-4.5 w-4.5 text-cream/25 transition-colors group-focus-within:text-gold/65 sm:block" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchQueryChange(e.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder={
-                activeTab === "FARMLAND"
-                  ? "Search by state, district, taluk or region"
-                  : "Search plots by city, district or locality"
-              }
-              className={`w-full flex-1 bg-transparent text-cream placeholder:text-cream/25 focus:outline-none font-body ${inputClass}`}
-            />
-          </div>
+          {/* Row 2: Explore — mobile only, full-width below input row */}
           <button
             onClick={onSearch}
-            className={`inline-flex items-center justify-center gap-2 bg-gradient-gold font-medium text-onyx-950 shadow-lg shadow-gold/15 transition-all duration-300 hover:shadow-gold/30 ${buttonClass}`}
+            className={`inline-flex w-full items-center justify-center gap-2 bg-gradient-gold font-medium text-onyx-950 shadow-lg shadow-gold/15 transition-all duration-300 hover:shadow-gold/30 lg:hidden ${buttonClass}`}
           >
             Explore
             <ArrowRight className="h-4 w-4" />
@@ -511,7 +526,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -18 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-[4.8rem] z-40 px-4 lg:top-[6.6rem]"
+            className="fixed inset-x-0 top-[4.8rem] z-40 hidden px-4 sm:block lg:top-[6.6rem]"
           >
             <div className="mx-auto max-w-5xl">
               <SearchPanel
