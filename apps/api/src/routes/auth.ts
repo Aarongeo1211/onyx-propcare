@@ -200,6 +200,55 @@ authRoutes.post("/google", async (req, res) => {
   }
 });
 
+// POST /api/v1/auth/refresh — re-issue a fresh access token for a long-lived session.
+//
+// The web app's NextAuth session cookie rolls indefinitely for active users, but the
+// backend JWT embedded inside it is signed with a 7-day expiry and is never otherwise
+// renewed. Without this endpoint, an authed front-end session keeps working in the UI
+// while every API call 401s once the embedded token crosses 7 days.
+//
+// Accepts a token that is still valid OR expired within a bounded grace window, re-checks
+// that the user still exists and is active, then mints a new 7-day token. The grace window
+// lets users whose token already lapsed recover automatically on their next page load,
+// while bounding how long a lapsed token remains revivable.
+const REFRESH_GRACE_SEC = 14 * 24 * 60 * 60; // accept tokens expired up to 14 days ago
+
+authRoutes.post("/refresh", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ success: false, error: "Authentication required" });
+    }
+    const oldToken = authHeader.split(" ")[1];
+
+    let payload: { id: string; exp?: number };
+    try {
+      payload = jwt.verify(oldToken, JWT_SECRET, { ignoreExpiration: true }) as { id: string; exp?: number };
+    } catch {
+      return res.status(401).json({ success: false, error: "Invalid token" });
+    }
+
+    // Reject tokens expired beyond the grace window — those must log in again.
+    if (typeof payload.exp === "number" && Date.now() / 1000 - payload.exp > REFRESH_GRACE_SEC) {
+      return res.status(401).json({ success: false, error: "Session expired, please log in again" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { id: true, email: true, name: true, role: true, isActive: true },
+    });
+    if (!user || !user.isActive) {
+      return res.status(401).json({ success: false, error: "Account not found or deactivated" });
+    }
+
+    const token = signToken({ id: user.id, email: user.email, name: user.name, role: user.role });
+    res.json({ success: true, data: { token } });
+  } catch (err) {
+    logger.error({ err }, "Token refresh error");
+    res.status(500).json({ success: false, error: "Failed to refresh token" });
+  }
+});
+
 authRoutes.get("/me", requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({

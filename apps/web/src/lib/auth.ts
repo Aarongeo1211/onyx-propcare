@@ -6,6 +6,50 @@ import { cookies } from "next/headers";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const GOOGLE_ROLE_COOKIE = "onyx-auth-role";
 
+// Refresh the backend access token once it has less than this much life left.
+// The NextAuth cookie rolls indefinitely for active users, but the embedded backend
+// JWT expires after 7 days — without renewal, authed API calls start 401ing.
+const ACCESS_TOKEN_REFRESH_MARGIN_SEC = 2 * 24 * 60 * 60; // refresh when < 2 days remain
+
+function getJwtExpirySeconds(token: string): number | null {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Keep the backend access token alive across the lifetime of a rolling NextAuth session.
+ * Returns a fresh token when the current one is expired or near expiry, otherwise the
+ * existing token unchanged. Network/refresh failures fall back to the existing token so a
+ * transient hiccup doesn't log the user out — it will simply retry on the next session touch.
+ */
+async function ensureFreshAccessToken(accessToken: string | undefined): Promise<string | undefined> {
+  if (!accessToken) return accessToken;
+
+  const exp = getJwtExpirySeconds(accessToken);
+  if (exp === null) return accessToken;
+
+  const now = Date.now() / 1000;
+  if (exp - now > ACCESS_TOKEN_REFRESH_MARGIN_SEC) return accessToken; // comfortable life left
+
+  try {
+    const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data?.token) return data.data.token as string;
+    }
+  } catch {
+    // keep existing token; retry on next session touch
+  }
+  return accessToken;
+}
+
 function getRequestedGoogleRole() {
   return cookies().then((cookieStore) => {
     const value = cookieStore.get(GOOGLE_ROLE_COOKIE)?.value;
@@ -121,6 +165,10 @@ export const authOptions: NextAuthOptions = {
           token.accessToken = (session as { accessToken: string }).accessToken;
         }
       }
+
+      // Keep the embedded backend token from silently expiring under a rolling session.
+      const refreshed = await ensureFreshAccessToken(token.accessToken as string | undefined);
+      if (refreshed) token.accessToken = refreshed;
 
       return token;
     },
