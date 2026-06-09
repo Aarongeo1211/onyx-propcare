@@ -38,7 +38,7 @@ export default async function Home() {
     name: `${SITE_NAME} homepage`,
     url: SITE_URL,
     description: SITE_DESCRIPTION,
-    primaryImageOfPage: absoluteUrl("/brand/onyx-propcare_logo.png"),
+    primaryImageOfPage: absoluteUrl("/brand/onyx-propcare-email.png"),
   };
 
   return (

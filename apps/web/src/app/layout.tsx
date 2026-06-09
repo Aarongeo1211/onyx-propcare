@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: absoluteUrl("/brand/onyx-propcare_logo.png"),
+        url: absoluteUrl("/brand/onyx-propcare-email.png"),
         width: 1200,
         height: 630,
         alt: `${SITE_NAME} logo`,
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} | Verified Farmland & Plot Marketplace in India`,
     description: SITE_DESCRIPTION,
-    images: [absoluteUrl("/brand/onyx-propcare_logo.png")],
+    images: [absoluteUrl("/brand/onyx-propcare-email.png")],
   },
   robots: {
     index: true,
@@ -64,7 +64,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: SITE_NAME,
     url: SITE_URL,
-    logo: absoluteUrl("/brand/onyx-propcare_logo.png"),
+    logo: absoluteUrl("/brand/onyx-propcare-email.png"),
     sameAs: [SITE_URL],
   };
 

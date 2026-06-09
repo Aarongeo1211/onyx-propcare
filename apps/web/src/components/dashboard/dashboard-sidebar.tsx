@@ -71,8 +71,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     <aside className="w-[280px] h-screen bg-onyx-900/80 border-r border-cream/5 flex flex-col shrink-0 sticky top-0">
       {/* Logo */}
       <div className="p-6 border-b border-cream/5">
-        <Link href="/dashboard" aria-label="Onyx Propcare dashboard" className="inline-block text-cream">
-          <Logo variant="full" markClassName="h-9 w-9" />
+        <Link href="/dashboard" aria-label="Onyx Propcare dashboard" className="inline-block">
+          <Logo className="h-12 w-auto" />
         </Link>
       </div>
 

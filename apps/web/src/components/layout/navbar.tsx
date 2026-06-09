@@ -100,10 +100,10 @@ export function Navbar() {
       >
         <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" aria-label="Onyx Propcare home" className="group text-cream">
+          <Link href="/" aria-label="Onyx Propcare home" className="group">
             <Logo
-              variant="full"
-              markClassName="h-10 w-10 sm:h-11 sm:w-11 transition-transform duration-300 group-hover:scale-[1.03]"
+              priority
+              className="h-11 w-auto sm:h-12 transition-transform duration-300 group-hover:scale-[1.03]"
             />
           </Link>
 

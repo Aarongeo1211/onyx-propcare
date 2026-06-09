@@ -101,8 +101,8 @@ export default function LoginPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <Link href="/" aria-label="Onyx Propcare home" className="mb-8 inline-block text-cream">
-              <Logo variant="full" markClassName="h-12 w-12" />
+            <Link href="/" aria-label="Onyx Propcare home" className="mb-8 inline-block">
+              <Logo priority className="h-24 w-auto" />
             </Link>
 
             <h1 className="heading-lg text-cream mb-4">
@@ -153,8 +153,8 @@ export default function LoginPage() {
           className="w-full max-w-md relative z-10"
         >
           {/* Mobile logo */}
-          <motion.div custom={0} variants={fadeUp} className="lg:hidden mb-8 flex justify-center text-cream">
-            <Logo variant="full" markClassName="h-10 w-10" />
+          <motion.div custom={0} variants={fadeUp} className="lg:hidden mb-8 flex justify-center">
+            <Logo className="h-20 w-auto" />
           </motion.div>
 
           <motion.div custom={1} variants={fadeUp}>

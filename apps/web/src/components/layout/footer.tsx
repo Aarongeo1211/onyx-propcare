@@ -30,7 +30,7 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="relative bg-onyx-900 border-t border-cream/8">
+    <footer className="relative bg-onyx-950 border-t border-cream/8">
       {/* Brand line */}
       <div className="divider-gold" />
 
@@ -38,8 +38,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
           {/* Brand column */}
           <div className="lg:col-span-2 space-y-6">
-            <Link href="/" aria-label="Onyx Propcare home" className="inline-block text-cream">
-              <Logo variant="full" markClassName="h-10 w-10" />
+            <Link href="/" aria-label="Onyx Propcare home" className="inline-block">
+              <Logo className="h-16 w-auto" />
             </Link>
 
             <p className="text-cream/40 text-sm leading-relaxed max-w-sm">

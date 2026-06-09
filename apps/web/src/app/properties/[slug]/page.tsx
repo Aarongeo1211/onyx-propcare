@@ -42,7 +42,7 @@ export async function generateMetadata({
     `${property.title} in ${property.district}, ${property.state}. ${formatArea(property.totalArea, property.areaUnit)} listed at ${formatPrice(property.price)} with verified property data, legal checks, and Onyx Propcare insights.`,
     160
   );
-  const image = property.images[0]?.url || absoluteUrl("/brand/onyx-propcare_logo.png");
+  const image = property.images[0]?.url || absoluteUrl("/brand/onyx-propcare-email.png");
 
   return {
     title,
