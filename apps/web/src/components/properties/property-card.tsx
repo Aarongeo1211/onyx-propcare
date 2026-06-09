@@ -10,6 +10,7 @@ import {
   formatArea,
   getPropertyTypeLabel,
   getPropertyTypeBadgeVariant,
+  buildPropertyShareText,
 } from "@/lib/utils";
 import { CompareButton } from "@/components/comparison/compare-button";
 
@@ -58,22 +59,19 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
     e.preventDefault();
     e.stopPropagation();
     const url = `${window.location.origin}/properties/${property.slug}`;
-    const shareData = {
-      title: property.title,
-      text: `${property.title} — ${property.district}, ${property.state} | Onyx Propcare`,
-      url,
-    };
+    const text = buildPropertyShareText(property);
+    const shareData = { title: property.title, text, url };
     try {
       if (navigator.share && navigator.canShare?.(shareData)) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2500);
       }
     } catch {
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2500);
       } catch {

@@ -19,6 +19,22 @@ export function formatPriceFull(price: number): string {
   return `₹${price.toLocaleString("en-IN")}`;
 }
 
+// ─── Share Message ───────────────────────────────────────
+
+/** Branded message that accompanies a shared property link (WhatsApp, etc.). */
+export function buildPropertyShareText(p: {
+  title: string;
+  price: number;
+  district: string;
+  state: string;
+}): string {
+  return (
+    `${p.title} — ${formatPrice(p.price)} · ${p.district}, ${p.state}\n\n` +
+    `Verified on Onyx Propcare — India's trusted farmland & plot marketplace. ` +
+    `Soil, water, legal & drone checks on every listing.`
+  );
+}
+
 // ─── Area Formatting ─────────────────────────────────────
 
 export function formatArea(area: number, unit: string): string {

@@ -41,6 +41,7 @@ import {
   formatPriceFull,
   getPropertyTypeBadgeVariant,
   getPropertyTypeLabel,
+  buildPropertyShareText,
 } from "@/lib/utils";
 
 const PropertyMap = dynamic(() => import("@/components/properties/property-map"), { ssr: false });
@@ -184,23 +185,20 @@ export function PropertyDetailPageClient({
   const handleShare = async () => {
     if (!property) return;
     const url = window.location.href;
-    const shareData = {
-      title: property.title,
-      text: `${property.title} - ${property.district}, ${property.state} | Onyx Propcare`,
-      url,
-    };
+    const text = buildPropertyShareText(property);
+    const shareData = { title: property.title, text, url };
 
     try {
       if (navigator.share && navigator.canShare?.(shareData)) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2500);
       }
     } catch {
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2500);
       } catch {
