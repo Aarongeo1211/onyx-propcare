@@ -11,16 +11,22 @@ interface FeaturedResponse {
   data: PropertyCardData[];
 }
 
-export function FeaturedProperties() {
-  const { data: response, isLoading: loading } = useApiQuery<FeaturedResponse>(
+interface FeaturedPropertiesProps {
+  initialProperties?: PropertyCardData[];
+}
+
+export function FeaturedProperties({ initialProperties }: FeaturedPropertiesProps) {
+  const shouldFetch = !initialProperties;
+  const { data: response, isLoading } = useApiQuery<FeaturedResponse>(
     ["properties", "featured"],
     "/properties/featured",
-    { auth: false }
+    { auth: false, enabled: shouldFetch }
   );
-  const properties = response?.data || [];
+  const properties = initialProperties || response?.data || [];
+  const loading = shouldFetch && isLoading;
 
   return (
-    <section className="relative py-24 lg:py-32 grain">
+    <section id="featured-properties" className="relative grain pb-24 pt-16 lg:pb-32 lg:pt-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-6">
           <motion.div

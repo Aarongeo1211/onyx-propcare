@@ -80,7 +80,7 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
       transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
     >
       <Link href={`/properties/${property.slug}`} className="block group">
-        <div className="relative rounded-2xl border border-cream/8 bg-onyx-900/50 backdrop-blur-sm shadow-xl shadow-black/20 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-gold/20 hover:shadow-gold/10 hover:shadow-2xl">
+        <div className="relative rounded-2xl border border-cream/8 bg-onyx-900/50 backdrop-blur-sm shadow-lg shadow-cream/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-gold/30 hover:shadow-gold/15 hover:shadow-xl">
           {/* Image */}
           <div className="relative aspect-[4/3] overflow-hidden">
             <Image
@@ -91,8 +91,8 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading="lazy"
             />
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-onyx-950/80 via-transparent to-transparent" />
+            {/* Gradient overlay (dark scrim so on-image text stays legible) */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 
             {/* Top badges */}
             <div className="absolute top-3 left-3 flex gap-2">
@@ -123,14 +123,14 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
 
             {/* Price on image */}
             <div className="absolute bottom-3 left-3">
-              <span className="font-display text-2xl font-semibold text-gold drop-shadow-lg">
+              <span className="font-display text-2xl font-semibold text-white drop-shadow-lg">
                 {formatPrice(property.price)}
               </span>
               {property.listingType === "LEASE" && (
-                <span className="text-cream/50 text-xs ml-1">/year</span>
+                <span className="text-white/70 text-xs ml-1">/year</span>
               )}
               {property.listingType === "RENT" && (
-                <span className="text-cream/50 text-xs ml-1">/mo</span>
+                <span className="text-white/70 text-xs ml-1">/mo</span>
               )}
             </div>
           </div>

@@ -21,7 +21,8 @@
     "railway:build:api": "pnpm --filter @onyx/api build",
     "railway:start:api": "pnpm --filter @onyx/api start",
     "railway:db:migrate": "pnpm --filter @onyx/db db:migrate:deploy",
-    "railway:db:seed": "pnpm --filter @onyx/db db:seed"
+    "railway:db:seed": "pnpm --filter @onyx/db db:seed",
+    "deploy:railway": "pnpm railway:db:migrate && railway up --service onyx-api --detach -m \"Deploy API\" && railway up --service onyx-web --detach -m \"Deploy web\" && railway up --service onyx-admin --detach -m \"Deploy admin\""
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

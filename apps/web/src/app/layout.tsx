@@ -5,39 +5,53 @@ import { LayoutProvider } from "@/components/providers/layout-provider";
 import { QueryProvider } from "@/lib/query-provider";
 import { ComparisonProvider, ComparisonBar } from "@/components/comparison";
 import { LayoutShell } from "@/components/layout/layout-shell";
-
-const themeScript = `
-  (function () {
-    try {
-      var stored = localStorage.getItem('onyx-theme');
-      var theme = stored === 'light' || stored === 'dark'
-        ? stored
-        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      document.documentElement.classList.toggle('dark', theme === 'dark');
-      document.documentElement.style.colorScheme = theme;
-    } catch (error) {}
-  })();
-`;
+import { JsonLd } from "@/components/seo/json-ld";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Onyx Propcare | India's Largest Farmland & Plot Marketplace",
-  description:
-    "Discover premium farmlands and residential plots across India. Access exclusive soil data, water reports, drone maps, and legal verification — all in one platform.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} | Verified Farmland & Plot Marketplace in India`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
   icons: {
-    icon: "/icon.png",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png" },
+    ],
     shortcut: "/icon.png",
     apple: "/icon.png",
   },
-  keywords: [
-    "farmland India",
-    "residential plots",
-    "agricultural land",
-    "buy farmland",
-    "NRI investment India",
-    "land marketplace",
-    "soil data",
-    "legal verification",
-  ],
+  keywords: SITE_KEYWORDS,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} | Verified Farmland & Plot Marketplace in India`,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: absoluteUrl("/brand/onyx-propcare_logo.png"),
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} logo`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} | Verified Farmland & Plot Marketplace in India`,
+    description: SITE_DESCRIPTION,
+    images: [absoluteUrl("/brand/onyx-propcare_logo.png")],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -45,12 +59,19 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: absoluteUrl("/brand/onyx-propcare_logo.png"),
+    sameAs: [SITE_URL],
+  };
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+    <html lang="en">
       <body className="min-h-screen bg-onyx-950 text-cream antialiased">
+        <JsonLd data={organizationSchema} />
         <SessionProvider>
           <QueryProvider>
             <LayoutProvider>

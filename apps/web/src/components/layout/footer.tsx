@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
 
 const footerLinks = {
   marketplace: [
@@ -29,26 +30,17 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="relative bg-onyx-950 border-t border-cream/5">
-      {/* Gold line */}
+    <footer className="relative bg-onyx-900 border-t border-cream/8">
+      {/* Brand line */}
       <div className="divider-gold" />
 
       <div className="max-w-7xl mx-auto px-6 pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
           {/* Brand column */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="relative w-10 h-10">
-                <div className="absolute inset-0 bg-gradient-gold rounded-lg rotate-45" />
-                <span className="absolute inset-0 flex items-center justify-center font-display text-onyx-950 font-bold text-lg">
-                  O
-                </span>
-              </div>
-              <div>
-                <span className="font-display text-xl font-semibold text-cream">ONYX</span>
-                <span className="text-[10px] font-body uppercase tracking-[0.3em] text-gold/70 block -mt-1">Propcare</span>
-              </div>
-            </div>
+            <Link href="/" aria-label="Onyx Propcare home" className="inline-block text-cream">
+              <Logo variant="full" markClassName="h-10 w-10" />
+            </Link>
 
             <p className="text-cream/40 text-sm leading-relaxed max-w-sm">
               India&apos;s most trusted platform for farmland and residential plot investments.

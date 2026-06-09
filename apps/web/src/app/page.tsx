@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HeroSection } from "@/components/home/hero-section";
+import { BrowseCategories } from "@/components/home/browse-categories";
 import { DataInsights } from "@/components/home/data-insights";
 import { FeaturedProperties } from "@/components/home/featured-properties";
 import { HowItWorks } from "@/components/home/how-it-works";
@@ -43,7 +44,8 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={[websiteSchema, homePageSchema]} />
-      <HeroSection />
+      <HeroSection featuredProperties={featuredProperties} />
+      <BrowseCategories />
       <FeaturedProperties initialProperties={featuredProperties} />
       <DataInsights />
       <HowItWorks />

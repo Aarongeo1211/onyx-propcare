@@ -1,37 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --onyx-50: 255 252 247;
-  --onyx-100: 252 247 240;
-  --onyx-200: 246 239 228;
-  --onyx-300: 229 219 205;
-  --onyx-400: 184 166 145;
-  --onyx-500: 147 128 106;
-  --onyx-600: 111 95 78;
-  --onyx-700: 82 69 56;
-  --onyx-800: 242 234 224;
-  --onyx-900: 255 251 244;
-  --onyx-950: 248 243 235;
+  /* onyx = neutral SURFACES, light -> dark (cool navy tint) */
+  --onyx-950: 255 255 255;  /* page background (white) */
+  --onyx-900: 246 248 251;  /* card / panel surface */
+  --onyx-800: 237 241 247;  /* hover / raised */
+  --onyx-700: 223 229 239;
+  --onyx-600: 196 205 220;
+  --onyx-500: 148 161 183;  /* muted lines / disabled */
+  --onyx-400: 108 123 148;
+  --onyx-300: 74 90 117;
+  --onyx-200: 46 62 90;
+  --onyx-100: 28 44 72;
+  --onyx-50: 18 31 56;      /* darkest surface (footer band) */
 
-  --gold-50: 251 247 237;
-  --gold-100: 245 236 211;
-  --gold-200: 235 217 167;
-  --gold-300: 223 193 116;
-  --gold-400: 212 185 95;
-  --gold-500: 201 168 76;
-  --gold-600: 168 139 58;
-  --gold-700: 135 110 46;
-  --gold-800: 107 87 37;
-  --gold-900: 79 64 28;
+  /* gold = brand / CTA accent, remapped to a royal-blue scale */
+  --gold-50: 235 241 252;
+  --gold-100: 214 226 248;
+  --gold-200: 171 195 236;
+  --gold-300: 118 150 216;
+  --gold-400: 64 107 190;
+  --gold-500: 30 71 147;    /* primary accent: links, button bg */
+  --gold-600: 22 55 118;
+  --gold-700: 17 43 93;
+  --gold-800: 14 34 73;
+  --gold-900: 11 26 56;
 
-  --cream-500: 33 29 24;
-  --cream-700: 88 77 60;
-  --earth-green: 74 124 89;
-  --earth-brown: 139 111 71;
+  /* cream = text / ink, remapped to deep navy */
+  --cream-500: 16 26 46;    /* primary text (deep navy ink) */
+  --cream-700: 51 67 96;    /* secondary text (slate-navy) */
+  --earth-green: 37 99 110;   /* muted teal */
+  --earth-brown: 90 110 140;  /* slate-blue */
   --earth-terracotta: 199 91 57;
 
   --font-cormorant: 'Cormorant Garamond', Georgia, serif;
@@ -41,24 +44,6 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   color-scheme: light;
-}
-
-.dark {
-  --onyx-50: 247 247 247;
-  --onyx-100: 227 227 227;
-  --onyx-200: 200 200 200;
-  --onyx-300: 164 164 164;
-  --onyx-400: 129 129 129;
-  --onyx-500: 102 102 102;
-  --onyx-600: 81 81 81;
-  --onyx-700: 67 67 67;
-  --onyx-800: 56 56 56;
-  --onyx-900: 26 26 26;
-  --onyx-950: 10 10 10;
-
-  --cream-500: 245 240 232;
-  --cream-700: 232 223 208;
-  color-scheme: dark;
 }
 
 @layer base {
@@ -77,16 +62,17 @@
   body {
     font-family: var(--font-outfit);
     background:
-      radial-gradient(circle at top, rgb(var(--gold-500) / 0.12), transparent 28%),
-      linear-gradient(180deg, rgb(var(--onyx-950)) 0%, rgb(var(--onyx-900)) 100%);
-    color: rgb(var(--cream-500));
+      radial-gradient(circle at top, rgb(var(--gold-500) / 0.05), transparent 30%),
+      #ffffff;
+    color: rgb(var(--cream-500) / 0.98);
+    font-weight: 400;
     line-height: 1.6;
+    text-rendering: optimizeLegibility;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   ::selection {
-    background-color: rgb(var(--gold-500) / 0.22);
+    background-color: rgb(var(--gold-500) / 0.18);
     color: rgb(var(--cream-500));
   }
 
@@ -96,13 +82,13 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: rgb(var(--onyx-900));
+    background: rgb(var(--onyx-800));
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgb(var(--onyx-400) / 0.45);
+    background: rgb(var(--onyx-500) / 0.55);
     border-radius: 999px;
-    border: 2px solid rgb(var(--onyx-900));
+    border: 2px solid rgb(var(--onyx-800));
   }
 
   ::-webkit-scrollbar-thumb:hover {
@@ -126,15 +112,17 @@
 @layer components {
   .font-display {
     font-family: var(--font-cormorant);
+    font-weight: 500;
   }
 
   .font-body {
     font-family: var(--font-outfit);
+    font-weight: 400;
   }
 
   .heading-xl {
     font-family: var(--font-cormorant);
-    font-weight: 300;
+    font-weight: 400;
     font-size: clamp(3rem, 8vw, 7rem);
     line-height: 0.95;
     letter-spacing: -0.02em;
@@ -142,7 +130,7 @@
 
   .heading-lg {
     font-family: var(--font-cormorant);
-    font-weight: 400;
+    font-weight: 500;
     font-size: clamp(2rem, 5vw, 4rem);
     line-height: 1.1;
     letter-spacing: -0.01em;
@@ -150,7 +138,7 @@
 
   .heading-md {
     font-family: var(--font-cormorant);
-    font-weight: 500;
+    font-weight: 600;
     font-size: clamp(1.5rem, 3vw, 2.5rem);
     line-height: 1.2;
   }
@@ -158,10 +146,10 @@
   .text-gradient-gold {
     background: linear-gradient(
       135deg,
-      rgb(var(--gold-500)) 0%,
-      rgb(var(--gold-400)) 40%,
-      rgb(var(--gold-100)) 60%,
-      rgb(var(--gold-500)) 100%
+      rgb(var(--gold-600)) 0%,
+      rgb(var(--gold-500)) 45%,
+      rgb(var(--gold-400)) 70%,
+      rgb(var(--gold-600)) 100%
     );
     background-size: 200% auto;
     -webkit-background-clip: text;
@@ -195,21 +183,21 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
     pointer-events: none;
     z-index: 1;
-    opacity: 0.3;
+    opacity: 0.04;
   }
 
   .glass {
-    background: rgb(var(--onyx-900) / 0.72);
+    background: rgb(255 255 255 / 0.72);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgb(var(--cream-500) / 0.08);
   }
 
   .glass-gold {
-    background: rgb(var(--gold-500) / 0.08);
+    background: rgb(var(--gold-500) / 0.06);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgb(var(--gold-500) / 0.18);
+    border: 1px solid rgb(var(--gold-500) / 0.16);
   }
 
   .divider-gold {
@@ -226,7 +214,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E");
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.015'/%3E%3C/svg%3E");
     z-index: -1;
     pointer-events: none;
   }

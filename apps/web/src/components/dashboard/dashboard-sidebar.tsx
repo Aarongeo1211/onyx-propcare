@@ -15,6 +15,7 @@ import {
   PhoneCall,
 } from "lucide-react";
 import { Badge } from "@onyx/ui";
+import { Logo } from "@/components/brand/logo";
 
 interface DashboardSidebarProps {
   user: {
@@ -70,21 +71,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     <aside className="w-[280px] h-screen bg-onyx-900/80 border-r border-cream/5 flex flex-col shrink-0 sticky top-0">
       {/* Logo */}
       <div className="p-6 border-b border-cream/5">
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="relative w-9 h-9">
-            <div className="absolute inset-0 bg-gradient-to-br from-gold to-gold-dark rounded-lg rotate-45" />
-            <span className="absolute inset-0 flex items-center justify-center font-display text-onyx-950 font-bold text-sm">
-              O
-            </span>
-          </div>
-          <div>
-            <span className="font-display text-lg font-semibold text-cream">
-              ONYX
-            </span>
-            <span className="text-[9px] font-body uppercase tracking-[0.3em] text-gold/50 block -mt-0.5">
-              Propcare
-            </span>
-          </div>
+        <Link href="/dashboard" aria-label="Onyx Propcare dashboard" className="inline-block text-cream">
+          <Logo variant="full" markClassName="h-9 w-9" />
         </Link>
       </div>
 

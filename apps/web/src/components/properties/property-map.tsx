@@ -42,12 +42,12 @@ export default function PropertyMap({ lat, lng, title }: PropertyMapProps) {
     const goldIcon = L.divIcon({
       html: `
         <div style="
-          width: 32px; height: 32px; background: #C9A84C; border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg); border: 3px solid #F5F0E8;
-          box-shadow: 0 4px 12px rgba(201, 168, 76, 0.4);
+          width: 32px; height: 32px; background: #1E4793; border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg); border: 3px solid #FFFFFF;
+          box-shadow: 0 4px 12px rgba(30, 71, 147, 0.4);
         ">
           <div style="
-            width: 8px; height: 8px; background: #0A0A0A; border-radius: 50%;
+            width: 8px; height: 8px; background: #FFFFFF; border-radius: 50%;
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
           "></div>
         </div>

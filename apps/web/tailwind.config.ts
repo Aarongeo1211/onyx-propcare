@@ -55,9 +55,9 @@ const config: Config = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-gold":
-          "linear-gradient(135deg, rgb(var(--gold-500)) 0%, rgb(var(--gold-400)) 50%, rgb(var(--gold-600)) 100%)",
+          "linear-gradient(135deg, rgb(var(--gold-500)) 0%, rgb(var(--gold-600)) 100%)",
         "gradient-dark":
-          "linear-gradient(180deg, rgb(var(--onyx-950)) 0%, rgb(var(--onyx-900)) 100%)",
+          "linear-gradient(180deg, rgb(var(--onyx-100)) 0%, rgb(var(--onyx-50)) 100%)",
         "noise": "url('/images/noise.svg')",
       },
       animation: {
@@ -100,8 +100,8 @@ const config: Config = {
           "50%": { transform: "translateY(-20px)" },
         },
         glow: {
-          "0%": { boxShadow: "0 0 20px rgba(201, 168, 76, 0.2)" },
-          "100%": { boxShadow: "0 0 40px rgba(201, 168, 76, 0.4)" },
+          "0%": { boxShadow: "0 0 20px rgba(30, 71, 147, 0.15)" },
+          "100%": { boxShadow: "0 0 40px rgba(30, 71, 147, 0.3)" },
         },
       },
     },

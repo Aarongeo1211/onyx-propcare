@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
 import { Button } from "@onyx/ui";
 import { Input } from "@onyx/ui";
+import { Logo } from "@/components/brand/logo";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -70,7 +71,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-onyx-950">
         {/* Background gradient layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-gold/10" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(30,71,147,0.06)_0%,transparent_70%)]" />
 
         {/* Diagonal gold lines */}
         <div className="absolute inset-0 overflow-hidden">
@@ -100,22 +101,9 @@ export default function LoginPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="relative w-12 h-12">
-                <div className="absolute inset-0 bg-gradient-gold rounded-lg rotate-45" />
-                <span className="absolute inset-0 flex items-center justify-center font-display text-onyx-950 font-bold text-xl">
-                  O
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-display text-2xl font-semibold tracking-wide text-cream">
-                  ONYX
-                </span>
-                <span className="text-[10px] font-body uppercase tracking-[0.3em] text-gold/70 -mt-1">
-                  Propcare
-                </span>
-              </div>
-            </div>
+            <Link href="/" aria-label="Onyx Propcare home" className="mb-8 inline-block text-cream">
+              <Logo variant="full" markClassName="h-12 w-12" />
+            </Link>
 
             <h1 className="heading-lg text-cream mb-4">
               Welcome<br />
@@ -157,7 +145,7 @@ export default function LoginPage() {
       {/* Right Panel - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-onyx-950 relative">
         {/* Subtle background texture */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(201,168,76,0.03)_0%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(30,71,147,0.04)_0%,transparent_70%)]" />
 
         <motion.div
           initial="hidden"
@@ -165,16 +153,8 @@ export default function LoginPage() {
           className="w-full max-w-md relative z-10"
         >
           {/* Mobile logo */}
-          <motion.div custom={0} variants={fadeUp} className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="relative w-10 h-10">
-              <div className="absolute inset-0 bg-gradient-gold rounded-lg rotate-45" />
-              <span className="absolute inset-0 flex items-center justify-center font-display text-onyx-950 font-bold text-lg">
-                O
-              </span>
-            </div>
-            <span className="font-display text-xl font-semibold tracking-wide text-cream">
-              ONYX
-            </span>
+          <motion.div custom={0} variants={fadeUp} className="lg:hidden mb-8 flex justify-center text-cream">
+            <Logo variant="full" markClassName="h-10 w-10" />
           </motion.div>
 
           <motion.div custom={1} variants={fadeUp}>

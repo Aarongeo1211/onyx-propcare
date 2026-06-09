@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +15,7 @@ import {
   Heart,
   LogOut,
 } from "lucide-react";
-import { ThemeToggle } from "@onyx/ui";
+import { Logo } from "@/components/brand/logo";
 
 const navLinks = [
   { href: "/properties?type=FARMLAND", label: "Farmlands" },
@@ -101,14 +100,10 @@ export function Navbar() {
       >
         <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <Image
-              src="/brand/onyx-propcare-navbar.png"
-              alt="Onyx Propcare"
-              width={1160}
-              height={900}
-              priority
-              className="h-14 w-auto object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-transform duration-300 group-hover:scale-[1.02] sm:h-16"
+          <Link href="/" aria-label="Onyx Propcare home" className="group text-cream">
+            <Logo
+              variant="full"
+              markClassName="h-10 w-10 sm:h-11 sm:w-11 transition-transform duration-300 group-hover:scale-[1.03]"
             />
           </Link>
 
@@ -163,7 +158,6 @@ export function Navbar() {
 
           {/* CTA / User Menu */}
           <div className="hidden lg:flex items-center gap-4">
-            <ThemeToggle />
             {isLoggedIn ? (
               <>
               <Link
@@ -336,9 +330,6 @@ export function Navbar() {
                   )
                 )}
                 <div className="pt-4 border-t border-cream/10 flex flex-col gap-3">
-                  <div className="flex justify-center lg:hidden">
-                    <ThemeToggle />
-                  </div>
                   {isLoggedIn ? (
                     <>
                       <div className="flex items-center gap-3 py-2">

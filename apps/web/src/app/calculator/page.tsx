@@ -604,12 +604,12 @@ export default function CalculatorPage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#C9A84C"
+                            stopColor="#1E4793"
                             stopOpacity={0.3}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#C9A84C"
+                            stopColor="#1E4793"
                             stopOpacity={0}
                           />
                         </linearGradient>
@@ -634,19 +634,19 @@ export default function CalculatorPage() {
                       </defs>
                       <CartesianGrid
                         strokeDasharray="3 3"
-                        stroke="rgba(245,240,232,0.05)"
+                        stroke="rgba(16,26,46,0.06)"
                         vertical={false}
                       />
                       <XAxis
                         dataKey="year"
-                        stroke="rgba(245,240,232,0.2)"
-                        tick={{ fill: "rgba(245,240,232,0.4)", fontSize: 12 }}
+                        stroke="rgba(16,26,46,0.15)"
+                        tick={{ fill: "rgba(16,26,46,0.55)", fontSize: 12 }}
                         tickLine={false}
                         axisLine={false}
                       />
                       <YAxis
-                        stroke="rgba(245,240,232,0.2)"
-                        tick={{ fill: "rgba(245,240,232,0.4)", fontSize: 12 }}
+                        stroke="rgba(16,26,46,0.15)"
+                        tick={{ fill: "rgba(16,26,46,0.55)", fontSize: 12 }}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(v: number) => formatCompact(v)}
@@ -656,7 +656,7 @@ export default function CalculatorPage() {
                       <Area
                         type="monotone"
                         dataKey="Property Value"
-                        stroke="#C9A84C"
+                        stroke="#1E4793"
                         strokeWidth={2}
                         fill="url(#goldGrad)"
                         animationDuration={1200}
@@ -664,7 +664,7 @@ export default function CalculatorPage() {
                       <Area
                         type="monotone"
                         dataKey="Total Invested"
-                        stroke="rgba(245,240,232,0.4)"
+                        stroke="rgba(16,26,46,0.55)"
                         strokeWidth={1.5}
                         strokeDasharray="4 4"
                         fill="none"
@@ -922,14 +922,14 @@ export default function CalculatorPage() {
                   <BarChart data={comparisonData.filter((_, i) => (i + 1) % 3 === 0 || i === 0 || i === comparisonData.length - 1)}>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="rgba(245,240,232,0.05)"
+                      stroke="rgba(16,26,46,0.06)"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="year"
-                      stroke="rgba(245,240,232,0.2)"
+                      stroke="rgba(16,26,46,0.15)"
                       tick={{
-                        fill: "rgba(245,240,232,0.4)",
+                        fill: "rgba(16,26,46,0.55)",
                         fontSize: 12,
                       }}
                       tickLine={false}
@@ -938,14 +938,14 @@ export default function CalculatorPage() {
                         value: "Year",
                         position: "insideBottom",
                         offset: -5,
-                        fill: "rgba(245,240,232,0.3)",
+                        fill: "rgba(16,26,46,0.45)",
                         fontSize: 11,
                       }}
                     />
                     <YAxis
-                      stroke="rgba(245,240,232,0.2)"
+                      stroke="rgba(16,26,46,0.15)"
                       tick={{
-                        fill: "rgba(245,240,232,0.4)",
+                        fill: "rgba(16,26,46,0.55)",
                         fontSize: 12,
                       }}
                       tickLine={false}
@@ -962,7 +962,7 @@ export default function CalculatorPage() {
                     />
                     <Bar
                       dataKey="Farmland Net Worth"
-                      fill="#C9A84C"
+                      fill="#1E4793"
                       radius={[4, 4, 0, 0]}
                       animationDuration={1200}
                     />

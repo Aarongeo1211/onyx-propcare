@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { ThemeToggle } from "@onyx/ui";
 
 export function AdminHeader() {
   const { data: session } = useSession();
@@ -17,8 +16,6 @@ export function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        <ThemeToggle />
-
         <div className="flex items-center gap-3 pl-4 border-l border-cream/8">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center text-onyx-950 text-sm font-bold">
             {initials}

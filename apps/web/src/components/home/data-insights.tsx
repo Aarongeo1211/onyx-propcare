@@ -87,11 +87,11 @@ export function DataInsights() {
 
       {/* Subtle grid background */}
       <div
-        className="absolute inset-0 opacity-[0.015]"
+        className="absolute inset-0 opacity-[0.5]"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(201,168,76,0.3) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(201,168,76,0.3) 1px, transparent 1px)
+            linear-gradient(rgba(30,71,147,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(30,71,147,0.05) 1px, transparent 1px)
           `,
           backgroundSize: "100px 100px",
         }}

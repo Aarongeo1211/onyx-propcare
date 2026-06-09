@@ -1,0 +1,11 @@
+<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#16294C" fill="#16294C">
+    <path d="M29.5 7 Q32 4.5 34.5 7 L53 48 Q55.5 52 51 53 L13 53 Q8.5 52 11 48 L29.5 7 Z" stroke-width="2.1" stroke-linejoin="round" fill="none"/>
+    <rect x="19.6" y="25" width="3.4" height="20" rx="1"/>
+    <rect x="23.8" y="19" width="3.4" height="26" rx="1"/>
+    <rect x="28" y="29" width="3.1" height="16" opacity="0.9"/>
+    <path d="M25.5 19 L25.5 15" stroke-width="1.6" stroke-linecap="round"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M34.5 30 L40 23.5 L45.5 30 L45.5 45 L34.5 45 Z M37.7 33.4 L37.7 38.4 L42.3 38.4 L42.3 33.4 Z"/>
+    <path d="M15 48 Q23.5 44.4 32 48 T49 48" stroke-width="1.9" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

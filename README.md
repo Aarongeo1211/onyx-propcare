@@ -100,6 +100,21 @@ pnpm railway:db:migrate
 pnpm railway:db:seed
 ```
 
+Deploy all services from the repo root:
+
+```bash
+pnpm deploy:railway
+```
+
+Manual deploy commands:
+
+```bash
+pnpm railway:db:migrate
+railway up --service onyx-api --detach -m "Deploy API"
+railway up --service onyx-web --detach -m "Deploy web"
+railway up --service onyx-admin --detach -m "Deploy admin"
+```
+
 Full setup guide:
 
 - [docs/deployment/railway.md](C:/Users/Lenovo/Desktop/Projects/onyx-propcare/docs/deployment/railway.md)

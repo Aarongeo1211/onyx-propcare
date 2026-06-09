@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@onyx/ui";
 import { Input } from "@onyx/ui";
+import { Logo } from "@/components/brand/logo";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const GOOGLE_ROLE_COOKIE = "onyx-auth-role";
@@ -173,22 +174,9 @@ export default function RegisterPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="relative w-12 h-12">
-                <div className="absolute inset-0 bg-gradient-gold rounded-lg rotate-45" />
-                <span className="absolute inset-0 flex items-center justify-center font-display text-onyx-950 font-bold text-xl">
-                  O
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-display text-2xl font-semibold tracking-wide text-cream">
-                  ONYX
-                </span>
-                <span className="text-[10px] font-body uppercase tracking-[0.3em] text-gold/70 -mt-1">
-                  Propcare
-                </span>
-              </div>
-            </div>
+            <Link href="/" aria-label="Onyx Propcare home" className="mb-8 inline-block text-cream">
+              <Logo variant="full" markClassName="h-12 w-12" />
+            </Link>
 
             <h1 className="heading-lg text-cream mb-4">
               Begin Your<br />
@@ -243,17 +231,9 @@ export default function RegisterPage() {
           <motion.div
             custom={0}
             variants={fadeUp}
-            className="lg:hidden flex items-center gap-3 mb-8 justify-center"
+            className="lg:hidden mb-8 flex justify-center text-cream"
           >
-            <div className="relative w-10 h-10">
-              <div className="absolute inset-0 bg-gradient-gold rounded-lg rotate-45" />
-              <span className="absolute inset-0 flex items-center justify-center font-display text-onyx-950 font-bold text-lg">
-                O
-              </span>
-            </div>
-            <span className="font-display text-xl font-semibold tracking-wide text-cream">
-              ONYX
-            </span>
+            <Logo variant="full" markClassName="h-10 w-10" />
           </motion.div>
 
           <motion.div custom={1} variants={fadeUp}>
