@@ -4,8 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Maximize2, Droplets, ShieldCheck, Route, Share2, Check, PlayCircle } from "lucide-react";
-import { Badge } from "@onyx/ui";
+import { MapPin, Maximize2, Droplets, ShieldCheck, Route, Share2, Check, PlayCircle, Sparkles } from "lucide-react";
 import {
   formatPrice,
   formatArea,
@@ -44,6 +43,16 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
   const imageUrl = property.images?.[0]?.url || "/images/placeholder-property.jpg";
   const imageAlt = property.images?.[0]?.alt || property.title;
   const [shareCopied, setShareCopied] = useState(false);
+
+  const typeVariant = getPropertyTypeBadgeVariant(property.type);
+  const typePillClass =
+    typeVariant === "farmland"
+      ? "bg-emerald-600"
+      : typeVariant === "residential"
+        ? "bg-sky-600"
+        : typeVariant === "warning"
+          ? "bg-amber-600"
+          : "bg-gold";
 
   async function handleShare(e: React.MouseEvent) {
     e.preventDefault();
@@ -91,30 +100,38 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading="lazy"
             />
-            {/* Gradient overlay (dark scrim so on-image text stays legible) */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+            {/* Dark scrims top & bottom so badges and price stay legible on any photo */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
 
-            {/* Top badges */}
-            <div className="absolute top-3 left-3 flex gap-2">
-              <Badge variant={getPropertyTypeBadgeVariant(property.type)}>
+            {/* Top-left: type + listing badges (solid, high-contrast) */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-md ${typePillClass}`}>
                 {getPropertyTypeLabel(property.type)}
-              </Badge>
+              </span>
               {property.listingType === "LEASE" && (
-                <Badge variant="outline">Lease</Badge>
+                <span className="rounded-full border border-white/25 bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+                  Lease
+                </span>
               )}
               {property.listingType === "RENT" && (
-                <Badge variant="outline">Rent</Badge>
+                <span className="rounded-full border border-white/25 bg-black/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+                  Rent
+                </span>
               )}
             </div>
 
-            {/* Featured badge + Video badge + Compare button */}
+            {/* Top-right: featured + video + compare */}
             <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
               {property.isFeatured && (
-                <Badge variant="default">Featured</Badge>
+                <span className="inline-flex items-center gap-1 rounded-full bg-gold px-2.5 py-1 text-[11px] font-semibold text-white shadow-md">
+                  <Sparkles className="h-3 w-3" />
+                  Featured
+                </span>
               )}
               {property.videos && property.videos.length > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 px-2 py-1 text-[10px] font-medium text-white">
-                  <PlayCircle className="w-3 h-3 text-gold" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-black/65 backdrop-blur-sm border border-white/20 px-2 py-1 text-[10px] font-medium text-white">
+                  <PlayCircle className="w-3 h-3" />
                   Video Tour
                 </span>
               )}
@@ -167,19 +184,19 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
             {/* Feature indicators */}
             <div className="flex items-center gap-2 pt-3 border-t border-cream/5">
               {property.waterData && (
-                <div className="flex items-center gap-1 text-xs text-sky-400/70">
+                <div className="flex items-center gap-1 text-xs font-medium text-sky-600">
                   <Droplets className="w-3 h-3" />
                   <span>Water</span>
                 </div>
               )}
               {(property.hasClearTitle || property.legalCheck?.titleStatus === "clear") && (
-                <div className="flex items-center gap-1 text-xs text-emerald-400/70">
+                <div className="flex items-center gap-1 text-xs font-medium text-emerald-600">
                   <ShieldCheck className="w-3 h-3" />
                   <span>Verified</span>
                 </div>
               )}
               {property.soilData && (
-                <div className="flex items-center gap-1 text-xs text-amber-400/70">
+                <div className="flex items-center gap-1 text-xs font-medium text-amber-600">
                   <span className="w-3 h-3 flex items-center justify-center text-[10px]">🌾</span>
                   <span>{property.soilData.soilType}</span>
                 </div>

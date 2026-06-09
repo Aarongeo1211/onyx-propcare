@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -26,6 +26,7 @@ import {
   Share2,
   ShieldCheck,
   Sprout,
+  X,
   XCircle,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -64,6 +65,7 @@ export function PropertyDetailPageClient({
   const [similar, setSimilar] = useState<PropertyCardData[]>(initialSimilar);
   const [loading, setLoading] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DataTab>(() => getDefaultTab(initialProperty));
   const [inquiryForm, setInquiryForm] = useState({ name: "", phone: "", message: "" });
   const [inquirySending, setInquirySending] = useState(false);
@@ -119,6 +121,24 @@ export function PropertyDetailPageClient({
 
     loadFavorites();
   }, [property?.id, session?.user?.accessToken]);
+
+  // Lightbox: keyboard navigation + lock body scroll while open
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const count = property?.images?.length ?? 0;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxOpen(false);
+      else if (e.key === "ArrowRight" && count > 1) setCurrentImage((p) => (p + 1) % count);
+      else if (e.key === "ArrowLeft" && count > 1) setCurrentImage((p) => (p - 1 + count) % count);
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [lightboxOpen, property?.images?.length]);
 
   const handleInquiry = async () => {
     if (!property || !session?.user?.id || !inquiryForm.name || !inquiryForm.phone || !inquiryForm.message) return;
@@ -223,31 +243,43 @@ export function PropertyDetailPageClient({
   return (
     <div className="min-h-screen bg-onyx-950 pt-20">
       <section className="relative mx-auto mb-8 max-w-7xl px-6">
-        <div className="relative aspect-[21/9] overflow-hidden rounded-2xl bg-onyx-900/50 md:aspect-[21/8]">
-          <Image
-            src={images[currentImage].url}
-            alt={images[currentImage].alt || property.title}
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/15" />
+        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-onyx-800 sm:aspect-[16/10]">
+          {/* Full (uncropped) image; click to open full screen */}
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            aria-label="View image full screen"
+            className="absolute inset-0 z-0 cursor-zoom-in"
+          >
+            <Image
+              src={images[currentImage].url}
+              alt={images[currentImage].alt || property.title}
+              fill
+              className="object-contain"
+              priority
+            />
+          </button>
+
+          <div className="pointer-events-none absolute left-4 top-4 z-10 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-3 py-1.5 text-xs text-white/90 backdrop-blur-sm">
+            <Maximize2 className="h-3.5 w-3.5" />
+            Click to enlarge
+          </div>
 
           {images.length > 1 && (
             <>
               <button
                 onClick={() => setCurrentImage((prev) => (prev - 1 + images.length) % images.length)}
-                className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white"
+                className="absolute left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={() => setCurrentImage((prev) => (prev + 1) % images.length)}
-                className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white"
+                className="absolute right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:border-white/40 hover:text-white"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
-              <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+              <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
                 {images.map((_, index) => (
                   <button
                     key={index}
@@ -261,7 +293,7 @@ export function PropertyDetailPageClient({
             </>
           )}
 
-          <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm">
+          <div className="pointer-events-none absolute right-4 top-4 z-10 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-3 py-1.5 text-xs text-white/80 backdrop-blur-sm">
             <Eye className="h-3.5 w-3.5" />
             {property.viewCount} views
           </div>
@@ -689,6 +721,68 @@ export function PropertyDetailPageClient({
           </motion.div>
         )}
       </section>
+
+      {/* Full-screen image lightbox — shows the complete image, uncropped */}
+      <AnimatePresence>
+        {lightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4"
+            onClick={() => setLightboxOpen(false)}
+          >
+            <button
+              onClick={() => setLightboxOpen(false)}
+              aria-label="Close"
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/90 transition-all hover:bg-white/20 hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {images.length > 1 && (
+              <div className="absolute left-1/2 top-5 z-10 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
+                {currentImage + 1} / {images.length}
+              </div>
+            )}
+
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+                  }}
+                  aria-label="Previous image"
+                  className="absolute left-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/90 transition-all hover:bg-white/20 hover:text-white"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImage((prev) => (prev + 1) % images.length);
+                  }}
+                  aria-label="Next image"
+                  className="absolute right-4 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/90 transition-all hover:bg-white/20 hover:text-white"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={images[currentImage].url}
+              src={images[currentImage].url}
+              alt={images[currentImage].alt || property.title}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[90vh] max-w-[94vw] object-contain"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
