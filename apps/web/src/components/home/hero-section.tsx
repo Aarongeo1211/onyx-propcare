@@ -192,7 +192,7 @@ function SearchPanel({
                 onChange={(e) => onSearchQueryChange(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder="Search by state, district, taluk or locality"
-                className={`w-full flex-1 bg-transparent text-cream placeholder:text-cream/35 focus:outline-none font-body ${inputClass}`}
+                className={`w-full flex-1 bg-transparent text-cream placeholder:text-cream/50 focus:outline-none font-body ${inputClass}`}
               />
             </div>
 
@@ -313,7 +313,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
             className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold/20 bg-gold/[0.06] px-4 py-1.5"
           >
             <Sparkles className="h-3.5 w-3.5 text-gold" />
-            <span className="text-[11px] font-body font-medium uppercase tracking-[0.15em] text-gold">
+            <span className="text-[11px] font-body font-semibold uppercase tracking-[0.15em] text-gold">
               India&apos;s verified land marketplace
             </span>
           </motion.div>
@@ -332,7 +332,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.1 }}
-            className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-cream/55 sm:text-lg"
+            className="mx-auto mb-8 max-w-xl text-base font-medium leading-relaxed text-cream/75 sm:text-lg"
           >
             Soil, water, legal and drone checks on every listing. Find your next plot by
             location, type and budget — no broker fog.
@@ -366,12 +366,12 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
             transition={{ duration: 0.5, delay: 0.25 }}
             className="mt-5 flex flex-wrap items-center justify-center gap-2"
           >
-            <span className="text-xs text-cream/40">Popular:</span>
+            <span className="text-xs font-semibold text-cream/60">Popular:</span>
             {quickStates.map((state) => (
               <Link
                 key={state}
                 href={`/properties?state=${encodeURIComponent(state)}`}
-                className="rounded-full border border-cream/10 px-3 py-1 text-xs text-cream/55 transition-all duration-300 hover:border-gold/30 hover:text-gold"
+                className="rounded-full border border-cream/15 px-3 py-1 text-xs font-medium text-cream/75 transition-all duration-300 hover:border-gold/40 hover:text-gold"
               >
                 {state}
               </Link>
@@ -390,7 +390,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
                 <div className="font-display text-xl font-semibold text-gold sm:text-2xl">
                   <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
-                <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-cream/40">
+                <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream/55">
                   {stat.label}
                 </div>
               </div>

@@ -15,7 +15,7 @@ export function Logo({ className = "h-12 w-auto", priority = false }: LogoProps)
     <Image
       src="/brand/onyx-propcare-logo.png"
       alt="Onyx Propcare"
-      width={766}
+      width={767}
       height={600}
       priority={priority}
       className={className}
