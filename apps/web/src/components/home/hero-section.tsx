@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   Search,
   ArrowRight,
@@ -16,7 +16,9 @@ import {
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { INDIAN_STATES } from "@onyx/types";
+import { formatPrice } from "@/lib/utils";
 import type { PropertyCardData } from "@/components/properties/property-card";
 
 const stats = [
@@ -227,8 +229,15 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
   const [activeTab, setActiveTab] = useState<PropertyTypeValue>("FARMLAND");
   const [heroVisible, setHeroVisible] = useState(true);
 
-  const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 320], [1, 0.96]);
+  // Rotating background images from live featured listings
+  const heroImages = featuredProperties.filter((p) => p.images?.[0]?.url).slice(0, 5);
+  const [bgIndex, setBgIndex] = useState(0);
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const timer = setInterval(() => setBgIndex((i) => (i + 1) % heroImages.length), 5000);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
+  const activeProp = heroImages[bgIndex];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -268,7 +277,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
             transition={{ duration: 0.2 }}
             className="fixed inset-x-0 top-[4.8rem] z-40 hidden px-4 sm:block lg:top-[6.6rem]"
           >
-            <div className="mx-auto max-w-5xl">
+            <div className="mx-auto max-w-5xl rounded-2xl bg-white p-1 shadow-xl shadow-black/10">
               <SearchPanel
                 compact
                 activeTab={activeTab}
@@ -287,63 +296,78 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
         )}
       </AnimatePresence>
 
-      <section ref={heroRef} className="relative overflow-hidden border-b border-cream/8">
-        {/* Light background with a soft blue mesh */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-white" />
-          <div className="absolute -right-24 -top-24 h-[34rem] w-[34rem] rounded-full bg-gold/[0.06] blur-[120px]" />
-          <div className="absolute -left-24 bottom-0 h-[26rem] w-[26rem] rounded-full bg-earth-green/[0.06] blur-[110px]" />
-          <div
-            className="absolute inset-0 opacity-[0.5]"
-            style={{
-              backgroundImage: `radial-gradient(rgb(var(--gold-500) / 0.06) 1px, transparent 1px)`,
-              backgroundSize: "26px 26px",
-            }}
-          />
+      <section ref={heroRef} className="relative isolate min-h-[34rem] overflow-hidden border-b border-cream/8 lg:min-h-[40rem]">
+        {/* Rotating background images from live featured listings */}
+        <div className="absolute inset-0 -z-10">
+          {heroImages.length > 0 ? (
+            <AnimatePresence mode="sync">
+              <motion.div
+                key={activeProp.id}
+                initial={{ opacity: 0, scale: 1.06 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={activeProp.images[0].url}
+                  alt={activeProp.title}
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover"
+                />
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div className="absolute inset-0 bg-onyx-50" />
+          )}
+          {/* Navy scrims for legibility (heavier bottom-left where the content sits) */}
+          <div className="absolute inset-0 bg-gradient-to-t from-onyx-50/92 via-onyx-50/55 to-onyx-50/35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-onyx-50/80 via-onyx-50/25 to-transparent" />
         </div>
 
-        <motion.div
-          style={{ opacity: heroOpacity }}
-          className="relative z-10 mx-auto w-full max-w-4xl px-5 pb-12 pt-12 text-center sm:px-6 lg:pb-16 lg:pt-20"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold/20 bg-gold/[0.06] px-4 py-1.5"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-gold" />
-            <span className="text-[11px] font-body font-semibold uppercase tracking-[0.15em] text-gold">
-              India&apos;s verified land marketplace
-            </span>
-          </motion.div>
+        <div className="relative mx-auto flex min-h-[34rem] w-full max-w-6xl flex-col justify-center px-5 pb-16 pt-14 sm:px-6 lg:min-h-[40rem] lg:pb-20 lg:pt-20">
+          <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 backdrop-blur-sm"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-gold-200" />
+              <span className="text-[11px] font-body font-semibold uppercase tracking-[0.15em] text-white">
+                India&apos;s verified land marketplace
+              </span>
+            </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.05 }}
-            className="heading-lg mb-4 text-cream"
-          >
-            Search verified <span className="text-gradient-gold">farmland &amp; plots</span>
-            <br className="hidden sm:block" /> across India
-          </motion.h1>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.05 }}
+              className="heading-lg mb-4 text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)]"
+            >
+              Search verified <span className="text-gold-200">farmland &amp; plots</span>
+              <br className="hidden sm:block" /> across India
+            </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.1 }}
-            className="mx-auto mb-8 max-w-xl text-base font-medium leading-relaxed text-cream/75 sm:text-lg"
-          >
-            Soil, water, legal and drone checks on every listing. Find your next plot by
-            location, type and budget — no broker fog.
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.1 }}
+              className="mb-7 max-w-xl text-base font-medium leading-relaxed text-white/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.3)] sm:text-lg"
+            >
+              Soil, water, legal and drone checks on every listing. Find your next plot by
+              location, type and budget — no broker fog.
+            </motion.p>
+          </div>
 
-          {/* Search */}
+          {/* Floating white search card */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.15 }}
-            className="flex justify-center"
+            className="max-w-3xl rounded-2xl bg-white p-3 shadow-2xl shadow-black/25 sm:p-4"
           >
             <SearchPanel
               activeTab={activeTab}
@@ -364,39 +388,72 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.25 }}
-            className="mt-5 flex flex-wrap items-center justify-center gap-2"
+            className="mt-5 flex flex-wrap items-center gap-2"
           >
-            <span className="text-xs font-semibold text-cream/60">Popular:</span>
+            <span className="text-xs font-semibold text-white/70">Popular:</span>
             {quickStates.map((state) => (
               <Link
                 key={state}
                 href={`/properties?state=${encodeURIComponent(state)}`}
-                className="rounded-full border border-cream/15 px-3 py-1 text-xs font-medium text-cream/75 transition-all duration-300 hover:border-gold/40 hover:text-gold"
+                className="rounded-full border border-white/25 bg-white/5 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm transition-all duration-300 hover:border-white/60 hover:bg-white/15"
               >
                 {state}
               </Link>
             ))}
           </motion.div>
 
-          {/* Stats strip */}
+          {/* Compact stats row */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 rounded-2xl border border-cream/8 bg-onyx-900/70 px-4 py-5 sm:grid-cols-4"
+            className="mt-8 flex flex-wrap gap-x-8 gap-y-3"
           >
             {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-display text-xl font-semibold text-gold sm:text-2xl">
+              <div key={stat.label}>
+                <div className="font-display text-xl font-semibold text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.3)] sm:text-2xl">
                   <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
-                <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream/55">
+                <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/60">
                   {stat.label}
                 </div>
               </div>
             ))}
           </motion.div>
-        </motion.div>
+        </div>
+
+        {/* "Now showing" caption for the live plot in the background (desktop) */}
+        {activeProp && (
+          <Link
+            href={`/properties/${activeProp.slug}`}
+            className="absolute bottom-5 right-5 z-10 hidden max-w-xs items-center gap-3 rounded-2xl border border-white/15 bg-black/45 px-4 py-2.5 backdrop-blur-md transition-colors hover:bg-black/60 lg:flex"
+          >
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Now showing</div>
+              <div className="truncate text-sm font-medium text-white">{activeProp.title}</div>
+              <div className="truncate text-xs text-white/70">
+                {activeProp.district}, {activeProp.state} · {formatPrice(activeProp.price)}
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-white/70" />
+          </Link>
+        )}
+
+        {/* Image indicators */}
+        {heroImages.length > 1 && (
+          <div className="absolute bottom-6 left-5 z-10 flex gap-1.5 sm:left-6">
+            {heroImages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setBgIndex(i)}
+                aria-label={`Show featured plot ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === bgIndex ? "w-5 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </>
   );
