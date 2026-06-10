@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   ArrowRight,
@@ -30,6 +30,22 @@ const stats = [
 
 const quickStates = ["Maharashtra", "Karnataka", "Tamil Nadu", "Gujarat", "Rajasthan"];
 
+// Curated hero backgrounds. Drop high-res images (ideally drone/aerial shots of
+// farmland/plots, ~1920×1080+) into apps/web/public/brand/hero/ and list them here.
+// When this is non-empty it takes priority; otherwise the hero falls back to live
+// featured-listing photos.
+const CURATED_HERO_IMAGES: string[] = [
+  // "/brand/hero/hero-1.jpg",
+  // "/brand/hero/hero-2.jpg",
+  // "/brand/hero/hero-3.jpg",
+];
+
+interface HeroSlide {
+  id: string;
+  url: string;
+  property?: PropertyCardData;
+}
+
 type PropertyTypeValue =
   | "FARMLAND"
   | "RESIDENTIAL_PLOT"
@@ -56,13 +72,11 @@ function AnimatedCounter({
   suffix?: string;
   className?: string;
 }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [count, setCount] = useState(0);
 
+  // Count up on mount — these sit in the hero (always seen), so don't gate on scroll.
   useEffect(() => {
-    if (!isInView) return;
-    const duration = 2000;
+    const duration = 1800;
     const steps = 60;
     const increment = value / steps;
     let current = 0;
@@ -76,10 +90,10 @@ function AnimatedCounter({
       }
     }, duration / steps);
     return () => clearInterval(timer);
-  }, [isInView, value]);
+  }, [value]);
 
   return (
-    <span ref={ref} className={`tabular-nums ${className}`}>
+    <span className={`tabular-nums ${className}`}>
       {prefix}
       {count.toLocaleString("en-IN")}
       {suffix}
@@ -229,15 +243,21 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
   const [activeTab, setActiveTab] = useState<PropertyTypeValue>("FARMLAND");
   const [heroVisible, setHeroVisible] = useState(true);
 
-  // Rotating background images from live featured listings
-  const heroImages = featuredProperties.filter((p) => p.images?.[0]?.url).slice(0, 5);
+  // Hero background slides: curated images take priority, else live featured listings.
+  const curatedSlides: HeroSlide[] = CURATED_HERO_IMAGES.map((url, i) => ({ id: `curated-${i}`, url }));
+  const listingSlides: HeroSlide[] = featuredProperties
+    .filter((p) => p.images?.[0]?.url)
+    .slice(0, 5)
+    .map((p) => ({ id: p.id, url: p.images[0].url, property: p }));
+  const slides = curatedSlides.length > 0 ? curatedSlides : listingSlides;
+
   const [bgIndex, setBgIndex] = useState(0);
   useEffect(() => {
-    if (heroImages.length <= 1) return;
-    const timer = setInterval(() => setBgIndex((i) => (i + 1) % heroImages.length), 5000);
+    if (slides.length <= 1) return;
+    const timer = setInterval(() => setBgIndex((i) => (i + 1) % slides.length), 6000);
     return () => clearInterval(timer);
-  }, [heroImages.length]);
-  const activeProp = heroImages[bgIndex];
+  }, [slides.length]);
+  const activeProp = slides[bgIndex]?.property;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -297,31 +317,27 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
       </AnimatePresence>
 
       <section ref={heroRef} className="relative isolate min-h-[34rem] overflow-hidden border-b border-cream/8 lg:min-h-[40rem]">
-        {/* Rotating background images from live featured listings */}
-        <div className="absolute inset-0 -z-10">
-          {heroImages.length > 0 ? (
-            <AnimatePresence mode="sync">
-              <motion.div
-                key={activeProp.id}
-                initial={{ opacity: 0, scale: 1.06 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.2, ease: "easeInOut" }}
-                className="absolute inset-0"
-              >
-                <Image
-                  src={activeProp.images[0].url}
-                  alt={activeProp.title}
-                  fill
-                  priority
-                  sizes="100vw"
-                  className="object-cover"
-                />
-              </motion.div>
-            </AnimatePresence>
-          ) : (
-            <div className="absolute inset-0 bg-onyx-50" />
-          )}
+        {/* Background slides — stacked & cross-faded by opacity (no remount = no mobile glitch) */}
+        <div className="absolute inset-0 -z-10 bg-onyx-50">
+          {slides.map((slide, i) => (
+            <motion.div
+              key={slide.id}
+              initial={false}
+              animate={{ opacity: i === bgIndex ? 1 : 0 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={slide.url}
+                alt={slide.property?.title || "Verified farmland and plots on Onyx Propcare"}
+                fill
+                priority={i === 0}
+                quality={80}
+                sizes="100vw"
+                className="object-cover"
+              />
+            </motion.div>
+          ))}
           {/* Navy scrims for legibility (heavier bottom-left where the content sits) */}
           <div className="absolute inset-0 bg-gradient-to-t from-onyx-50/92 via-onyx-50/55 to-onyx-50/35" />
           <div className="absolute inset-0 bg-gradient-to-r from-onyx-50/80 via-onyx-50/25 to-transparent" />
@@ -440,9 +456,9 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
         )}
 
         {/* Image indicators */}
-        {heroImages.length > 1 && (
+        {slides.length > 1 && (
           <div className="absolute bottom-6 left-5 z-10 flex gap-1.5 sm:left-6">
-            {heroImages.map((_, i) => (
+            {slides.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setBgIndex(i)}
