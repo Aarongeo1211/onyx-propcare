@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { MapPin, SearchX } from "lucide-react";
 import { Button } from "@onyx/ui";
@@ -11,6 +11,39 @@ import { PropertyCard, type PropertyCardData } from "@/components/properties/pro
 import { PropertyFiltersSidebar } from "@/components/properties/property-filters";
 import { apiFetch } from "@/lib/utils";
 import type { PropertiesResponse } from "@/lib/public-api";
+
+const PROPERTY_LIMIT = 12;
+
+function filtersFromParams(sp: URLSearchParams): PropertyFilters {
+  const num = (v: string | null) => (v ? Number(v) : undefined);
+  return {
+    search: sp.get("search") || undefined,
+    state: sp.get("state") || undefined,
+    district: sp.get("district") || undefined,
+    type: (sp.get("type") as PropertyFilters["type"]) || undefined,
+    listingType: (sp.get("listingType") as PropertyFilters["listingType"]) || undefined,
+    minPrice: num(sp.get("minPrice")),
+    maxPrice: num(sp.get("maxPrice")),
+    sortBy: (sp.get("sortBy") as PropertyFilters["sortBy"]) || "newest",
+    page: num(sp.get("page")) || 1,
+    limit: PROPERTY_LIMIT,
+  };
+}
+
+/** Stable signature of the filter fields that affect results — used to detect real changes. */
+function filtersSignature(f: PropertyFilters): string {
+  return [
+    f.search,
+    f.state,
+    f.district,
+    f.type,
+    f.listingType,
+    f.minPrice,
+    f.maxPrice,
+    f.sortBy || "newest",
+    f.page || 1,
+  ].join("|");
+}
 
 interface PropertiesPageClientProps {
   initialFilters: PropertyFilters;
@@ -24,6 +57,7 @@ export function PropertiesPageClient({
   initialPagination,
 }: PropertiesPageClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const didHydrateRef = useRef(false);
 
   const [properties, setProperties] = useState<PropertyCardData[]>(initialProperties);
@@ -57,6 +91,14 @@ export function PropertiesPageClient({
       setLoading(false);
     }
   }, []);
+
+  // Adopt URL changes that originate OUTSIDE this component (e.g. the navbar
+  // "Farmlands"/"Plots" links) into filter state. The internal router.replace
+  // below keeps the URL in sync, so the signature check prevents a feedback loop.
+  useEffect(() => {
+    const fromUrl = filtersFromParams(new URLSearchParams(searchParams.toString()));
+    setFilters((prev) => (filtersSignature(prev) === filtersSignature(fromUrl) ? prev : fromUrl));
+  }, [searchParams]);
 
   useEffect(() => {
     if (!didHydrateRef.current) {
