@@ -316,16 +316,16 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
         )}
       </AnimatePresence>
 
-      <section ref={heroRef} className="relative isolate min-h-[34rem] overflow-hidden border-b border-cream/8 lg:min-h-[40rem]">
-        {/* Background slides — stacked & cross-faded by opacity (no remount = no mobile glitch) */}
-        <div className="absolute inset-0 -z-10 bg-onyx-50">
+      <section ref={heroRef} className="relative min-h-[34rem] overflow-hidden border-b border-cream/8 lg:min-h-[40rem]">
+        {/* Background slides — CSS opacity crossfade (no framer layer promotion / no negative
+            z-index = no mobile compositing glitch). Painted first so content stacks above it. */}
+        <div className="absolute inset-0 bg-onyx-50">
           {slides.map((slide, i) => (
-            <motion.div
+            <div
               key={slide.id}
-              initial={false}
-              animate={{ opacity: i === bgIndex ? 1 : 0 }}
-              transition={{ duration: 1, ease: "easeInOut" }}
-              className="absolute inset-0"
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                i === bgIndex ? "opacity-100" : "opacity-0"
+              }`}
             >
               <Image
                 src={slide.url}
@@ -336,20 +336,20 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
                 sizes="100vw"
                 className="object-cover"
               />
-            </motion.div>
+            </div>
           ))}
           {/* Navy scrims for legibility (heavier bottom-left where the content sits) */}
           <div className="absolute inset-0 bg-gradient-to-t from-onyx-50/92 via-onyx-50/55 to-onyx-50/35" />
           <div className="absolute inset-0 bg-gradient-to-r from-onyx-50/80 via-onyx-50/25 to-transparent" />
         </div>
 
-        <div className="relative mx-auto flex min-h-[34rem] w-full max-w-6xl flex-col justify-center px-5 pb-16 pt-14 sm:px-6 lg:min-h-[40rem] lg:pb-20 lg:pt-20">
+        <div className="relative z-10 mx-auto flex min-h-[34rem] w-full max-w-6xl flex-col justify-center px-5 pb-16 pt-14 sm:px-6 lg:min-h-[40rem] lg:pb-20 lg:pt-20">
           <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 backdrop-blur-sm"
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-1.5"
             >
               <Sparkles className="h-3.5 w-3.5 text-gold-200" />
               <span className="text-[11px] font-body font-semibold uppercase tracking-[0.15em] text-white">
@@ -411,7 +411,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
               <Link
                 key={state}
                 href={`/properties?state=${encodeURIComponent(state)}`}
-                className="rounded-full border border-white/25 bg-white/5 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm transition-all duration-300 hover:border-white/60 hover:bg-white/15"
+                className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 transition-all duration-300 hover:border-white/60 hover:bg-white/20"
               >
                 {state}
               </Link>
