@@ -146,7 +146,7 @@ function SearchPanel({
             className={`flex items-center gap-1.5 border transition-all duration-300 ${tabClass} ${
               activeTab === tab.value
                 ? "border-gold/30 bg-gold/10 text-gold shadow-sm"
-                : "border-cream/10 bg-onyx-900 text-cream/50 hover:text-cream/80 hover:border-cream/20"
+                : "border-cream/10 bg-onyx-900 text-cream/70 hover:text-cream hover:border-cream/20"
             }`}
           >
             <tab.icon className="h-3.5 w-3.5" />
@@ -332,7 +332,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
                 alt={slide.property?.title || "Verified farmland and plots on Onyx Propcare"}
                 fill
                 priority={i === 0}
-                quality={80}
+                quality={72}
                 sizes="100vw"
                 className="object-cover"
               />

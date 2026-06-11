@@ -1,6 +1,28 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, Outfit, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { SessionProvider } from "@/components/providers/session-provider";
+
+// Self-hosted via next/font (non-render-blocking, replaces the CSS @import).
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+  display: "swap",
+});
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-jetbrains",
+  display: "swap",
+});
 import { LayoutProvider } from "@/components/providers/layout-provider";
 import { QueryProvider } from "@/lib/query-provider";
 import { ComparisonProvider, ComparisonBar } from "@/components/comparison";
@@ -66,7 +88,12 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${cormorant.variable} ${outfit.variable} ${jetbrains.variable}`}>
+      <head>
+        {/* Speed up the LCP hero image fetched from the API/bucket origin */}
+        <link rel="preconnect" href="https://onyx-api-production-b3da.up.railway.app" />
+        <link rel="preconnect" href="https://t3.storageapi.dev" />
+      </head>
       <body className="min-h-screen bg-onyx-950 text-cream antialiased">
         <JsonLd data={organizationSchema} />
         <SessionProvider>

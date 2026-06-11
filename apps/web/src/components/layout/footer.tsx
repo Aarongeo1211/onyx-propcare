@@ -42,12 +42,12 @@ export function Footer() {
               <Logo className="h-16 w-auto" />
             </Link>
 
-            <p className="text-cream/40 text-sm leading-relaxed max-w-sm">
+            <p className="text-cream/65 text-sm leading-relaxed max-w-sm">
               India&apos;s most trusted platform for farmland and residential plot investments.
               Backed by verified data, drone surveys, and comprehensive legal checks.
             </p>
 
-            <div className="space-y-3 text-sm text-cream/40">
+            <div className="space-y-3 text-sm text-cream/65">
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-gold/60" />
                 Byrathi, Bengaluru, Karnataka 560077
@@ -66,15 +66,15 @@ export function Footer() {
           {/* Link columns */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-display text-sm font-semibold text-cream uppercase tracking-wider mb-4">
+              <h3 className="font-display text-sm font-semibold text-cream uppercase tracking-wider mb-4">
                 {title}
-              </h4>
+              </h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-cream/35 hover:text-gold transition-colors duration-300"
+                      className="text-sm text-cream/60 hover:text-gold transition-colors duration-300"
                     >
                       {link.label}
                     </Link>
@@ -87,10 +87,10 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-16 pt-8 border-t border-cream/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-cream/25">
+          <p className="text-xs text-cream/55">
             &copy; {new Date().getFullYear()} Onyx Propcare. All rights reserved.
           </p>
-          <p className="text-xs text-cream/25">
+          <p className="text-xs text-cream/55">
             Built with care for India&apos;s land ecosystem.
           </p>
         </div>
