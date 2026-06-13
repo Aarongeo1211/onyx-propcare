@@ -35,9 +35,10 @@ const quickStates = ["Maharashtra", "Karnataka", "Tamil Nadu", "Gujarat", "Rajas
 // When this is non-empty it takes priority; otherwise the hero falls back to live
 // featured-listing photos.
 const CURATED_HERO_IMAGES: string[] = [
-  // "/brand/hero/hero-1.jpg",
-  // "/brand/hero/hero-2.jpg",
-  // "/brand/hero/hero-3.jpg",
+  "/brand/hero/hero-1.jpg",
+  "/brand/hero/hero-2.jpg",
+  "/brand/hero/hero-3.jpg",
+  "/brand/hero/hero-4.jpg",
 ];
 
 interface HeroSlide {
