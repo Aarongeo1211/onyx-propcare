@@ -168,7 +168,7 @@ export default function DashboardPropertiesPage() {
                 className={`px-4 py-2 rounded-lg text-sm font-body transition-all whitespace-nowrap ${
                   activeTab === tab.value
                     ? "bg-gold/10 text-gold border border-gold/20"
-                    : "text-cream/40 border border-cream/8 hover:text-cream/60 hover:border-cream/15"
+                    : "text-cream/65 border border-cream/8 hover:text-cream/60 hover:border-cream/15"
                 }`}
               >
                 {tab.label}
@@ -184,12 +184,12 @@ export default function DashboardPropertiesPage() {
           ) : properties.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-onyx-900/50 border border-cream/8 flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-cream/20" />
+                <Building2 className="w-8 h-8 text-cream/45" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">
                 No properties yet
               </h3>
-              <p className="text-sm font-body text-cream/40 mb-6">
+              <p className="text-sm font-body text-cream/65 mb-6">
                 Start listing your properties to reach buyers across India.
               </p>
               <Link href="/properties/new">
@@ -205,25 +205,25 @@ export default function DashboardPropertiesPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-cream/5">
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/30 uppercase tracking-wider">
+                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
                         Property
                       </th>
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/30 uppercase tracking-wider">
+                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/30 uppercase tracking-wider">
+                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
                         Price
                       </th>
-                      <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/30 uppercase tracking-wider">
+                      <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
                         Views
                       </th>
-                      <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/30 uppercase tracking-wider">
+                      <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
                         Inquiries
                       </th>
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/30 uppercase tracking-wider">
+                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
                         Created
                       </th>
-                      <th className="text-right px-5 py-3 text-xs font-body font-medium text-cream/30 uppercase tracking-wider">
+                      <th className="text-right px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -252,7 +252,7 @@ export default function DashboardPropertiesPage() {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
-                                    <Building2 className="w-5 h-5 text-cream/20" />
+                                    <Building2 className="w-5 h-5 text-cream/45" />
                                   </div>
                                 )}
                               </div>
@@ -282,7 +282,7 @@ export default function DashboardPropertiesPage() {
                             </span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-sm font-body text-cream/30">
+                            <span className="text-sm font-body text-cream/60">
                               {new Date(property.createdAt).toLocaleDateString("en-IN", {
                                 day: "numeric",
                                 month: "short",
@@ -294,7 +294,7 @@ export default function DashboardPropertiesPage() {
                             <div className="flex items-center justify-end gap-2">
                               <Link
                                 href={`/dashboard/properties/${property.id}/edit`}
-                                className="p-2 rounded-lg text-cream/30 hover:text-gold hover:bg-gold/10 transition-colors"
+                                className="p-2 rounded-lg text-cream/60 hover:text-gold hover:bg-gold/10 transition-colors"
                                 title="Edit"
                               >
                                 <Pencil className="w-4 h-4" />
@@ -302,7 +302,7 @@ export default function DashboardPropertiesPage() {
                               <Link
                                 href={`/properties/${property.slug}`}
                                 target="_blank"
-                                className="p-2 rounded-lg text-cream/30 hover:text-cream hover:bg-cream/10 transition-colors"
+                                className="p-2 rounded-lg text-cream/60 hover:text-cream hover:bg-cream/10 transition-colors"
                                 title="View on site"
                               >
                                 <ExternalLink className="w-4 h-4" />
@@ -312,8 +312,8 @@ export default function DashboardPropertiesPage() {
                                 disabled={togglingId === property.id}
                                 className={`p-2 rounded-lg transition-colors ${
                                   property.status === "ACTIVE"
-                                    ? "text-cream/30 hover:text-red-400 hover:bg-red-500/10"
-                                    : "text-cream/30 hover:text-emerald-400 hover:bg-emerald-500/10"
+                                    ? "text-cream/60 hover:text-red-400 hover:bg-red-500/10"
+                                    : "text-cream/60 hover:text-emerald-400 hover:bg-emerald-500/10"
                                 }`}
                                 title={property.status === "ACTIVE" ? "Deactivate" : "Activate"}
                               >

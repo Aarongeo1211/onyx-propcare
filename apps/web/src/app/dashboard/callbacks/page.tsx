@@ -88,9 +88,9 @@ export default function DashboardCallbacksPage() {
           </div>
         ) : callbacks.length === 0 ? (
           <div className="rounded-2xl border border-cream/8 bg-onyx-900/30 p-10 text-center">
-            <PhoneCall className="mx-auto h-10 w-10 text-cream/20" />
+            <PhoneCall className="mx-auto h-10 w-10 text-cream/45" />
             <h3 className="mt-4 font-display text-xl text-cream">No callbacks yet</h3>
-            <p className="mt-2 text-sm text-cream/35">Callback requests from property pages will appear here.</p>
+            <p className="mt-2 text-sm text-cream/60">Callback requests from property pages will appear here.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -110,7 +110,7 @@ export default function DashboardCallbacksPage() {
                         {callback.status}
                       </Badge>
                     </div>
-                    <p className="mt-1 text-sm text-cream/40">{callback.phone}</p>
+                    <p className="mt-1 text-sm text-cream/65">{callback.phone}</p>
                     <Link
                       href={`/properties/${callback.property.slug}`}
                       className="mt-3 inline-flex items-center gap-1 text-xs text-gold hover:text-gold-light"
@@ -122,7 +122,7 @@ export default function DashboardCallbacksPage() {
                   </div>
 
                   <div className="flex flex-col items-start gap-3 md:items-end">
-                    <div className="flex items-center gap-1 text-xs text-cream/25">
+                    <div className="flex items-center gap-1 text-xs text-cream/55">
                       <Clock className="h-3 w-3" />
                       {new Date(callback.createdAt).toLocaleString("en-IN")}
                     </div>

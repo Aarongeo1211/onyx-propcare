@@ -142,12 +142,12 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="font-display text-lg text-cream">Profile</h2>
-              <p className="text-xs text-cream/40">Update your personal details</p>
+              <p className="text-xs text-cream/65">Update your personal details</p>
             </div>
           </div>
 
           {loading ? (
-            <div className="text-cream/40 text-sm">Loading...</div>
+            <div className="text-cream/65 text-sm">Loading...</div>
           ) : (
             <form onSubmit={saveProfile} className="space-y-4">
               <div>
@@ -170,7 +170,7 @@ export default function SettingsPage() {
                   disabled
                   className="w-full px-4 py-2.5 bg-onyx-950/30 border border-cream/5 rounded-lg text-sm text-cream/50 cursor-not-allowed"
                 />
-                <p className="text-[11px] text-cream/30 mt-1">Email cannot be changed. Contact support if needed.</p>
+                <p className="text-[11px] text-cream/60 mt-1">Email cannot be changed. Contact support if needed.</p>
               </div>
 
               <div>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="font-display text-lg text-cream">Change Password</h2>
-              <p className="text-xs text-cream/40">Min 8 chars, with uppercase, lowercase, number</p>
+              <p className="text-xs text-cream/65">Min 8 chars, with uppercase, lowercase, number</p>
             </div>
           </div>
 

@@ -90,7 +90,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
                   ? "bg-gold/10 text-gold border border-gold/15"
-                  : "text-cream/40 hover:text-cream/70 hover:bg-cream/5"
+                  : "text-cream/75 font-medium hover:text-cream hover:bg-cream/5"
               }`}
             >
               <item.icon className="w-4.5 h-4.5" />
@@ -118,7 +118,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         {/* Back to Home */}
         <Link
           href="/"
-          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-cream/40 hover:text-cream/70 hover:bg-cream/5 transition-all duration-200"
+          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-cream/75 hover:text-cream hover:bg-cream/5 transition-all duration-200"
         >
           <Home className="w-4.5 h-4.5" />
           Back to Home
@@ -127,7 +127,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         {/* Sign Out */}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm text-cream/30 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200"
+          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-cream/70 hover:text-red-500 hover:bg-red-500/5 transition-all duration-200"
         >
           <LogOut className="w-4.5 h-4.5" />
           Sign Out

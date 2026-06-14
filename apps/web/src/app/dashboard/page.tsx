@@ -207,7 +207,7 @@ export default function DashboardOverviewPage() {
                 <p className="font-display text-3xl font-semibold text-gold mb-1">
                   {card.value}
                 </p>
-                <p className="text-sm font-body text-cream/40">{card.label}</p>
+                <p className="text-sm font-body text-cream/65">{card.label}</p>
               </motion.div>
             ))}
           </div>
@@ -230,7 +230,7 @@ export default function DashboardOverviewPage() {
                     <h3 className="font-display text-lg font-semibold text-cream">
                       {stats.subscription.planName} Plan
                     </h3>
-                    <p className="text-xs font-body text-cream/30">
+                    <p className="text-xs font-body text-cream/60">
                       Active subscription
                     </p>
                   </div>
@@ -365,14 +365,14 @@ export default function DashboardOverviewPage() {
                       <p className="text-sm font-body text-cream truncate">
                         {inquiry.user.name}
                       </p>
-                      <p className="text-xs font-body text-cream/30 truncate">
+                      <p className="text-xs font-body text-cream/60 truncate">
                         {inquiry.property.title}
                       </p>
                     </div>
                     <Badge variant={getStatusBadgeVariant(inquiry.status)} className="text-[10px] shrink-0">
                       {inquiry.status.replace("_", " ")}
                     </Badge>
-                    <div className="flex items-center gap-1 text-xs text-cream/25 shrink-0">
+                    <div className="flex items-center gap-1 text-xs text-cream/55 shrink-0">
                       <Clock className="w-3 h-3" />
                       {timeAgo(inquiry.createdAt)}
                     </div>
@@ -408,10 +408,10 @@ export default function DashboardOverviewPage() {
                     className="block rounded-xl border border-cream/5 bg-onyx-800/30 p-4 transition-colors hover:bg-onyx-800/50"
                   >
                     <p className="text-sm font-body text-cream">{view.property.title}</p>
-                    <p className="mt-1 text-xs text-cream/30">
+                    <p className="mt-1 text-xs text-cream/60">
                       {view.property.district}, {view.property.state}
                     </p>
-                    <p className="mt-2 text-xs text-cream/25">{timeAgo(view.viewedAt)}</p>
+                    <p className="mt-2 text-xs text-cream/55">{timeAgo(view.viewedAt)}</p>
                   </Link>
                 ))}
               </div>

@@ -161,7 +161,7 @@ export default function DashboardInquiriesPage() {
                 className={`px-4 py-2 rounded-lg text-sm font-body transition-all whitespace-nowrap ${
                   activeTab === tab.value
                     ? "bg-gold/10 text-gold border border-gold/20"
-                    : "text-cream/40 border border-cream/8 hover:text-cream/60 hover:border-cream/15"
+                    : "text-cream/65 border border-cream/8 hover:text-cream/60 hover:border-cream/15"
                 }`}
               >
                 {tab.label}
@@ -177,12 +177,12 @@ export default function DashboardInquiriesPage() {
           ) : inquiries.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-onyx-900/50 border border-cream/8 flex items-center justify-center">
-                <MessageSquare className="w-8 h-8 text-cream/20" />
+                <MessageSquare className="w-8 h-8 text-cream/45" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">
                 No inquiries yet
               </h3>
-              <p className="text-sm font-body text-cream/40">
+              <p className="text-sm font-body text-cream/65">
                 {isSeller
                   ? "Inquiries from interested buyers will appear here."
                   : "Your sent inquiries will appear here."}
@@ -213,7 +213,7 @@ export default function DashboardInquiriesPage() {
                           <p className="text-sm font-body text-cream font-medium">
                             {inquiry.user.name}
                           </p>
-                          <div className="flex items-center gap-3 text-xs text-cream/30">
+                          <div className="flex items-center gap-3 text-xs text-cream/60">
                             <span className="flex items-center gap-1">
                               <Mail className="w-3 h-3" />
                               {inquiry.user.email}
@@ -259,7 +259,7 @@ export default function DashboardInquiriesPage() {
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-cream/30 pointer-events-none" />
+                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-cream/60 pointer-events-none" />
                         </div>
                       ) : (
                         <Badge variant={getStatusBadgeVariant(inquiry.status)} className="text-[10px]">
@@ -267,7 +267,7 @@ export default function DashboardInquiriesPage() {
                         </Badge>
                       )}
 
-                      <div className="flex items-center gap-1 text-xs text-cream/25">
+                      <div className="flex items-center gap-1 text-xs text-cream/55">
                         <Clock className="w-3 h-3" />
                         {timeAgo(inquiry.createdAt)}
                       </div>

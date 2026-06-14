@@ -26,18 +26,18 @@ export function DashboardHeader({
             {title}
           </h1>
           {subtitle && (
-            <p className="text-sm font-body text-cream/40 mt-0.5">{subtitle}</p>
+            <p className="text-sm font-body text-cream/65 mt-0.5">{subtitle}</p>
           )}
         </div>
 
         <div className="flex items-center gap-4">
           {/* Search */}
           <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cream/30" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cream/45" />
             <input
               type="text"
               placeholder="Search..."
-              className="w-56 pl-10 pr-4 py-2 bg-onyx-900/50 border border-cream/8 rounded-lg text-sm font-body text-cream placeholder:text-cream/20 focus:outline-none focus:border-gold/30 transition-colors"
+              className="w-56 pl-10 pr-4 py-2 bg-onyx-900/50 border border-cream/8 rounded-lg text-sm font-body text-cream placeholder:text-cream/45 focus:outline-none focus:border-gold/30 transition-colors"
             />
           </div>
 

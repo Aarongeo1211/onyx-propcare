@@ -89,7 +89,7 @@ export default function DashboardSubscriptionPage() {
         {!usage ? (
           <div className="mx-auto max-w-2xl rounded-[2rem] border border-cream/10 bg-onyx-900/55 p-10 text-center backdrop-blur-xl">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-cream/10 bg-onyx-950/40">
-              <CreditCard className="h-8 w-8 text-cream/25" />
+              <CreditCard className="h-8 w-8 text-cream/55" />
             </div>
             <h3 className="mt-6 font-display text-2xl text-cream">No active listing plan</h3>
             <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-cream/50">
