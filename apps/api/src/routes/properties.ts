@@ -161,11 +161,17 @@ propertyRoutes.get("/", async (req, res) => {
     const minArea = getSingleQueryParam(req.query.minArea);
     const maxArea = getSingleQueryParam(req.query.maxArea);
     const search = getSingleQueryParam(req.query.search);
-    const sortBy = getSingleQueryParam(req.query.sortBy) || "newest";
+    const status = getSingleQueryParam(req.query.status) || "ACTIVE";
+    // Support both 'sort' and 'sortBy' for compatibility
+    const sortBy = getSingleQueryParam(req.query.sortBy) || getSingleQueryParam(req.query.sort) || "newest";
     const page = getQueryNumber(req.query.page, 1);
     const limit = getQueryNumber(req.query.limit, 12);
 
-    const where: Record<string, unknown> = { status: "ACTIVE" };
+    // Validate status to prevent injection
+    const validStatuses = ["ACTIVE", "DRAFT", "SOLD", "ARCHIVED"];
+    const statusValue = validStatuses.includes(status as string) ? status : "ACTIVE";
+
+    const where: Record<string, unknown> = { status: statusValue };
 
     if (type) where.type = type;
     if (listingType) where.listingType = listingType;

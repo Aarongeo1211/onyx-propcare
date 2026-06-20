@@ -85,6 +85,12 @@ authRoutes.post("/register", async (req, res) => {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ success: false, error: err.errors });
     }
+
+    // Catch unique constraint violations (e.g., duplicate email from race condition)
+    if (err instanceof Error && err.message.includes("Unique constraint failed")) {
+      return res.status(409).json({ success: false, error: "An account with this email already exists" });
+    }
+
     logger.error({ err }, "Registration error");
     res.status(500).json({ success: false, error: "Registration failed" });
   }
