@@ -13,6 +13,28 @@ import { cache } from "../lib/redis";
 
 export const propertyRoutes = Router();
 
+// Generate cache key from query filters (for common search patterns)
+function generatePropertyCacheKey(
+  type?: string,
+  state?: string,
+  listingType?: string,
+  sortBy?: string,
+  page?: number
+): string | null {
+  // Only cache simple, common queries to avoid cache explosion
+  // Cache key: properties:type:FARMLAND:state:Karnataka:listingType:SELL:page:1
+  if (!type && !state && !listingType) return null; // Don't cache "all properties" without filters
+
+  const parts = ["properties"];
+  if (type) parts.push(`type:${type}`);
+  if (state) parts.push(`state:${state}`);
+  if (listingType) parts.push(`listing:${listingType}`);
+  if (sortBy && sortBy !== "newest") parts.push(`sort:${sortBy}`);
+  parts.push(`page:${page || 1}`);
+
+  return parts.join(":");
+}
+
 const nearbyLocationSchema = z.object({
   name: z.string().min(2).max(80),
   distanceKm: z.number().min(0).max(500),
@@ -236,6 +258,24 @@ propertyRoutes.get("/", async (req, res) => {
     const pageNum = Math.max(1, page);
     const limitNum = Math.min(50, Math.max(1, limit));
 
+    // Try cache first (5 min TTL)
+    const cacheKey = generatePropertyCacheKey(type, state, listingType, sortBy, pageNum);
+    if (cacheKey) {
+      const cached = await cache.get<{ properties: unknown[]; total: number }>(cacheKey);
+      if (cached) {
+        return res.json({
+          success: true,
+          data: cached.properties,
+          pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: cached.total,
+            totalPages: Math.ceil(cached.total / limitNum),
+          },
+        });
+      }
+    }
+
     const [properties, total] = await Promise.all([
       prisma.property.findMany({
         where,
@@ -260,9 +300,16 @@ propertyRoutes.get("/", async (req, res) => {
       prisma.property.count({ where }),
     ]);
 
+    const sanitizedProperties = properties.map((property) => sanitizePublicProperty(property, Boolean(req.user)));
+
+    // Cache the results (5 min TTL) for future requests
+    if (cacheKey) {
+      await cache.set(cacheKey, { properties: sanitizedProperties, total }, 300);
+    }
+
     res.json({
       success: true,
-      data: properties.map((property) => sanitizePublicProperty(property, Boolean(req.user))),
+      data: sanitizedProperties,
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -602,7 +649,13 @@ propertyRoutes.post("/", requireAuth, async (req, res) => {
       data: { propertiesUsed: { increment: 1 } },
     });
 
+    // Invalidate relevant caches
     if (property.isFeatured) await cache.del("properties:featured");
+    // Invalidate search cache for this property's type and state
+    await cache.invalidatePrefix(`properties:type:${property.type}:state:${property.state}`);
+    // Invalidate broader caches
+    await cache.invalidatePrefix(`properties:type:${property.type}`);
+
     res.status(201).json({ success: true, data: property });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -879,6 +932,13 @@ propertyRoutes.patch("/:id", requireAuth, async (req, res) => {
       });
     });
 
+    // Invalidate relevant caches after update
+    if (updated) {
+      if (updated.isFeatured) await cache.del("properties:featured");
+      await cache.invalidatePrefix(`properties:type:${updated.type}:state:${updated.state}`);
+      await cache.invalidatePrefix(`properties:type:${updated.type}`);
+    }
+
     res.json({ success: true, data: updated });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -908,6 +968,11 @@ propertyRoutes.delete("/:id", requireAuth, async (req, res) => {
       where: { id: String(req.params.id) },
       data: { status: "INACTIVE" },
     });
+
+    // Invalidate relevant caches after deletion
+    if (property.isFeatured) await cache.del("properties:featured");
+    await cache.invalidatePrefix(`properties:type:${property.type}:state:${property.state}`);
+    await cache.invalidatePrefix(`properties:type:${property.type}`);
 
     res.json({ success: true, message: "Property deactivated" });
   } catch (error) {
