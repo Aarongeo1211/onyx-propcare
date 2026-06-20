@@ -116,6 +116,10 @@ authRoutes.post("/login", async (req, res) => {
       return res.status(403).json({ success: false, error: "Account is deactivated" });
     }
 
+    if (!user.emailVerified) {
+      return res.status(403).json({ success: false, error: "Please verify your email before logging in. Check your inbox for the verification link." });
+    }
+
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       await recordFailure(email);
@@ -369,20 +373,39 @@ authRoutes.get("/verify-email", async (req, res) => {
   }
 });
 
-// POST /api/v1/auth/send-verification — resend verification email (authenticated)
-authRoutes.post("/send-verification", requireAuth, async (req, res) => {
+// POST /api/v1/auth/send-verification — resend verification email.
+// Accepts either a Bearer token (authenticated) or an { email } body (unauthenticated,
+// for the post-registration pending page where the user has no session yet).
+// Returns a uniform success response regardless of whether the email exists to prevent enumeration.
+authRoutes.post("/send-verification", async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user!.id },
-      select: { id: true, name: true, email: true, emailVerified: true },
-    });
+    let user: { id: string; name: string; email: string; emailVerified: Date | null } | null = null;
 
-    if (!user) {
-      return res.status(404).json({ success: false, error: "User not found" });
+    // Try auth header first
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith("Bearer ")) {
+      try {
+        const decoded = jwt.verify(authHeader.split(" ")[1], JWT_SECRET) as { id: string };
+        user = await prisma.user.findUnique({
+          where: { id: decoded.id },
+          select: { id: true, name: true, email: true, emailVerified: true },
+        });
+      } catch {
+        // token invalid — fall through to email lookup
+      }
     }
 
-    if (user.emailVerified) {
-      return res.status(400).json({ success: false, error: "Email is already verified" });
+    // Fall back to email in body
+    if (!user && req.body.email) {
+      user = await prisma.user.findUnique({
+        where: { email: String(req.body.email).toLowerCase() },
+        select: { id: true, name: true, email: true, emailVerified: true },
+      });
+    }
+
+    if (!user || user.emailVerified) {
+      // Uniform response to prevent email enumeration
+      return res.json({ success: true, message: "If the account exists and is unverified, a verification email has been sent" });
     }
 
     const verifyToken = crypto.randomBytes(32).toString("hex");
@@ -398,7 +421,7 @@ authRoutes.post("/send-verification", requireAuth, async (req, res) => {
       logger.error({ err }, "Resend verification email failed")
     );
 
-    res.json({ success: true, message: "Verification email sent" });
+    res.json({ success: true, message: "If the account exists and is unverified, a verification email has been sent" });
   } catch (err) {
     logger.error({ err }, "Send verification error");
     res.status(500).json({ success: false, error: "Failed to send verification email" });

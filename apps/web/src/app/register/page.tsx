@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getSession, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -47,16 +47,6 @@ export default function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  const redirectAfterAuth = async () => {
-    const session = await getSession();
-    const role = session?.user?.role;
-    window.location.assign(
-      role === "SELLER" || role === "AGENT" || role === "ADMIN" || role === "SUPER_ADMIN"
-        ? "/dashboard"
-        : "/"
-    );
-  };
-
   const setGoogleRoleCookie = (role: "BUYER" | "SELLER") => {
     document.cookie = `${GOOGLE_ROLE_COOKIE}=${role}; Path=/; Max-Age=600; SameSite=Lax`;
   };
@@ -83,8 +73,14 @@ export default function RegisterPage() {
     if (form.phone && !/^[\d+\-() ]{7,15}$/.test(form.phone))
       errors.phone = "Invalid phone number";
     if (!form.password) errors.password = "Password is required";
-    else if (form.password.length < 6)
-      errors.password = "Must be at least 6 characters";
+    else if (form.password.length < 8)
+      errors.password = "Must be at least 8 characters";
+    else if (!/[A-Z]/.test(form.password))
+      errors.password = "Must contain an uppercase letter";
+    else if (!/[a-z]/.test(form.password))
+      errors.password = "Must contain a lowercase letter";
+    else if (!/[0-9]/.test(form.password))
+      errors.password = "Must contain a number";
     if (form.password !== form.confirmPassword)
       errors.confirmPassword = "Passwords do not match";
 
@@ -122,15 +118,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto-login after registration so the user has a session for the resend button
-      await signIn("credentials", {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      });
-
-      // Always redirect to email verification pending page
-      window.location.assign("/verify-email/pending");
+      // Redirect to email verification pending page (no auto-login — unverified users can't log in)
+      window.location.assign(`/verify-email/pending?email=${encodeURIComponent(form.email)}`);
     } catch {
       setError("An unexpected error occurred");
     } finally {
@@ -353,7 +342,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Min. 6 characters"
+                  placeholder="Min. 8 chars, uppercase + number"
                   value={form.password}
                   onChange={(e) => updateForm("password", e.target.value)}
                   required

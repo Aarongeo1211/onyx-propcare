@@ -5,6 +5,8 @@ const API_HOST = process.env.NEXT_PUBLIC_API_URL
   ? new URL(process.env.NEXT_PUBLIC_API_URL).host
   : "onyx-api-production-b3da.up.railway.app";
 
+const isDev = process.env.NODE_ENV !== "production";
+
 const nextConfig: NextConfig = {
   output: "standalone",
   transpilePackages: ["@onyx/ui", "@onyx/types"],
@@ -34,9 +36,9 @@ const nextConfig: NextConfig = {
               // Fonts
               "font-src 'self' https://fonts.gstatic.com",
               // Images: self + all configured remote patterns
-              `img-src 'self' data: blob: https: http://localhost:4000`,
+              `img-src 'self' data: blob: https:${isDev ? " http://localhost:4000" : ""}`,
               // API connections
-              `connect-src 'self' https://${API_HOST} http://localhost:4000 https://*.up.railway.app https://*.storageapi.dev`,
+              `connect-src 'self' https://${API_HOST}${isDev ? " http://localhost:4000" : ""} https://*.up.railway.app https://*.storageapi.dev`,
               // Media (videos)
               "media-src 'self' blob: https://*.up.railway.app https://*.storageapi.dev https://res.cloudinary.com",
               // Frames: deny by default
@@ -62,6 +64,10 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(self)",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
           },
         ],
       },

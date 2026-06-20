@@ -54,6 +54,10 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
+        if (result.error.toLowerCase().includes("verify your email")) {
+          window.location.assign(`/verify-email/pending?email=${encodeURIComponent(email)}`);
+          return;
+        }
         setError(result.error);
       } else {
         await redirectAfterAuth();

@@ -35,6 +35,16 @@ export const authLimiter = rateLimit({
   message: { success: false, error: "Too many authentication attempts, please try again later" },
 });
 
+// Registration: 3 req / hour per IP (tighter than authLimiter)
+export const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: isProduction ? 3 : 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeStore("register"),
+  message: { success: false, error: "Too many registration attempts, please try again later" },
+});
+
 // Upload: 20 req / 15 min per IP
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
