@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     return [
       // Auth pages: no cache (must be fresh for every user)
       {
-        source: "/(login|register|forgot-password|reset-password|verify-email)",
+        source: "/login",
         headers: [
           {
             key: "Cache-Control",
@@ -32,9 +32,45 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Properties and homepage: limit stale-while-revalidate to 5 min (300s) instead of default 1 year
       {
-        source: "/(properties|$)",
+        source: "/register",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/forgot-password",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/reset-password",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/verify-email/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      // Properties page: limit stale-while-revalidate to 5 min (300s) instead of default 1 year
+      {
+        source: "/properties/:path*",
         headers: [
           {
             key: "Cache-Control",
