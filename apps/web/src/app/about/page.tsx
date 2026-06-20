@@ -50,13 +50,6 @@ const stats = [
   { value: "99.5%", label: "Verification Rate" },
 ];
 
-const team = [
-  { name: "Arjun Mehta", role: "Founder & CEO", initials: "AM" },
-  { name: "Priya Sharma", role: "Head of Operations", initials: "PS" },
-  { name: "Rohan Kapoor", role: "Chief Technology Officer", initials: "RK" },
-  { name: "Sneha Patel", role: "Head of Legal & Compliance", initials: "SP" },
-];
-
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-onyx-950">
@@ -176,44 +169,6 @@ export default function AboutPage() {
               <div className="text-cream/40 font-body text-sm">
                 {stat.label}
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="max-w-5xl mx-auto px-6 pb-20">
-        <motion.div
-          className="text-center mb-12"
-          {...fadeUp}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
-            Our Team
-          </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
-            A passionate team of real estate, technology, and legal experts
-            building the future of land transactions in India.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {team.map((member, i) => (
-            <motion.div
-              key={member.name}
-              className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-2xl p-6 text-center hover:border-gold/20 transition-colors duration-300"
-              {...fadeUp}
-              transition={{ duration: 0.5, delay: 0.1 * i }}
-            >
-              <div className="w-20 h-20 bg-gold/10 border border-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="font-display text-xl font-semibold text-gold">
-                  {member.initials}
-                </span>
-              </div>
-              <h3 className="font-display text-lg font-semibold text-cream mb-1">
-                {member.name}
-              </h3>
-              <p className="text-cream/40 font-body text-sm">{member.role}</p>
             </motion.div>
           ))}
         </div>
