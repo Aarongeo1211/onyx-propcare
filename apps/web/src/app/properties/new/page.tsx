@@ -1099,7 +1099,7 @@ export default function NewPropertyPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6"
+            className="bg-onyx-900/50 border border-cream/8 rounded-xl p-4 md:p-6 mb-6 overflow-visible"
           >
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-gold/10 rounded-lg">
@@ -1110,7 +1110,7 @@ export default function NewPropertyPage() {
               </h2>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-5 overflow-visible">
               <LocationPicker
                 latitude={coordinates.latitude}
                 longitude={coordinates.longitude}

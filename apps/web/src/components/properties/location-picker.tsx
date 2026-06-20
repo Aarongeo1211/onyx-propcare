@@ -198,9 +198,8 @@ export default function LocationPicker(props: LocationPickerProps) {
     lastResolvedCoordsRef.current = next;
   }, [latitude, longitude, mapReady]);
 
-  // Handle outside click to close dropdown on mobile
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    function handleClickOutside(e: MouseEvent | TouchEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setSearchOpen(false);
       }
@@ -208,7 +207,11 @@ export default function LocationPicker(props: LocationPickerProps) {
 
     if (searchOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("touchstart", handleClickOutside);
+      };
     }
   }, [searchOpen]);
 
@@ -234,7 +237,6 @@ export default function LocationPicker(props: LocationPickerProps) {
           {
             headers: {
               Accept: "application/json",
-              "User-Agent": "Onyx-Propcare/1.0", // Nominatim requires User-Agent header
             },
           }
         );
@@ -271,7 +273,6 @@ export default function LocationPicker(props: LocationPickerProps) {
         {
           headers: {
             Accept: "application/json",
-            "User-Agent": "Onyx-Propcare/1.0", // Nominatim requires User-Agent header
           },
         }
       );
@@ -335,7 +336,7 @@ export default function LocationPicker(props: LocationPickerProps) {
   }
 
   return (
-    <div ref={containerRef} className="relative z-0 space-y-4 rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
+    <div ref={containerRef} className="relative space-y-4 rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
       <div className="flex flex-col gap-3 overflow-visible lg:flex-row">
         <div className="relative flex-1 overflow-visible">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/25" />
@@ -351,7 +352,7 @@ export default function LocationPicker(props: LocationPickerProps) {
           />
 
           {searchOpen && (searching || results.length > 0) && (
-            <div className="absolute left-0 right-0 top-full z-[9999] mt-2 max-h-80 overflow-y-auto rounded-xl border border-cream/10 bg-onyx-900 shadow-2xl shadow-black/40 md:max-h-72">
+            <div className="absolute left-0 right-0 top-full z-[9999] mt-2 max-h-[60vh] overflow-y-auto rounded-xl border border-cream/10 bg-onyx-900 shadow-2xl shadow-black/40 md:max-h-72">
               {searching ? (
                 <div className="flex items-center gap-2 px-4 py-3 text-sm text-cream/45">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -363,7 +364,11 @@ export default function LocationPicker(props: LocationPickerProps) {
                     key={result.place_id}
                     type="button"
                     onClick={() => handleResultSelect(result)}
-                    className="block w-full border-b border-cream/5 px-4 py-3 text-left text-sm text-cream/65 transition hover:bg-gold/5 hover:text-cream"
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      handleResultSelect(result);
+                    }}
+                    className="block w-full border-b border-cream/5 px-4 py-3 text-left text-sm text-cream/65 transition active:bg-gold/10 hover:bg-gold/5 hover:text-cream"
                   >
                     {result.display_name}
                   </button>

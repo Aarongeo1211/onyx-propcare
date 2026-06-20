@@ -946,7 +946,7 @@ export default function EditPropertyPage() {
             </div>
 
             {/* Location */}
-            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl p-6 mb-6">
+            <div className="bg-onyx-900/50 border border-cream/8 rounded-xl p-4 md:p-6 mb-6 overflow-visible">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-gold/10 rounded-lg">
                   <MapPin className="w-4 h-4 text-gold" />
@@ -954,7 +954,7 @@ export default function EditPropertyPage() {
                 <h2 className="font-display text-xl font-semibold text-cream">Location</h2>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-5 overflow-visible">
                 <LocationPicker
                   latitude={coordinates.latitude}
                   longitude={coordinates.longitude}
