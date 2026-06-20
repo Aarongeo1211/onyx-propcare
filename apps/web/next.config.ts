@@ -22,9 +22,34 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      // Auth pages: no cache (must be fresh for every user)
+      {
+        source: "/(login|register|forgot-password|reset-password|verify-email)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      // Properties and homepage: limit stale-while-revalidate to 5 min (300s) instead of default 1 year
+      {
+        source: "/(properties|$)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=30, stale-while-revalidate=300",
+          },
+        ],
+      },
+      // All other pages
       {
         source: "/(.*)",
         headers: [
+          {
+            key: "Cache-Control",
+            value: "s-maxage=30, stale-while-revalidate=300",
+          },
           {
             key: "Content-Security-Policy",
             value: [
