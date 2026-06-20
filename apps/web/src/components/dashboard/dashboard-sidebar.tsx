@@ -24,6 +24,7 @@ interface DashboardSidebarProps {
     role: string;
     avatar?: string | null;
   };
+  onNavigate?: () => void;
 }
 
 const sellerNavItems = [
@@ -59,7 +60,7 @@ function getRoleBadgeVariant(role: string) {
   }
 }
 
-export function DashboardSidebar({ user }: DashboardSidebarProps) {
+export function DashboardSidebar({ user, onNavigate }: DashboardSidebarProps) {
   const pathname = usePathname();
 
   const navItems =
@@ -71,7 +72,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     <aside className="w-[280px] h-screen bg-onyx-900/80 border-r border-cream/5 flex flex-col shrink-0 sticky top-0">
       {/* Logo */}
       <div className="p-6 border-b border-cream/5">
-        <Link href="/dashboard" aria-label="Onyx Propcare dashboard" className="inline-block">
+        <Link href="/dashboard" aria-label="Onyx Propcare dashboard" className="inline-block" onClick={onNavigate}>
           <Logo className="h-12 w-auto" />
         </Link>
       </div>
@@ -87,6 +88,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
             <Link
               key={item.label}
               href={item.href}
+              onClick={onNavigate}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
                   ? "bg-gold/10 text-gold border border-gold/15"

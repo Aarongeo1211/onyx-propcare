@@ -147,7 +147,7 @@ export default function DashboardPropertiesPage() {
         </Link>
       </DashboardHeader>
 
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -200,134 +200,241 @@ export default function DashboardPropertiesPage() {
               </Link>
             </div>
           ) : (
-            <div className="bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-cream/5">
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
-                        Property
-                      </th>
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
-                        Price
-                      </th>
-                      <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
-                        Views
-                      </th>
-                      <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
-                        Inquiries
-                      </th>
-                      <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
-                        Created
-                      </th>
-                      <th className="text-right px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-cream/5">
-                    {properties.map((property, i) => {
-                      const statusBadge = getStatusBadge(property.status);
-                      return (
-                        <motion.tr
-                          key={property.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="hover:bg-cream/[0.02] transition-colors"
-                        >
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-lg overflow-hidden bg-onyx-800 shrink-0">
-                                {property.images?.[0] ? (
-                                  <Image
-                                    src={property.images[0].url}
-                                    alt={property.title}
-                                    width={48}
-                                    height={48}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <Building2 className="w-5 h-5 text-cream/45" />
-                                  </div>
-                                )}
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block bg-onyx-900/50 backdrop-blur-xl border border-cream/8 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-cream/5">
+                        <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
+                          Property
+                        </th>
+                        <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
+                          Price
+                        </th>
+                        <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
+                          Views
+                        </th>
+                        <th className="text-center px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
+                          Inquiries
+                        </th>
+                        <th className="text-left px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
+                          Created
+                        </th>
+                        <th className="text-right px-5 py-3 text-xs font-body font-medium text-cream/60 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-cream/5">
+                      {properties.map((property, i) => {
+                        const statusBadge = getStatusBadge(property.status);
+                        return (
+                          <motion.tr
+                            key={property.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="hover:bg-cream/[0.02] transition-colors"
+                          >
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-onyx-800 shrink-0">
+                                  {property.images?.[0] ? (
+                                    <Image
+                                      src={property.images[0].url}
+                                      alt={property.title}
+                                      width={48}
+                                      height={48}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Building2 className="w-5 h-5 text-cream/45" />
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="text-sm font-body text-cream font-medium truncate max-w-[200px]">
+                                  {property.title}
+                                </p>
                               </div>
-                              <p className="text-sm font-body text-cream font-medium truncate max-w-[200px]">
-                                {property.title}
-                              </p>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <Badge variant={statusBadge.variant} className="text-[10px]">
-                              {statusBadge.label}
-                            </Badge>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="text-sm font-body text-gold">
-                              {formatPrice(property.price)}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 text-center">
-                            <span className="text-sm font-body text-cream/50">
-                              {property.viewCount}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 text-center">
-                            <span className="text-sm font-body text-cream/50">
-                              {property._count.inquiries}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="text-sm font-body text-cream/60">
-                              {new Date(property.createdAt).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center justify-end gap-2">
-                              <Link
-                                href={`/dashboard/properties/${property.id}/edit`}
-                                className="p-2 rounded-lg text-cream/60 hover:text-gold hover:bg-gold/10 transition-colors"
-                                title="Edit"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </Link>
-                              <Link
-                                href={`/properties/${property.slug}`}
-                                target="_blank"
-                                className="p-2 rounded-lg text-cream/60 hover:text-cream hover:bg-cream/10 transition-colors"
-                                title="View on site"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </Link>
-                              <button
-                                onClick={() => toggleStatus(property.id, property.status)}
-                                disabled={togglingId === property.id}
-                                className={`p-2 rounded-lg transition-colors ${
-                                  property.status === "ACTIVE"
-                                    ? "text-cream/60 hover:text-red-400 hover:bg-red-500/10"
-                                    : "text-cream/60 hover:text-emerald-400 hover:bg-emerald-500/10"
-                                }`}
-                                title={property.status === "ACTIVE" ? "Deactivate" : "Activate"}
-                              >
-                                <Power className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </motion.tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            </td>
+                            <td className="px-5 py-4">
+                              <Badge variant={statusBadge.variant} className="text-[10px]">
+                                {statusBadge.label}
+                              </Badge>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="text-sm font-body text-gold">
+                                {formatPrice(property.price)}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 text-center">
+                              <span className="text-sm font-body text-cream/50">
+                                {property.viewCount}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 text-center">
+                              <span className="text-sm font-body text-cream/50">
+                                {property._count.inquiries}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="text-sm font-body text-cream/60">
+                                {new Date(property.createdAt).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <div className="flex items-center justify-end gap-2">
+                                <Link
+                                  href={`/dashboard/properties/${property.id}/edit`}
+                                  className="p-2 rounded-lg text-cream/60 hover:text-gold hover:bg-gold/10 transition-colors"
+                                  title="Edit"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Link>
+                                <Link
+                                  href={`/properties/${property.slug}`}
+                                  target="_blank"
+                                  className="p-2 rounded-lg text-cream/60 hover:text-cream hover:bg-cream/10 transition-colors"
+                                  title="View on site"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </Link>
+                                <button
+                                  onClick={() => toggleStatus(property.id, property.status)}
+                                  disabled={togglingId === property.id}
+                                  className={`p-2 rounded-lg transition-colors ${
+                                    property.status === "ACTIVE"
+                                      ? "text-cream/60 hover:text-red-400 hover:bg-red-500/10"
+                                      : "text-cream/60 hover:text-emerald-400 hover:bg-emerald-500/10"
+                                  }`}
+                                  title={property.status === "ACTIVE" ? "Deactivate" : "Activate"}
+                                >
+                                  <Power className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+
+              {/* Mobile Card Layout */}
+              <div className="md:hidden space-y-4">
+                {properties.map((property, i) => {
+                  const statusBadge = getStatusBadge(property.status);
+                  return (
+                    <motion.div
+                      key={property.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="bg-onyx-900/50 border border-cream/8 rounded-xl p-4 space-y-3"
+                    >
+                      {/* Header with image and title */}
+                      <div className="flex gap-3">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-onyx-800 shrink-0">
+                          {property.images?.[0] ? (
+                            <Image
+                              src={property.images[0].url}
+                              alt={property.title}
+                              width={64}
+                              height={64}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Building2 className="w-6 h-6 text-cream/45" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-body text-cream font-medium line-clamp-2">
+                            {property.title}
+                          </p>
+                          <Badge variant={statusBadge.variant} className="text-[10px] mt-2">
+                            {statusBadge.label}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Details grid */}
+                      <div className="grid grid-cols-3 gap-3 py-3 border-t border-b border-cream/5">
+                        <div>
+                          <p className="text-xs text-cream/50 uppercase tracking-wider">Price</p>
+                          <p className="text-sm font-body text-gold mt-1">
+                            {formatPrice(property.price)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-cream/50 uppercase tracking-wider">Views</p>
+                          <p className="text-sm font-body text-cream/70 mt-1">{property.viewCount}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-cream/50 uppercase tracking-wider">Inquiries</p>
+                          <p className="text-sm font-body text-cream/70 mt-1">
+                            {property._count.inquiries}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Created date */}
+                      <p className="text-xs text-cream/60">
+                        Listed:{" "}
+                        {new Date(property.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </p>
+
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-2">
+                        <Link
+                          href={`/dashboard/properties/${property.id}/edit`}
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm bg-gold/10 text-gold hover:bg-gold/15 transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          <span>Edit</span>
+                        </Link>
+                        <Link
+                          href={`/properties/${property.slug}`}
+                          target="_blank"
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm bg-cream/5 text-cream hover:bg-cream/10 transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          <span>View</span>
+                        </Link>
+                        <button
+                          onClick={() => toggleStatus(property.id, property.status)}
+                          disabled={togglingId === property.id}
+                          className={`px-3 py-2 rounded-lg transition-colors ${
+                            property.status === "ACTIVE"
+                              ? "bg-red-500/10 text-red-400 hover:bg-red-500/15"
+                              : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/15"
+                          }`}
+                          title={property.status === "ACTIVE" ? "Deactivate" : "Activate"}
+                        >
+                          <Power className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </motion.div>
       </div>

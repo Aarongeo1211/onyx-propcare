@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLayout } from "@/components/providers/layout-provider";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
+import { Menu, X } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -14,6 +15,7 @@ export default function DashboardLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
   const { setIsDashboard } = useLayout();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setIsDashboard(true);
@@ -40,15 +42,42 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-onyx-950">
-      <DashboardSidebar
-        user={{
-          name: session.user.name,
-          email: session.user.email,
-          role: session.user.role,
-          avatar: session.user.avatar,
-        }}
-      />
-      <div className="flex-1 min-w-0 overflow-auto">{children}</div>
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg bg-onyx-900/80 border border-cream/10 text-cream"
+        aria-label="Toggle menu"
+      >
+        {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`fixed md:static inset-y-0 left-0 z-40 w-[280px] transform transition-transform duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        <DashboardSidebar
+          user={{
+            name: session.user.name,
+            email: session.user.email,
+            role: session.user.role,
+            avatar: session.user.avatar,
+          }}
+          onNavigate={() => setSidebarOpen(false)}
+        />
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 min-w-0 overflow-auto w-full md:w-auto">{children}</div>
     </div>
   );
 }
