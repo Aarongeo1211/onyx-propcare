@@ -105,6 +105,7 @@ export default function LocationPicker(props: LocationPickerProps) {
   const leafletRef = useRef<any>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastResolvedCoordsRef = useRef<string>("");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -197,6 +198,20 @@ export default function LocationPicker(props: LocationPickerProps) {
     lastResolvedCoordsRef.current = next;
   }, [latitude, longitude, mapReady]);
 
+  // Handle outside click to close dropdown on mobile
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    }
+
+    if (searchOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [searchOpen]);
+
   useEffect(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -213,19 +228,27 @@ export default function LocationPicker(props: LocationPickerProps) {
 
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=in&q=${encodeURIComponent(
+          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&countrycodes=in&q=${encodeURIComponent(
             query.trim()
           )}`,
           {
             headers: {
               Accept: "application/json",
+              "User-Agent": "Onyx-Propcare/1.0", // Nominatim requires User-Agent header
             },
           }
         );
 
+        if (!response.ok) {
+          console.warn("Nominatim API error:", response.status);
+          setResults([]);
+          return;
+        }
+
         const data = (await response.json()) as SearchResult[];
-        setResults(Array.isArray(data) ? data : []);
-      } catch {
+        setResults(Array.isArray(data) ? data.slice(0, 8) : []);
+      } catch (error) {
+        console.error("Location search failed:", error);
         setResults([]);
       } finally {
         setSearching(false);
@@ -248,11 +271,21 @@ export default function LocationPicker(props: LocationPickerProps) {
         {
           headers: {
             Accept: "application/json",
+            "User-Agent": "Onyx-Propcare/1.0", // Nominatim requires User-Agent header
           },
         }
       );
+
+      if (!response.ok) {
+        console.warn("Reverse geocoding failed:", response.status);
+        return;
+      }
+
       const data = (await response.json()) as SearchResult;
-      if (!data?.lat || !data?.lon) return;
+      if (!data?.lat || !data?.lon) {
+        console.warn("Invalid reverse geocoding response");
+        return;
+      }
 
       const resolved = parseResolvedLocation({
         ...data,
@@ -262,6 +295,8 @@ export default function LocationPicker(props: LocationPickerProps) {
 
       lastResolvedCoordsRef.current = `${lat}:${lng}`;
       onLocationResolved(resolved);
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
     } finally {
       setLocating(false);
     }
@@ -300,9 +335,9 @@ export default function LocationPicker(props: LocationPickerProps) {
   }
 
   return (
-    <div className="relative isolate space-y-4 rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
-      <div className="flex flex-col gap-3 lg:flex-row">
-        <div className="relative flex-1">
+    <div ref={containerRef} className="relative z-0 space-y-4 rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
+      <div className="flex flex-col gap-3 overflow-visible lg:flex-row">
+        <div className="relative flex-1 overflow-visible">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/25" />
           <input
             value={query}
@@ -316,7 +351,7 @@ export default function LocationPicker(props: LocationPickerProps) {
           />
 
           {searchOpen && (searching || results.length > 0) && (
-            <div className="absolute z-[1200] mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-cream/10 bg-onyx-900 shadow-2xl shadow-black/40">
+            <div className="absolute left-0 right-0 top-full z-[9999] mt-2 max-h-80 overflow-y-auto rounded-xl border border-cream/10 bg-onyx-900 shadow-2xl shadow-black/40 md:max-h-72">
               {searching ? (
                 <div className="flex items-center gap-2 px-4 py-3 text-sm text-cream/45">
                   <Loader2 className="h-4 w-4 animate-spin" />
