@@ -54,3 +54,13 @@ export const uploadLimiter = rateLimit({
   store: makeStore("upload"),
   message: { success: false, error: "Too many upload requests, please try again later" },
 });
+
+// Password reset: 3 req / hour per IP (cost protection from email flooding)
+export const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: isProduction ? 3 : 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeStore("forgot-password"),
+  message: { success: false, error: "Too many password reset requests, please try again later" },
+});

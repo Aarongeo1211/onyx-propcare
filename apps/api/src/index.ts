@@ -19,7 +19,7 @@ import { contactRoutes } from "./routes/contact";
 import { callbackRoutes } from "./routes/callbacks";
 import { auditRoutes } from "./routes/audit";
 import { refundRoutes } from "./routes/refunds";
-import { generalLimiter, authLimiter, registerLimiter, uploadLimiter } from "./middleware/rateLimit";
+import { generalLimiter, authLimiter, registerLimiter, uploadLimiter, forgotPasswordLimiter } from "./middleware/rateLimit";
 import { sanitizeInputs } from "./middleware/sanitize";
 import {
   doubleCsrfProtection,
@@ -99,6 +99,7 @@ void doubleCsrfProtection;
 
 // API routes
 app.use("/api/v1/auth/register", registerLimiter);
+app.use("/api/v1/auth/forgot-password", forgotPasswordLimiter);
 app.use("/api/v1/auth", authLimiter, authRoutes);
 app.use("/api/v1/properties", propertyRoutes);
 app.use("/api/v1/users", userRoutes);
