@@ -14,16 +14,24 @@ import { cache } from "../lib/redis";
 export const propertyRoutes = Router();
 
 // Generate cache key from query filters (for common search patterns)
-function generatePropertyCacheKey(
-  type?: string,
-  state?: string,
-  listingType?: string,
-  sortBy?: string,
-  page?: number
-): string | null {
-  // Only cache simple, common queries to avoid cache explosion
-  // Cache key: properties:type:FARMLAND:state:Karnataka:listingType:SELL:page:1
-  if (!type && !state && !listingType) return null; // Don't cache "all properties" without filters
+// Only caches simple category-browse queries — skips when additional filters are active
+function generatePropertyCacheKey(opts: {
+  type?: string;
+  state?: string;
+  listingType?: string;
+  sortBy?: string;
+  page?: number;
+  search?: string;
+  district?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  minArea?: string;
+  maxArea?: string;
+}): string | null {
+  const { type, state, listingType, sortBy, page, search, district, minPrice, maxPrice, minArea, maxArea } = opts;
+
+  if (!type && !state && !listingType) return null;
+  if (search || district || minPrice || maxPrice || minArea || maxArea) return null;
 
   const parts = ["properties"];
   if (type) parts.push(`type:${type}`);
@@ -258,8 +266,8 @@ propertyRoutes.get("/", async (req, res) => {
     const pageNum = Math.max(1, page);
     const limitNum = Math.min(50, Math.max(1, limit));
 
-    // Try cache first (5 min TTL)
-    const cacheKey = generatePropertyCacheKey(type, state, listingType, sortBy, pageNum);
+    // Try cache first (5 min TTL) — skip cache when search/price/area/district filters are active
+    const cacheKey = generatePropertyCacheKey({ type, state, listingType, sortBy, page: pageNum, search, district, minPrice, maxPrice, minArea, maxArea });
     if (cacheKey) {
       const cached = await cache.get<{ properties: unknown[]; total: number }>(cacheKey);
       if (cached) {
