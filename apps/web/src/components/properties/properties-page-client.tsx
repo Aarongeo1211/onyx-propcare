@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState, useCallback, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { MapPin, SearchX } from "lucide-react";
-import { Button } from "@onyx/ui";
+import { MapPin, SearchX, Loader2 } from "lucide-react";
 import type { PropertyFilters } from "@onyx/types";
 import { SearchBar } from "@/components/properties/search-bar";
 import { PropertyCard, type PropertyCardData } from "@/components/properties/property-card";
@@ -25,13 +24,12 @@ function filtersFromParams(sp: URLSearchParams): PropertyFilters {
     minPrice: num(sp.get("minPrice")),
     maxPrice: num(sp.get("maxPrice")),
     sortBy: (sp.get("sortBy") as PropertyFilters["sortBy"]) || "newest",
-    page: num(sp.get("page")) || 1,
+    page: 1,
     limit: PROPERTY_LIMIT,
   };
 }
 
-/** Stable signature of the filter fields that affect results — used to detect real changes. */
-function filtersSignature(f: PropertyFilters): string {
+function filterSignatureWithoutPage(f: PropertyFilters): string {
   return [
     f.search,
     f.state,
@@ -41,7 +39,6 @@ function filtersSignature(f: PropertyFilters): string {
     f.minPrice,
     f.maxPrice,
     f.sortBy || "newest",
-    f.page || 1,
   ].join("|");
 }
 
@@ -59,11 +56,16 @@ export function PropertiesPageClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const didHydrateRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const [properties, setProperties] = useState<PropertyCardData[]>(initialProperties);
   const [pagination, setPagination] = useState(initialPagination);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filters, setFilters] = useState<PropertyFilters>(initialFilters);
+  const [page, setPage] = useState(initialPagination.page);
+
+  const hasMore = page < pagination.totalPages;
 
   const fetchProperties = useCallback(async (currentFilters: PropertyFilters) => {
     setLoading(true);
@@ -77,29 +79,78 @@ export function PropertiesPageClient({
       if (currentFilters.minPrice) params.set("minPrice", String(currentFilters.minPrice));
       if (currentFilters.maxPrice) params.set("maxPrice", String(currentFilters.maxPrice));
       if (currentFilters.sortBy) params.set("sortBy", currentFilters.sortBy);
-      if (currentFilters.page) params.set("page", String(currentFilters.page));
-      if (currentFilters.limit) params.set("limit", String(currentFilters.limit));
+      params.set("page", "1");
+      params.set("limit", String(PROPERTY_LIMIT));
 
       const data = await apiFetch<PropertiesResponse>(`/properties?${params.toString()}`);
       setProperties(data.data || []);
       setPagination(data.pagination || { page: 1, limit: 12, total: 0, totalPages: 0 });
+      setPage(1);
     } catch (error) {
       console.error("Failed to fetch properties:", error);
       setProperties([]);
       setPagination({ page: 1, limit: 12, total: 0, totalPages: 0 });
+      setPage(1);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Adopt URL changes that originate OUTSIDE this component (e.g. the navbar
-  // "Farmlands"/"Plots" links) into filter state. The internal router.replace
-  // below keeps the URL in sync, so the signature check prevents a feedback loop.
+  const loadMore = useCallback(async () => {
+    if (loadingMore || loading || !hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    try {
+      const params = new URLSearchParams();
+      if (filters.search) params.set("search", filters.search);
+      if (filters.state) params.set("state", filters.state);
+      if (filters.district) params.set("district", filters.district);
+      if (filters.type) params.set("type", filters.type);
+      if (filters.listingType) params.set("listingType", filters.listingType);
+      if (filters.minPrice) params.set("minPrice", String(filters.minPrice));
+      if (filters.maxPrice) params.set("maxPrice", String(filters.maxPrice));
+      if (filters.sortBy) params.set("sortBy", filters.sortBy);
+      params.set("page", String(nextPage));
+      params.set("limit", String(PROPERTY_LIMIT));
+
+      const data = await apiFetch<PropertiesResponse>(`/properties?${params.toString()}`);
+      setProperties((prev) => [...prev, ...(data.data || [])]);
+      setPagination(data.pagination || pagination);
+      setPage(nextPage);
+    } catch (error) {
+      console.error("Failed to load more properties:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, loading, hasMore, page, filters, pagination]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: "400px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadMore]);
+
+  // Sync URL → filter state for external navigation (navbar links etc.)
   useEffect(() => {
     const fromUrl = filtersFromParams(new URLSearchParams(searchParams.toString()));
-    setFilters((prev) => (filtersSignature(prev) === filtersSignature(fromUrl) ? prev : fromUrl));
+    setFilters((prev) =>
+      filterSignatureWithoutPage(prev) === filterSignatureWithoutPage(fromUrl) ? prev : fromUrl
+    );
   }, [searchParams]);
 
+  // When filters change, fetch fresh results (page 1) and update URL
   useEffect(() => {
     if (!didHydrateRef.current) {
       didHydrateRef.current = true;
@@ -116,7 +167,6 @@ export function PropertiesPageClient({
     if (filters.minPrice) params.set("minPrice", String(filters.minPrice));
     if (filters.maxPrice) params.set("maxPrice", String(filters.maxPrice));
     if (filters.sortBy && filters.sortBy !== "newest") params.set("sortBy", filters.sortBy);
-    if (filters.page && filters.page > 1) params.set("page", String(filters.page));
 
     const newUrl = params.toString() ? `?${params.toString()}` : "";
     router.replace(`/properties${newUrl}`, { scroll: false });
@@ -132,12 +182,7 @@ export function PropertiesPageClient({
   };
 
   const handleFilterChange = (newFilters: PropertyFilters) => {
-    setFilters(newFilters);
-  };
-
-  const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setFilters({ ...newFilters, page: 1 });
   };
 
   return (
@@ -225,50 +270,20 @@ export function PropertiesPageClient({
                   ))}
                 </div>
 
-                {pagination.totalPages > 1 && (
-                  <div className="mt-12 flex items-center justify-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={pagination.page <= 1}
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                    >
-                      Previous
-                    </Button>
+                {/* Infinite scroll sentinel */}
+                <div ref={sentinelRef} className="h-px" />
 
-                    {Array.from({ length: pagination.totalPages }, (_, index) => index + 1)
-                      .filter((page) => {
-                        const current = pagination.page;
-                        return page === 1 || page === pagination.totalPages || Math.abs(page - current) <= 2;
-                      })
-                      .map((page, index, allPages) => {
-                        const showEllipsis = index > 0 && page - allPages[index - 1] > 1;
-                        return (
-                          <span key={page} className="flex items-center">
-                            {showEllipsis && <span className="px-2 text-cream/20">...</span>}
-                            <button
-                              onClick={() => handlePageChange(page)}
-                              className={`h-10 w-10 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                page === pagination.page
-                                  ? "bg-gold text-onyx-950"
-                                  : "text-cream/40 hover:bg-cream/5 hover:text-cream"
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          </span>
-                        );
-                      })}
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={pagination.page >= pagination.totalPages}
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                    >
-                      Next
-                    </Button>
+                {loadingMore && (
+                  <div className="mt-8 flex items-center justify-center gap-2 text-sm text-cream/40">
+                    <Loader2 className="h-5 w-5 animate-spin text-gold" />
+                    Loading more properties...
                   </div>
+                )}
+
+                {!hasMore && properties.length > PROPERTY_LIMIT && (
+                  <p className="mt-10 text-center text-sm text-cream/25">
+                    You&apos;ve seen all {pagination.total} properties
+                  </p>
                 )}
               </>
             ) : (

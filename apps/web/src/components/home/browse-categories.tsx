@@ -67,7 +67,7 @@ export function BrowseCategories() {
           >
             <Link
               href={`/properties?type=${category.type}`}
-              className="group flex h-full flex-col rounded-2xl border border-cream/8 bg-onyx-900/60 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-gold/30 hover:shadow-lg hover:shadow-gold/10"
+              className="group flex h-full flex-col rounded-2xl border border-gold/15 bg-onyx-900/60 p-5 shadow-md shadow-gold/5 transition-all duration-300 hover:-translate-y-1 hover:border-gold/30 hover:shadow-lg hover:shadow-gold/10"
             >
               <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-gold transition-colors group-hover:bg-gold group-hover:text-white">
                 <category.icon className="h-5 w-5" />
