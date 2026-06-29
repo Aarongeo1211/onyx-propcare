@@ -1,18 +1,18 @@
 export const SITE_NAME = "Onyx Propcare";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://onyxpropcare.com").replace(/\/$/, "");
 export const SITE_DESCRIPTION =
-  "Discover verified farmlands and residential plots across India with soil reports, water analysis, drone surveys, legal checks, and investor tools.";
+  "Your trusted partner for land. Discover verified farmlands, residential plots, and agricultural land across India. Best investment on earth is earth itself.";
 export const SITE_KEYWORDS = [
-  "Onyx Propcare",
+  "Onyx Prop Care",
   "farmland India",
   "residential plots India",
   "buy farmland India",
-  "verified land marketplace",
+  "land marketplace India",
   "agricultural land for sale",
   "NRI land investment India",
-  "soil report farmland",
-  "water analysis land",
-  "legal verification property",
+  "buy land India",
+  "verified land listings",
+  "plots for sale India",
 ];
 
 export function absoluteUrl(path = ""): string {

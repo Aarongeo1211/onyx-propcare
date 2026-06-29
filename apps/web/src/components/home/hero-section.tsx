@@ -354,7 +354,7 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
             >
               <Sparkles className="h-3.5 w-3.5 text-gold-200" />
               <span className="text-[11px] font-body font-semibold uppercase tracking-[0.15em] text-white">
-                India&apos;s verified land marketplace
+                Your trusted partner for land
               </span>
             </motion.div>
 
@@ -374,8 +374,8 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
               transition={{ duration: 0.55, delay: 0.1 }}
               className="mb-7 max-w-xl text-base font-medium leading-relaxed text-white/85 drop-shadow-[0_1px_8px_rgba(0,0,0,0.3)] sm:text-lg"
             >
-              Soil, water, legal and drone checks on every listing. Find your next plot by
-              location, type and budget — no broker fog.
+              Verified opportunities with complete transparency. Find your next plot by
+              location, type and budget — land and land only.
             </motion.p>
           </div>
 

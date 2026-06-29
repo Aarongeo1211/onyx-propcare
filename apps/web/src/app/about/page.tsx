@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   ShieldCheck,
@@ -74,7 +75,7 @@ export default function AboutPage() {
             {...fadeUp}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            About Onyx Propcare
+            About Onyx Prop Care
           </motion.h1>
 
           <motion.p
@@ -82,10 +83,32 @@ export default function AboutPage() {
             {...fadeUp}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            India's first data-driven land marketplace. We combine verified
-            property data, advanced soil and water analytics, legal due
-            diligence, and drone surveys to bring transparency and trust to
-            every land transaction.
+            Onyx Prop Care is a dedicated platform built exclusively for land,
+            plots, and farmlands. Unlike conventional real estate portals that
+            cater to every type of property, we specialize in one asset
+            class—land—allowing us to offer unmatched expertise, curated
+            opportunities, and a seamless experience for buyers, sellers, and
+            investors.
+          </motion.p>
+
+          <motion.p
+            className="text-cream/40 font-body text-base max-w-2xl mx-auto leading-relaxed mt-4"
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.25 }}
+          >
+            We believe that every land transaction should be built on trust,
+            transparency, and authenticity. Whether you&apos;re looking to invest
+            in a residential plot, acquire agricultural land, or sell your
+            property to the right audience, Onyx Prop Care is your trusted
+            partner in making informed and confident land decisions.
+          </motion.p>
+
+          <motion.p
+            className="text-gold font-display text-xl md:text-2xl font-semibold max-w-2xl mx-auto mt-8 italic"
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            &ldquo;Best investment on earth is earth itself.&rdquo;
           </motion.p>
         </div>
       </section>
@@ -100,17 +123,20 @@ export default function AboutPage() {
           <h2 className="font-display text-2xl md:text-3xl font-semibold text-cream mb-4">
             Our Mission
           </h2>
-          <p className="text-cream/50 font-body text-base leading-relaxed mb-4">
-            Land is one of the most valuable assets in India, yet the buying
-            process remains opaque and riddled with uncertainty. Onyx Propcare
-            was founded with a singular mission: to make land transactions
-            transparent, data-backed, and trustworthy.
+          <p className="text-cream/50 font-body text-base leading-relaxed mb-6">
+            To deliver verified opportunities, professional service, and
+            complete transparency in every land, plot, and farmland transaction
+            while creating lasting value for customers, investors, and
+            communities.
           </p>
+
+          <h2 className="font-display text-2xl md:text-3xl font-semibold text-cream mb-4">
+            Our Vision
+          </h2>
           <p className="text-cream/50 font-body text-base leading-relaxed">
-            We serve everyone from first-time plot buyers to NRI investors
-            seeking agricultural land, providing the verified information and
-            expert analysis needed to make confident decisions. Every listing on
-            our platform is backed by real data, not promises.
+            To redefine the future of land transactions by building the most
+            credible ecosystem dedicated exclusively to land. At Onyx Prop
+            Care, we don&apos;t just list land—we unlock its true potential.
           </p>
         </motion.div>
       </section>
@@ -174,6 +200,55 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Team */}
+      <section className="max-w-5xl mx-auto px-6 pb-20">
+        <motion.div
+          className="text-center mb-12"
+          {...fadeUp}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
+            Our Team
+          </h2>
+          <p className="text-cream/40 font-body max-w-lg mx-auto">
+            The people behind Onyx Prop Care
+          </p>
+        </motion.div>
+
+        <div className="flex flex-wrap justify-center gap-8">
+          {[
+            { name: "Thanush", role: "Founder & Director", image: "/team/thanush.jpg" },
+            { name: "Aaron George Abraham", role: "Senior Lead Developer", image: "/team/aaron.jpg" },
+            { name: "Nayana R", role: "CSO", image: "/team/nayana.jpg" },
+            { name: "Annie Dhanraj", role: "CFO", image: "/team/annie.jpg" },
+            { name: "Shahid Pasha", role: "COO", image: "/team/shahid.jpg" },
+          ].map((member, i) => (
+            <motion.div
+              key={member.name}
+              className="bg-onyx-900/50 border border-cream/8 rounded-2xl p-6 text-center max-w-xs w-full"
+              {...fadeUp}
+              transition={{ duration: 0.5, delay: 0.1 * (i + 1) }}
+            >
+              <div className="w-36 h-36 mx-auto mb-5 rounded-full overflow-hidden border-2 border-gold/20">
+                <Image
+                  src={member.image}
+                  alt={`${member.name} — ${member.role}`}
+                  width={144}
+                  height={144}
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+              <h3 className="font-display text-xl font-semibold text-cream">
+                {member.name}
+              </h3>
+              <p className="text-gold text-sm font-body mt-1">
+                {member.role}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="max-w-4xl mx-auto px-6 pb-24">
         <motion.div
@@ -185,8 +260,8 @@ export default function AboutPage() {
             Ready to Find Your Perfect Land?
           </h2>
           <p className="text-cream/50 font-body max-w-lg mx-auto mb-8">
-            Join thousands of investors who trust Onyx Propcare for verified,
-            data-backed land opportunities across India.
+            Join thousands of investors who trust Onyx Prop Care for verified
+            land opportunities across India. Land and land only.
           </p>
           <Link
             href="/properties"

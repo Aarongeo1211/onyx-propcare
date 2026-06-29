@@ -43,8 +43,11 @@ export function Footer() {
             </Link>
 
             <p className="text-cream/65 text-sm leading-relaxed max-w-sm">
-              India&apos;s most trusted platform for farmland and residential plot investments.
-              Backed by verified data, drone surveys, and comprehensive legal checks.
+              Your trusted partner for land. A dedicated platform built
+              exclusively for land, plots, and farmlands — land and land only.
+            </p>
+            <p className="text-gold/70 text-xs font-display italic mt-2">
+              Best investment on earth is earth itself.
             </p>
 
             <div className="space-y-3 text-sm text-cream/65">
