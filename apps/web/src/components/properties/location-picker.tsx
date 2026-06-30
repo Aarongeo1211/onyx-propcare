@@ -303,7 +303,7 @@ export default function LocationPicker(props: LocationPickerProps) {
     }
   }
 
-  function handleResultSelect(result: SearchResult) {
+  async function handleResultSelect(result: SearchResult) {
     const resolved = parseResolvedLocation(result);
     setQuery(result.display_name);
     setResults([]);
@@ -315,6 +315,8 @@ export default function LocationPicker(props: LocationPickerProps) {
       markerRef.current.setLatLng([resolved.latitude, resolved.longitude]);
       mapInstanceRef.current.setView([resolved.latitude, resolved.longitude], DETAIL_ZOOM);
     }
+
+    await reverseGeocode(resolved.latitude, resolved.longitude);
   }
 
   function useBrowserLocation() {
