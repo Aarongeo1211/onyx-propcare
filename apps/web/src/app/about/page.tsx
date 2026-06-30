@@ -219,8 +219,8 @@ export default function AboutPage() {
           {[
             { name: "Thanush", role: "Founder & Director", image: "/team/thanush.jpg" },
             { name: "Aaron George Abraham", role: "Senior Lead Developer", image: "/team/aaron.jpg" },
-            { name: "Nayana R", role: "CSO", image: "/team/nayana.jpg" },
             { name: "Annie Dhanraj", role: "CFO", image: "/team/annie.jpg" },
+            { name: "Nayana R", role: "CSO", image: "/team/nayana.jpg" },
             { name: "Shahid Pasha", role: "COO", image: "/team/shahid.jpg" },
           ].map((member, i) => (
             <motion.div
