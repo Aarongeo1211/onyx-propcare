@@ -25,11 +25,11 @@ userRoutes.get("/me", requireAuth, async (req, res) => {
       where: { id: req.user!.id },
       select: {
         id: true, name: true, email: true, phone: true, role: true,
-        phoneVerifiedAt: true, avatar: true, isActive: true, emailVerified: true, createdAt: true,
+        avatar: true, isActive: true, emailVerified: true, createdAt: true,
       },
     });
     if (!user) return res.status(404).json({ success: false, error: "User not found" });
-    res.json({ success: true, data: user });
+    res.json({ success: true, data: { ...user, phoneVerifiedAt: null } });
   } catch (err) {
     logger.error({ err }, "Error fetching profile");
     res.status(500).json({ success: false, error: "Failed to fetch profile" });
@@ -95,11 +95,11 @@ userRoutes.patch("/me", requireAuth, async (req, res) => {
       data: updateData,
       select: {
         id: true, name: true, email: true, phone: true, role: true,
-        phoneVerifiedAt: true, avatar: true, isActive: true, createdAt: true,
+        avatar: true, isActive: true, createdAt: true,
       },
     });
 
-    res.json({ success: true, data: updated });
+    res.json({ success: true, data: { ...updated, phoneVerifiedAt: null } });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ success: false, error: err.errors });
@@ -118,7 +118,6 @@ userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
         name: true,
         email: true,
         phone: true,
-        phoneVerifiedAt: true,
         role: true,
         avatar: true,
         isActive: true,
@@ -178,7 +177,6 @@ userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
         name: true,
         email: true,
         phone: true,
-        phoneVerifiedAt: true,
         role: true,
         avatar: true,
         isActive: true,

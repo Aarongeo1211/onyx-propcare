@@ -71,7 +71,6 @@ authRoutes.post("/register", async (req, res) => {
         name: true,
         email: true,
         phone: true,
-        phoneVerifiedAt: true,
         role: true,
         avatar: true,
         createdAt: true,
@@ -92,7 +91,7 @@ authRoutes.post("/register", async (req, res) => {
       logger.error({ err }, "verification email failed")
     );
 
-    res.status(201).json({ success: true, data: user });
+    res.status(201).json({ success: true, data: { ...user, phoneVerifiedAt: null } });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ success: false, error: err.errors });
@@ -123,7 +122,20 @@ authRoutes.post("/login", async (req, res) => {
       });
     }
 
-    const user = await prisma.user.findUnique({ where: { email: String(email).toLowerCase() } });
+    const user = await prisma.user.findUnique({
+      where: { email: String(email).toLowerCase() },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        passwordHash: true,
+        isActive: true,
+        emailVerified: true,
+      },
+    });
 
     if (!user || !user.passwordHash) {
       await recordFailure(email);
@@ -153,7 +165,7 @@ authRoutes.post("/login", async (req, res) => {
         token,
         user: {
           id: user.id, name: user.name, email: user.email,
-          phone: user.phone, phoneVerifiedAt: user.phoneVerifiedAt, role: user.role, avatar: user.avatar,
+          phone: user.phone, phoneVerifiedAt: null, role: user.role, avatar: user.avatar,
         },
       },
     });
@@ -177,7 +189,19 @@ authRoutes.post("/google", async (req, res) => {
       return res.status(401).json({ success: false, error: "Invalid or unverified Google token" });
     }
 
-    let user = await prisma.user.findUnique({ where: { email: profile.email.toLowerCase() } });
+    let user = await prisma.user.findUnique({
+      where: { email: profile.email.toLowerCase() },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        avatar: true,
+        emailVerified: true,
+        isActive: true,
+      },
+    });
 
     if (!user) {
       user = await prisma.user.create({
@@ -189,11 +213,31 @@ authRoutes.post("/google", async (req, res) => {
           emailVerified: new Date(),
           isActive: true,
         },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          avatar: true,
+          emailVerified: true,
+          isActive: true,
+        },
       });
     } else if (!user.avatar && profile.picture) {
       user = await prisma.user.update({
         where: { id: user.id },
         data: { avatar: profile.picture, emailVerified: user.emailVerified || new Date() },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          avatar: true,
+          emailVerified: true,
+          isActive: true,
+        },
       });
     }
 
@@ -209,7 +253,7 @@ authRoutes.post("/google", async (req, res) => {
         token,
         user: {
           id: user.id, name: user.name, email: user.email,
-          phone: user.phone, phoneVerifiedAt: user.phoneVerifiedAt, role: user.role, avatar: user.avatar,
+          phone: user.phone, phoneVerifiedAt: null, role: user.role, avatar: user.avatar,
         },
       },
     });
@@ -277,11 +321,11 @@ authRoutes.get("/me", requireAuth, async (req, res) => {
       where: { id: req.user!.id },
       select: {
         id: true, name: true, email: true, phone: true, role: true,
-        phoneVerifiedAt: true, avatar: true, isActive: true, createdAt: true,
+        avatar: true, isActive: true, createdAt: true,
       },
     });
     if (!user) return res.status(404).json({ success: false, error: "User not found" });
-    res.json({ success: true, data: user });
+    res.json({ success: true, data: { ...user, phoneVerifiedAt: null } });
   } catch (err) {
     logger.error({ err }, "Fetch user error");
     res.status(500).json({ success: false, error: "Failed to fetch user" });
