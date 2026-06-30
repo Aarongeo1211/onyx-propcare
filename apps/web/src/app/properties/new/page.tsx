@@ -1035,7 +1035,7 @@ export default function NewPropertyPage() {
                     name="type"
                     value={form.type}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all appearance-none"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   >
                     {PROPERTY_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>
@@ -1134,7 +1134,7 @@ export default function NewPropertyPage() {
                     value={form.state}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all appearance-none"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   >
                     <option value="">Select State</option>
                     {INDIAN_STATES.map((s) => (
@@ -1262,7 +1262,7 @@ export default function NewPropertyPage() {
                     name="areaUnit"
                     value={form.areaUnit}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all appearance-none"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   >
                     {AREA_UNITS.map((u) => (
                       <option key={u} value={u}>
@@ -1282,7 +1282,7 @@ export default function NewPropertyPage() {
                   name="facing"
                   value={form.facing}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all appearance-none"
+                  className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                 >
                   <option value="">Select facing direction</option>
                   {FACING_OPTIONS.map((f) => (
@@ -1502,6 +1502,7 @@ export default function NewPropertyPage() {
             </div>
           </motion.div>
 
+          {form.type !== "RESIDENTIAL_PLOT" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1537,7 +1538,9 @@ export default function NewPropertyPage() {
             <textarea value={soilReport.suitableCrops} onChange={(e) => setSoilReport((prev) => ({ ...prev, suitableCrops: e.target.value }))} rows={3} placeholder="Suitable crops (comma separated)" className="w-full mt-5 px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/20 focus:outline-none focus:border-gold/40 resize-none" />
             <p className="mt-3 text-xs text-cream/35">Submitted soil reports will remain pending until admin approval.</p>
           </motion.div>
+          )}
 
+          {form.type !== "RESIDENTIAL_PLOT" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1572,6 +1575,7 @@ export default function NewPropertyPage() {
             </label>
             <p className="mt-3 text-xs text-cream/35">Water reports stay attached to the listing while admin approval metadata remains available for review.</p>
           </motion.div>
+          )}
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
