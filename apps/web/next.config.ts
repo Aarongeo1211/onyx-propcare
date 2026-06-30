@@ -99,7 +99,7 @@ const nextConfig: NextConfig = {
               // Images: self + all configured remote patterns
               `img-src 'self' data: blob: https:${isDev ? " http://localhost:4000" : ""}`,
               // API connections
-              `connect-src 'self' https://${API_HOST}${isDev ? " http://localhost:4000" : ""} https://*.up.railway.app https://*.storageapi.dev`,
+              `connect-src 'self' https://${API_HOST}${isDev ? " http://localhost:4000" : ""} https://*.up.railway.app https://*.storageapi.dev https://nominatim.openstreetmap.org`,
               // Media (videos)
               "media-src 'self' blob: https://*.up.railway.app https://*.storageapi.dev https://res.cloudinary.com",
               // Frames: deny by default
