@@ -87,7 +87,6 @@ userRoutes.patch("/me", requireAuth, async (req, res) => {
     const updateData = {
       ...data,
       phone: finalPhone,
-      ...(normalizedPhone && normalizedPhone !== currentUser.phone ? { phoneVerifiedAt: null } : {}),
     };
 
     const updated = await prisma.user.update({
