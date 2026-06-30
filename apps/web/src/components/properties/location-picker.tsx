@@ -4,6 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MapPin, Navigation, Search } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
+  : "http://localhost:4000/api/v1";
+
 type ResolvedLocation = {
   latitude: number;
   longitude: number;
@@ -17,7 +21,7 @@ type ResolvedLocation = {
 };
 
 type SearchResult = {
-  place_id: number;
+  place_id: string | number;
   display_name: string;
   lat: string;
   lon: string;
@@ -231,9 +235,7 @@ export default function LocationPicker(props: LocationPickerProps) {
 
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&countrycodes=in&q=${encodeURIComponent(
-            query.trim()
-          )}`,
+          `${API_BASE}/location/autocomplete?q=${encodeURIComponent(query.trim())}&country=in&limit=8`,
           {
             headers: {
               Accept: "application/json",
@@ -242,13 +244,13 @@ export default function LocationPicker(props: LocationPickerProps) {
         );
 
         if (!response.ok) {
-          console.warn("Nominatim API error:", response.status);
+          console.warn("Location autocomplete API error:", response.status);
           setResults([]);
           return;
         }
 
-        const data = (await response.json()) as SearchResult[];
-        setResults(Array.isArray(data) ? data.slice(0, 8) : []);
+        const payload = (await response.json()) as { success?: boolean; data?: SearchResult[] };
+        setResults(Array.isArray(payload.data) ? payload.data.slice(0, 8) : []);
       } catch (error) {
         console.error("Location search failed:", error);
         setResults([]);
@@ -268,21 +270,19 @@ export default function LocationPicker(props: LocationPickerProps) {
     setLocating(true);
 
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&lat=${lat}&lon=${lng}`,
-        {
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE}/location/reverse?lat=${lat}&lng=${lng}`, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
       if (!response.ok) {
         console.warn("Reverse geocoding failed:", response.status);
         return;
       }
 
-      const data = (await response.json()) as SearchResult;
+      const payload = (await response.json()) as { success?: boolean; data?: SearchResult };
+      const data = payload.data;
       if (!data?.lat || !data?.lon) {
         console.warn("Invalid reverse geocoding response");
         return;

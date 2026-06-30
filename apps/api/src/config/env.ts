@@ -32,6 +32,8 @@ const schema = z.object({
 
   GOOGLE_CLIENT_ID: z.string().optional(),
   REDIS_URL: z.string().url().optional(),
+  LOCATION_SEARCH_PROVIDER: z.enum(["nominatim", "olamaps"]).default("nominatim"),
+  OLA_MAPS_API_KEY: z.string().optional(),
 
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().optional(),

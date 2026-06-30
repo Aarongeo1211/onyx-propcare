@@ -19,6 +19,7 @@ import { contactRoutes } from "./routes/contact";
 import { callbackRoutes } from "./routes/callbacks";
 import { auditRoutes } from "./routes/audit";
 import { refundRoutes } from "./routes/refunds";
+import { locationRoutes } from "./routes/location";
 import { generalLimiter, authLimiter, registerLimiter, uploadLimiter, forgotPasswordLimiter } from "./middleware/rateLimit";
 import { sanitizeInputs } from "./middleware/sanitize";
 import {
@@ -112,6 +113,7 @@ app.use("/api/v1/upload", uploadLimiter, uploadRoutes);
 app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/callbacks", callbackRoutes);
 app.use("/api/v1/refunds", refundRoutes);
+app.use("/api/v1/location", locationRoutes);
 app.use("/api/v1/admin/audit-logs", auditRoutes);
 
 // 404 handler
