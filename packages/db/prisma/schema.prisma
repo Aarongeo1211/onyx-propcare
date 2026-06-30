@@ -22,6 +22,7 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   phone         String?   @unique
+  phoneVerifiedAt DateTime?
   name          String
   avatar        String?
   role          UserRole  @default(BUYER)

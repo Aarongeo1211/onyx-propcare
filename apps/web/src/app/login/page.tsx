@@ -30,14 +30,24 @@ export default function LoginPage() {
     document.cookie = "onyx-auth-role=BUYER; Path=/; Max-Age=600; SameSite=Lax";
   };
 
+  const getSafeCallbackUrl = () => {
+    const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
+    return callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : null;
+  };
+
   const redirectAfterAuth = async () => {
     const session = await getSession();
+    const callbackUrl = getSafeCallbackUrl();
+    if (!session?.user?.phone) {
+      router.push(callbackUrl ? `/auth/complete?next=${encodeURIComponent(callbackUrl)}` : "/auth/complete");
+      router.refresh();
+      return;
+    }
+
     const role = session?.user?.role;
-    router.push(
-      role === "SELLER" || role === "AGENT" || role === "ADMIN" || role === "SUPER_ADMIN"
-        ? "/dashboard"
-        : "/"
-    );
+    router.push(callbackUrl || (
+      role === "SELLER" || role === "AGENT" || role === "ADMIN" || role === "SUPER_ADMIN" ? "/dashboard" : "/"
+    ));
     router.refresh();
   };
 
@@ -273,7 +283,10 @@ export default function LoginPage() {
               type="button"
               onClick={() => {
                 setGoogleRoleCookie();
-                signIn("google", { callbackUrl: "/auth/complete" });
+                const callbackUrl = getSafeCallbackUrl();
+                signIn("google", {
+                  callbackUrl: callbackUrl ? `/auth/complete?next=${encodeURIComponent(callbackUrl)}` : "/auth/complete",
+                });
               }}
               className="w-full h-12 flex items-center justify-center gap-3 rounded-lg border border-cream/10 bg-onyx-900/40 hover:bg-onyx-900/70 hover:border-cream/20 transition-all duration-300 group"
             >

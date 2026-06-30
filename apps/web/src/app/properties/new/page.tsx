@@ -188,6 +188,12 @@ export default function NewPropertyPage() {
     }
 
     if (status === "authenticated" && session?.user?.accessToken) {
+      if (!session.user.phone) {
+        setLoadingUsage(false);
+        router.replace("/auth/complete?next=/properties/new");
+        return;
+      }
+
       if (!hasSellerAccess(session.user.role)) {
         setLoadingUsage(false);
         return;
@@ -240,6 +246,8 @@ export default function NewPropertyPage() {
     } catch (upgradeError) {
       if (upgradeError instanceof ApiError && upgradeError.code === "EMAIL_NOT_VERIFIED") {
         setEmailNotVerified(true);
+      } else if (upgradeError instanceof ApiError && upgradeError.code === "PHONE_REQUIRED") {
+        router.replace("/auth/complete?next=/properties/new");
       } else {
         setError(upgradeError instanceof Error ? upgradeError.message : "Failed to upgrade account");
       }

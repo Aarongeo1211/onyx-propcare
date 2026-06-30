@@ -10,6 +10,7 @@ import { isLocked, recordFailure, clearFailures } from "../middleware/loginAttem
 import { verifyGoogleIdToken, isGoogleConfigured } from "../services/google";
 import { logger } from "../lib/logger";
 import { env } from "../config/env";
+import { normalizeAndValidatePhoneNumber } from "../utils/phone";
 
 export const authRoutes = Router();
 
@@ -23,7 +24,7 @@ const passwordSchema = z
 const registerSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email().toLowerCase(),
-  phone: z.string().optional().nullable(),
+  phone: z.string().min(1, "Phone number is required"),
   password: passwordSchema,
   role: z.enum(["BUYER", "SELLER", "AGENT"]).default("BUYER"),
 });
@@ -40,17 +41,19 @@ function signToken(user: { id: string; email: string; name: string; role: string
 authRoutes.post("/register", async (req, res) => {
   try {
     const data = registerSchema.parse(req.body);
+    const phone = normalizeAndValidatePhoneNumber(data.phone);
+    if (!phone) {
+      return res.status(400).json({ success: false, error: "Enter a valid phone number with country code" });
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
     if (existingUser) {
       return res.status(409).json({ success: false, error: "An account with this email already exists" });
     }
 
-    if (data.phone) {
-      const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
-      if (existingPhone) {
-        return res.status(409).json({ success: false, error: "An account with this phone number already exists" });
-      }
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    if (existingPhone) {
+      return res.status(409).json({ success: false, error: "An account with this phone number already exists" });
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
@@ -59,11 +62,20 @@ authRoutes.post("/register", async (req, res) => {
       data: {
         name: data.name,
         email: data.email,
-        phone: data.phone || null,
+        phone,
         passwordHash,
         role: data.role,
       },
-      select: { id: true, name: true, email: true, phone: true, role: true, avatar: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        phoneVerifiedAt: true,
+        role: true,
+        avatar: true,
+        createdAt: true,
+      },
     });
 
     sendWelcomeEmail(user.email, user.name).catch((err) => logger.error({ err }, "welcome email failed"));
@@ -141,7 +153,7 @@ authRoutes.post("/login", async (req, res) => {
         token,
         user: {
           id: user.id, name: user.name, email: user.email,
-          phone: user.phone, role: user.role, avatar: user.avatar,
+          phone: user.phone, phoneVerifiedAt: user.phoneVerifiedAt, role: user.role, avatar: user.avatar,
         },
       },
     });
@@ -197,7 +209,7 @@ authRoutes.post("/google", async (req, res) => {
         token,
         user: {
           id: user.id, name: user.name, email: user.email,
-          phone: user.phone, role: user.role, avatar: user.avatar,
+          phone: user.phone, phoneVerifiedAt: user.phoneVerifiedAt, role: user.role, avatar: user.avatar,
         },
       },
     });
@@ -265,7 +277,7 @@ authRoutes.get("/me", requireAuth, async (req, res) => {
       where: { id: req.user!.id },
       select: {
         id: true, name: true, email: true, phone: true, role: true,
-        avatar: true, isActive: true, createdAt: true,
+        phoneVerifiedAt: true, avatar: true, isActive: true, createdAt: true,
       },
     });
     if (!user) return res.status(404).json({ success: false, error: "User not found" });

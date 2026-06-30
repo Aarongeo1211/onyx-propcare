@@ -70,7 +70,8 @@ export default function RegisterPage() {
     if (!form.email.trim()) errors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       errors.email = "Invalid email format";
-    if (form.phone && !/^[\d+\-() ]{7,15}$/.test(form.phone))
+    if (!form.phone.trim()) errors.phone = "Phone number is required";
+    else if (!/^\+?[0-9][\d\s().-]{7,20}$/.test(form.phone))
       errors.phone = "Invalid phone number";
     if (!form.password) errors.password = "Password is required";
     else if (form.password.length < 8)
@@ -104,7 +105,7 @@ export default function RegisterPage() {
         body: JSON.stringify({
           name: form.name,
           email: form.email,
-          phone: form.phone || undefined,
+          phone: form.phone,
           password: form.password,
           role: form.role,
         }),
@@ -319,14 +320,14 @@ export default function RegisterPage() {
             {/* Phone */}
             <motion.div custom={5} variants={fadeUp}>
               <label className="block text-sm font-body text-cream/60 mb-2">
-                Phone Number{" "}
-                <span className="text-cream/20">(optional)</span>
+                Phone Number
               </label>
               <Input
                 type="tel"
                 placeholder="+91 98765 43210"
                 value={form.phone}
                 onChange={(e) => updateForm("phone", e.target.value)}
+                required
                 autoComplete="tel"
               />
               {fieldErrors.phone && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, CheckCircle, XCircle, Archive, RotateCcw, Star, Eye } from "lucide-react";
+import { Search, CheckCircle, XCircle, Archive, RotateCcw, Star, Eye, Phone } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { PropertyReviewModal } from "./review-modal";
@@ -18,7 +18,7 @@ interface Property {
   state: string;
   isFeatured: boolean;
   featuredAt?: string | null;
-  owner?: { name: string; email: string } | null;
+  owner?: { name: string; email: string; phone?: string | null } | null;
   createdAt: string;
   videos?: Array<{ url: string }>;
   documents?: Array<{ name: string; url: string; type: string }>;
@@ -145,7 +145,7 @@ export default function PropertiesPage() {
     const query = search.trim().toLowerCase();
     if (!query) return properties;
     return properties.filter((p) =>
-      [p.title, p.type, p.district, p.state, p.owner?.name, p.owner?.email]
+      [p.title, p.type, p.district, p.state, p.owner?.name, p.owner?.email, p.owner?.phone]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(query))
     );
@@ -257,6 +257,15 @@ export default function PropertiesPage() {
                       <td className="px-5 py-4">
                         <p className="text-sm text-cream/70">{property.owner?.name || "—"}</p>
                         <p className="text-xs text-cream/25 mt-0.5">{property.owner?.email || ""}</p>
+                        {property.owner?.phone && (
+                          <a
+                            href={`tel:${property.owner.phone}`}
+                            className="mt-1 inline-flex items-center gap-1.5 text-xs text-gold/80 hover:text-gold"
+                          >
+                            <Phone className="h-3 w-3" />
+                            {property.owner.phone}
+                          </a>
+                        )}
                       </td>
 
                       {/* Price */}

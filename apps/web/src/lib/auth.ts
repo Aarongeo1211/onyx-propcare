@@ -104,6 +104,8 @@ export const authOptions: NextAuthOptions = {
           id: data.data.user.id,
           email: data.data.user.email,
           name: data.data.user.name,
+          phone: data.data.user.phone ?? null,
+          phoneVerifiedAt: data.data.user.phoneVerifiedAt ?? null,
           role: data.data.user.role,
           image: data.data.user.avatar,
           accessToken: data.data.token,
@@ -133,6 +135,8 @@ export const authOptions: NextAuthOptions = {
           if (data.success && data.data) {
             user.id = data.data.user.id;
             user.role = data.data.user.role;
+            user.phone = data.data.user.phone ?? null;
+            user.phoneVerifiedAt = data.data.user.phoneVerifiedAt ?? null;
             user.accessToken = data.data.token;
           } else {
             return false;
@@ -147,6 +151,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role || "BUYER";
+        token.phone = user.phone ?? null;
+        token.phoneVerifiedAt = user.phoneVerifiedAt ?? null;
         token.avatar = user.image ?? null;
         token.accessToken = user.accessToken;
       }
@@ -157,6 +163,12 @@ export const authOptions: NextAuthOptions = {
         }
         if ((session as { role?: string }).role) {
           token.role = (session as { role: string }).role;
+        }
+        if ((session as { phone?: string | null }).phone !== undefined) {
+          token.phone = (session as { phone?: string | null }).phone ?? null;
+        }
+        if ((session as { phoneVerifiedAt?: string | null }).phoneVerifiedAt !== undefined) {
+          token.phoneVerifiedAt = (session as { phoneVerifiedAt?: string | null }).phoneVerifiedAt ?? null;
         }
         if ((session as { avatar?: string | null }).avatar !== undefined) {
           token.avatar = (session as { avatar?: string | null }).avatar ?? null;
@@ -176,6 +188,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
+        session.user.phone = token.phone as string | null;
+        session.user.phoneVerifiedAt = token.phoneVerifiedAt as string | null;
         session.user.role = token.role as string;
         session.user.avatar = token.avatar as string | null;
         session.user.accessToken = token.accessToken as string;

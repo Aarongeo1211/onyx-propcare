@@ -455,10 +455,10 @@ export function PropertyReviewModal({ propertyId, token, onClose, onUpdated }: R
                   <span className="break-all">{detail.owner.email}</span>
                 </div>
                 {detail.owner.phone && (
-                  <div className="flex items-center gap-2 text-sm text-cream/50">
+                  <a href={`tel:${detail.owner.phone}`} className="flex items-center gap-2 text-sm text-cream/50 hover:text-gold">
                     <Phone className="h-4 w-4 shrink-0 text-cream/30" />
                     {detail.owner.phone}
-                  </div>
+                  </a>
                 )}
                 <div className="flex items-center gap-2 text-sm text-cream/40">
                   <Calendar className="h-4 w-4 shrink-0 text-cream/30" />

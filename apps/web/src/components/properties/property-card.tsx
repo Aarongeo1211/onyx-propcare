@@ -4,7 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Maximize2, Droplets, ShieldCheck, Route, Share2, Check, PlayCircle, Sparkles } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { MapPin, Maximize2, Droplets, ShieldCheck, Route, Share2, Check, PlayCircle, Sparkles, Phone } from "lucide-react";
 import {
   formatPrice,
   formatArea,
@@ -33,6 +34,7 @@ export interface PropertyCardData {
   soilData?: { soilType: string; fertility?: string | null } | null;
   waterData?: { waterSource?: string | null; waterQuality?: string | null } | null;
   legalCheck?: { titleStatus: string } | null;
+  owner?: { id: string; name: string; avatar?: string | null; phone?: string | null } | null;
 }
 
 interface PropertyCardProps {
@@ -41,6 +43,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
+  const { data: session, status } = useSession();
   const imageUrl = property.images?.[0]?.url || "/images/placeholder-property.jpg";
   const imageAlt = property.images?.[0]?.alt || property.title;
   const [shareCopied, setShareCopied] = useState(false);
@@ -79,6 +82,26 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
       }
     }
   }
+
+  function handleCall(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (status !== "authenticated" || !session?.user) {
+      window.location.assign(`/login?callbackUrl=${encodeURIComponent(`/properties/${property.slug}`)}`);
+      return;
+    }
+
+    if (!property.owner?.phone) return;
+    window.location.href = `tel:${property.owner.phone.replace(/[^\d+]/g, "")}`;
+  }
+
+  const callLabel =
+    status === "authenticated"
+      ? property.owner?.phone
+        ? "Call"
+        : "No phone"
+      : "Log in to call";
 
   return (
     <motion.div
@@ -227,6 +250,17 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
                 </div>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleCall}
+              disabled={status === "authenticated" && !property.owner?.phone}
+              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gold/20 bg-gold/10 text-sm font-medium text-gold transition-colors hover:bg-gold/15 disabled:cursor-not-allowed disabled:border-cream/10 disabled:bg-cream/5 disabled:text-cream/25"
+              title={callLabel}
+            >
+              <Phone className="h-4 w-4" />
+              {callLabel}
+            </button>
           </div>
         </div>
       </Link>

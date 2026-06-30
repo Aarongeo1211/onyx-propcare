@@ -15,6 +15,7 @@ interface Profile {
   name: string;
   email: string;
   phone: string | null;
+  phoneVerifiedAt: string | null;
   role: string;
   avatar: string | null;
   emailVerified: string | null;
@@ -69,13 +70,17 @@ export default function SettingsPage() {
       const res = await fetch(`${API_BASE}/users/me`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name, phone: phone || null }),
+        body: JSON.stringify({ name, phone }),
       });
       const data = await res.json();
       if (data.success) {
         setProfile(data.data);
         setProfileMsg({ type: "ok", text: "Profile updated successfully" });
-        await update({ name: data.data.name });
+        await update({
+          name: data.data.name,
+          phone: data.data.phone,
+          phoneVerifiedAt: data.data.phoneVerifiedAt ?? null,
+        });
       } else {
         const errText = Array.isArray(data.error) ? data.error[0]?.message : data.error;
         setProfileMsg({ type: "err", text: errText || "Failed to update profile" });
@@ -180,6 +185,7 @@ export default function SettingsPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 9876543210"
+                  required
                   className="w-full px-4 py-2.5 bg-onyx-950/60 border border-cream/10 rounded-lg text-sm text-cream focus:outline-none focus:border-gold/40"
                 />
               </div>

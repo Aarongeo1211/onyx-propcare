@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLayout } from "@/components/providers/layout-provider";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { Menu, X } from "lucide-react";
@@ -14,6 +15,7 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const { setIsDashboard } = useLayout();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -25,8 +27,13 @@ export default function DashboardLayout({
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
+      return;
     }
-  }, [status, router]);
+
+    if (status === "authenticated" && session?.user && !session.user.phone) {
+      router.replace(`/auth/complete?next=${encodeURIComponent(pathname)}`);
+    }
+  }, [pathname, session, status, router]);
 
   if (status === "loading") {
     return (
@@ -36,7 +43,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!session?.user) {
+  if (!session?.user || !session.user.phone) {
     return null;
   }
 

@@ -180,7 +180,7 @@ function sanitizePublicProperty<T>(property: T, isAuthenticated: boolean): T {
 }
 
 // GET /api/v1/properties - List properties with filters
-propertyRoutes.get("/", async (req, res) => {
+propertyRoutes.get("/", optionalAuth, async (req, res) => {
   try {
     const type = getSingleQueryParam(req.query.type);
     const listingType = getSingleQueryParam(req.query.listingType);
@@ -268,7 +268,7 @@ propertyRoutes.get("/", async (req, res) => {
 
     // Try cache first (5 min TTL) — skip cache when search/price/area/district filters are active
     const cacheKey = generatePropertyCacheKey({ type, state, listingType, sortBy, page: pageNum, search, district, minPrice, maxPrice, minArea, maxArea });
-    if (cacheKey) {
+    if (cacheKey && !req.user) {
       const cached = await cache.get<{ properties: unknown[]; total: number }>(cacheKey);
       if (cached) {
         return res.json({
@@ -290,7 +290,7 @@ propertyRoutes.get("/", async (req, res) => {
         include: {
           images: { where: { isPrimary: true }, take: 1 },
           videos: { select: { url: true }, take: 1 },
-          owner: { select: { id: true, name: true, avatar: true } },
+          owner: { select: { id: true, name: true, avatar: true, phone: true } },
           soilData: { select: { soilType: true, fertility: true, approvalStatus: true } },
           waterData: { select: { waterQuality: true, waterTableDepth: true, approvalStatus: true } },
           legalCheck: { select: { titleStatus: true, approvalStatus: true } },
@@ -311,7 +311,7 @@ propertyRoutes.get("/", async (req, res) => {
     const sanitizedProperties = properties.map((property) => sanitizePublicProperty(property, Boolean(req.user)));
 
     // Cache the results (5 min TTL) for future requests
-    if (cacheKey) {
+    if (cacheKey && !req.user) {
       await cache.set(cacheKey, { properties: sanitizedProperties, total }, 300);
     }
 

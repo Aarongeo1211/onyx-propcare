@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@onyx/db";
 import { JWT_SECRET, requireAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
+import { normalizeAndValidatePhoneNumber } from "../utils/phone";
 
 export const userRoutes = Router();
 
@@ -13,7 +14,7 @@ function signToken(user: { id: string; email: string; name: string; role: string
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
-  phone: z.string().min(7).max(20).nullable().optional(),
+  phone: z.string().min(1).nullable().optional(),
   avatar: z.string().url().nullable().optional(),
 });
 
@@ -24,7 +25,7 @@ userRoutes.get("/me", requireAuth, async (req, res) => {
       where: { id: req.user!.id },
       select: {
         id: true, name: true, email: true, phone: true, role: true,
-        avatar: true, isActive: true, emailVerified: true, createdAt: true,
+        phoneVerifiedAt: true, avatar: true, isActive: true, emailVerified: true, createdAt: true,
       },
     });
     if (!user) return res.status(404).json({ success: false, error: "User not found" });
@@ -39,10 +40,43 @@ userRoutes.get("/me", requireAuth, async (req, res) => {
 userRoutes.patch("/me", requireAuth, async (req, res) => {
   try {
     const data = updateProfileSchema.parse(req.body);
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      select: { id: true, phone: true },
+    });
 
-    if (data.phone) {
+    if (!currentUser) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    let normalizedPhone: string | null | undefined;
+    if (data.phone !== undefined) {
+      if (data.phone === null) {
+        normalizedPhone = null;
+      } else {
+        normalizedPhone = normalizeAndValidatePhoneNumber(data.phone);
+        if (!normalizedPhone) {
+          return res.status(400).json({
+            success: false,
+            error: "Enter a valid phone number with country code",
+            code: "INVALID_PHONE",
+          });
+        }
+      }
+    }
+
+    const finalPhone = normalizedPhone !== undefined ? normalizedPhone : currentUser.phone;
+    if (!finalPhone) {
+      return res.status(400).json({
+        success: false,
+        error: "Phone number is required to continue",
+        code: "PHONE_REQUIRED",
+      });
+    }
+
+    if (normalizedPhone) {
       const existingPhone = await prisma.user.findFirst({
-        where: { phone: data.phone, NOT: { id: req.user!.id } },
+        where: { phone: normalizedPhone, NOT: { id: req.user!.id } },
         select: { id: true },
       });
       if (existingPhone) {
@@ -50,12 +84,18 @@ userRoutes.patch("/me", requireAuth, async (req, res) => {
       }
     }
 
+    const updateData = {
+      ...data,
+      phone: finalPhone,
+      ...(normalizedPhone && normalizedPhone !== currentUser.phone ? { phoneVerifiedAt: null } : {}),
+    };
+
     const updated = await prisma.user.update({
       where: { id: req.user!.id },
-      data,
+      data: updateData,
       select: {
         id: true, name: true, email: true, phone: true, role: true,
-        avatar: true, isActive: true, createdAt: true,
+        phoneVerifiedAt: true, avatar: true, isActive: true, createdAt: true,
       },
     });
 
@@ -78,6 +118,7 @@ userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
         name: true,
         email: true,
         phone: true,
+        phoneVerifiedAt: true,
         role: true,
         avatar: true,
         isActive: true,
@@ -101,6 +142,14 @@ userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
         success: false,
         error: "Please verify your email address before upgrading to a seller account.",
         code: "EMAIL_NOT_VERIFIED",
+      });
+    }
+
+    if (!currentUser.phone) {
+      return res.status(403).json({
+        success: false,
+        error: "Please add a phone number before upgrading to a seller account.",
+        code: "PHONE_REQUIRED",
       });
     }
 
@@ -129,6 +178,7 @@ userRoutes.post("/me/become-seller", requireAuth, async (req, res) => {
         name: true,
         email: true,
         phone: true,
+        phoneVerifiedAt: true,
         role: true,
         avatar: true,
         isActive: true,

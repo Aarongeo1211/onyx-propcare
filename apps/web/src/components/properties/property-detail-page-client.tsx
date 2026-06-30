@@ -79,27 +79,31 @@ export function PropertyDetailPageClient({
 
   useEffect(() => {
     async function syncPropertyState() {
-      if (!didHydrateRef.current) {
+      if (!session?.user?.accessToken && !didHydrateRef.current) {
         didHydrateRef.current = true;
-      } else {
-        setLoading(true);
-        try {
-          const res = await apiFetch<{ success: boolean; data: PropertyDetail }>(
-            `/properties/${slug}`,
-            session?.user?.accessToken ? { token: session.user.accessToken } : undefined
-          );
-          setProperty(res.data);
-          setActiveTab(getDefaultTab(res.data));
+        return;
+      }
 
-          const similarRes = await apiFetch<{ success: boolean; data: PropertyCardData[] }>(
-            `/properties?type=${res.data.type}&state=${res.data.state}&limit=3`
-          );
-          setSimilar((similarRes.data || []).filter((item) => item.slug !== slug).slice(0, 3));
-        } catch (error) {
-          console.error("Failed to sync property:", error);
-        } finally {
-          setLoading(false);
-        }
+      didHydrateRef.current = true;
+      setLoading(true);
+      try {
+        const authOptions = session?.user?.accessToken ? { token: session.user.accessToken } : undefined;
+        const res = await apiFetch<{ success: boolean; data: PropertyDetail }>(
+          `/properties/${slug}`,
+          authOptions
+        );
+        setProperty(res.data);
+        setActiveTab(getDefaultTab(res.data));
+
+        const similarRes = await apiFetch<{ success: boolean; data: PropertyCardData[] }>(
+          `/properties?type=${res.data.type}&state=${res.data.state}&limit=3`,
+          authOptions
+        );
+        setSimilar((similarRes.data || []).filter((item) => item.slug !== slug).slice(0, 3));
+      } catch (error) {
+        console.error("Failed to sync property:", error);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -564,13 +568,27 @@ export function PropertyDetailPageClient({
                 </div>
 
                 <div className="mb-4 flex gap-2">
-                  {property.owner.phone && (
+                  {session?.user && property.owner.phone && (
                     <a href={`tel:${property.owner.phone}`} className="flex-1">
                       <Button variant="outline" size="sm" className="w-full">
                         <Phone className="h-4 w-4" />
                         Call
                       </Button>
                     </a>
+                  )}
+                  {!session?.user && (
+                    <Link href={`/login?callbackUrl=${encodeURIComponent(`/properties/${property.slug}`)}`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Phone className="h-4 w-4" />
+                        Log in to call
+                      </Button>
+                    </Link>
+                  )}
+                  {session?.user && !property.owner.phone && (
+                    <Button variant="outline" size="sm" disabled className="flex-1">
+                      <Phone className="h-4 w-4" />
+                      Phone unavailable
+                    </Button>
                   )}
                   <div className="relative">
                     <Button variant="ghost" size="sm" onClick={handleShare} title="Share property">

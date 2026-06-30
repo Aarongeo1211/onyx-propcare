@@ -150,7 +150,7 @@ adminRoutes.get(
             videos: { take: 1, orderBy: { order: "asc" } },
             documents: { take: 3, orderBy: { name: "asc" } },
             droneMap: { select: { mapUrl: true, thumbnailUrl: true, capturedAt: true } },
-            owner: { select: { id: true, name: true, email: true } },
+            owner: { select: { id: true, name: true, email: true, phone: true } },
             soilData: { select: { approvalStatus: true, reviewNotes: true, testedAt: true } },
             waterData: { select: { approvalStatus: true, reviewNotes: true, testedAt: true } },
             legalCheck: { select: { approvalStatus: true, reviewNotes: true, verifiedAt: true, verifiedBy: true } },

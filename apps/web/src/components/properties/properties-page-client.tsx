@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { MapPin, SearchX, Loader2 } from "lucide-react";
 import type { PropertyFilters } from "@onyx/types";
@@ -53,6 +54,7 @@ export function PropertiesPageClient({
   initialProperties,
   initialPagination,
 }: PropertiesPageClientProps) {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const didHydrateRef = useRef(false);
@@ -66,6 +68,7 @@ export function PropertiesPageClient({
   const [page, setPage] = useState(initialPagination.page);
 
   const hasMore = page < pagination.totalPages;
+  const accessToken = session?.user?.accessToken;
 
   const fetchProperties = useCallback(async (currentFilters: PropertyFilters) => {
     setLoading(true);
@@ -82,7 +85,10 @@ export function PropertiesPageClient({
       params.set("page", "1");
       params.set("limit", String(PROPERTY_LIMIT));
 
-      const data = await apiFetch<PropertiesResponse>(`/properties?${params.toString()}`);
+      const data = await apiFetch<PropertiesResponse>(
+        `/properties?${params.toString()}`,
+        accessToken ? { token: accessToken } : undefined
+      );
       setProperties(data.data || []);
       setPagination(data.pagination || { page: 1, limit: 12, total: 0, totalPages: 0 });
       setPage(1);
@@ -94,7 +100,7 @@ export function PropertiesPageClient({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [accessToken]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || loading || !hasMore) return;
@@ -113,7 +119,10 @@ export function PropertiesPageClient({
       params.set("page", String(nextPage));
       params.set("limit", String(PROPERTY_LIMIT));
 
-      const data = await apiFetch<PropertiesResponse>(`/properties?${params.toString()}`);
+      const data = await apiFetch<PropertiesResponse>(
+        `/properties?${params.toString()}`,
+        accessToken ? { token: accessToken } : undefined
+      );
       setProperties((prev) => [...prev, ...(data.data || [])]);
       setPagination(data.pagination || pagination);
       setPage(nextPage);
@@ -122,7 +131,13 @@ export function PropertiesPageClient({
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, loading, hasMore, page, filters, pagination]);
+  }, [loadingMore, loading, hasMore, page, filters, pagination, accessToken]);
+
+  useEffect(() => {
+    if (status === "authenticated" && accessToken) {
+      fetchProperties(filters);
+    }
+  }, [accessToken, status]);
 
   // Infinite scroll observer
   useEffect(() => {
