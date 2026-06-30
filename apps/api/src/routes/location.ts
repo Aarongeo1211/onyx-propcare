@@ -25,6 +25,8 @@ type LocationResult = {
   address?: Record<string, string>;
 };
 
+type OlaRequestHeaders = Record<string, string>;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -55,6 +57,37 @@ function normalizeAddress(value: unknown): Record<string, string> | undefined {
     .filter((entry): entry is readonly [string, string] => Boolean(entry[1]));
 
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+function normalizeOlaAddressComponents(value: unknown): Record<string, string> | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  const address: Record<string, string> = {};
+
+  for (const item of value) {
+    if (!isRecord(item) || !Array.isArray(item.types)) continue;
+    const longName = readString(item.long_name);
+    if (!longName) continue;
+
+    for (const type of item.types) {
+      if (typeof type === "string" && type.trim()) {
+        address[type] = longName;
+      }
+    }
+  }
+
+  return Object.keys(address).length > 0 ? address : undefined;
+}
+
+function getOlaHeaders(): OlaRequestHeaders {
+  const referer = env.APP_URL.endsWith("/") ? env.APP_URL : `${env.APP_URL}/`;
+
+  return {
+    Accept: "application/json",
+    Origin: env.APP_URL,
+    Referer: referer,
+    "User-Agent": "OnyxPropcare/1.0",
+  };
 }
 
 function normalizeOlaItem(item: unknown, index: number): LocationResult | null {
@@ -115,6 +148,28 @@ function normalizeOlaItem(item: unknown, index: number): LocationResult | null {
   };
 }
 
+function normalizeOlaGeocodeItem(item: unknown, index: number): LocationResult | null {
+  if (!isRecord(item)) return null;
+
+  const geometry = isRecord(item.geometry) ? item.geometry : null;
+  const location = isRecord(geometry?.location) ? geometry.location : null;
+  const lat = firstString(location?.lat, item.lat, item.latitude);
+  const lon = firstString(location?.lng, location?.lon, item.lon, item.lng, item.longitude);
+  const displayName = firstString(item.formatted_address, item.name, item.display_name);
+
+  if (!lat || !lon || !displayName) {
+    return null;
+  }
+
+  return {
+    place_id: firstString(item.place_id, item.id, `${index}`) || `${index}`,
+    display_name: displayName,
+    lat,
+    lon,
+    address: normalizeOlaAddressComponents(item.address_components),
+  };
+}
+
 async function fetchJson(url: string, init?: RequestInit) {
   const response = await fetch(url, init);
   if (!response.ok) {
@@ -166,32 +221,21 @@ async function searchWithOlaMaps(query: string, country: string, limit: number):
     return [];
   }
 
-  const searchUrl = new URL(`${OLA_MAPS_BASE_API}/places/v1/textsearch`);
-  searchUrl.searchParams.set("input", query);
+  const searchUrl = new URL(`${OLA_MAPS_BASE_API}/places/v1/geocode`);
+  searchUrl.searchParams.set("address", query);
   searchUrl.searchParams.set("api_key", env.OLA_MAPS_API_KEY);
-  searchUrl.searchParams.set("limit", String(limit));
-  searchUrl.searchParams.set("country", country.toUpperCase());
+  void country;
 
-  const payload = await fetchJson(searchUrl.toString(), {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "OnyxPropcare/1.0",
-    },
-  });
+  const payload = await fetchJson(searchUrl.toString(), { headers: getOlaHeaders() });
 
-  const container = isRecord(payload)
-    ? payload.predictions ??
-      payload.results ??
-      payload.items ??
-      (isRecord(payload.data) ? payload.data.predictions ?? payload.data.results ?? payload.data.items : payload.data)
-    : null;
+  const container = isRecord(payload) ? payload.geocodingResults : null;
 
   if (!Array.isArray(container)) {
     return [];
   }
 
   return container
-    .map((item, index) => normalizeOlaItem(item, index))
+    .map((item, index) => normalizeOlaGeocodeItem(item, index))
     .filter((item): item is LocationResult => Boolean(item))
     .slice(0, limit);
 }
@@ -205,12 +249,7 @@ async function reverseWithOlaMaps(lat: number, lng: number): Promise<LocationRes
   reverseUrl.searchParams.set("latlng", `${lat},${lng}`);
   reverseUrl.searchParams.set("api_key", env.OLA_MAPS_API_KEY);
 
-  const payload = await fetchJson(reverseUrl.toString(), {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "OnyxPropcare/1.0",
-    },
-  });
+  const payload = await fetchJson(reverseUrl.toString(), { headers: getOlaHeaders() });
 
   if (!isRecord(payload) || !Array.isArray(payload.results) || payload.results.length === 0) {
     return null;
