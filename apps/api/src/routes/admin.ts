@@ -527,7 +527,7 @@ adminRoutes.delete(
       const property = await prisma.property.findUnique({
         where: { id: propertyId },
         include: {
-          images: { select: { id: true, publicId: true } },
+          images: { select: { id: true, url: true } },
           videos: { select: { id: true, publicId: true } },
           documents: { select: { id: true, publicId: true } },
         },
@@ -537,9 +537,20 @@ adminRoutes.delete(
         return res.status(404).json({ success: false, error: "Property not found" });
       }
 
+      // Images have no publicId — extract the S3 key from the URL path
+      const imageKeys = property.images
+        .map((f: { id: string; url: string }) => {
+          try {
+            return new URL(f.url).pathname.replace(/^\//, "");
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean) as string[];
+
       // Delete all media files from storage (best-effort — don't block on failures)
       const mediaToDelete = [
-        ...property.images.map((f: { id: string; publicId: string | null }) => f.publicId).filter(Boolean),
+        ...imageKeys,
         ...property.videos.map((f: { id: string; publicId: string | null }) => f.publicId).filter(Boolean),
         ...property.documents.map((f: { id: string; publicId: string | null }) => f.publicId).filter(Boolean),
       ] as string[];
