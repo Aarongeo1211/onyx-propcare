@@ -9,6 +9,11 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: ["/dashboard/", "/api/", "/login", "/register", "/forgot-password", "/reset-password"],
       },
+      {
+        userAgent: ["GPTBot", "ChatGPT-User", "PerplexityBot", "ClaudeBot", "Claude-Web", "Google-Extended", "Applebot-Extended"],
+        allow: "/",
+        disallow: ["/dashboard/", "/api/", "/login", "/register", "/forgot-password", "/reset-password"],
+      },
     ],
     sitemap: absoluteUrl("/sitemap.xml"),
     host: SITE_URL,
