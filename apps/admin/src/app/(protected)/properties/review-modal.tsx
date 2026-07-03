@@ -5,7 +5,7 @@ import {
   X, MapPin, Maximize2, Route, BrickWall, Droplets, Sprout, Scale,
   Satellite, ExternalLink, CheckCircle, XCircle, ChevronLeft, ChevronRight,
   Loader2, Star, FileText, Video as VideoIcon, Image as ImageIcon, Phone,
-  Mail, User, Calendar, Tag,
+  Mail, User, Calendar, Tag, Trash2,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -155,6 +155,24 @@ export function PropertyReviewModal({ propertyId, token, onClose, onUpdated }: R
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
+
+  const hardDelete = useCallback(async () => {
+    if (!detail) return;
+    const confirmed = window.confirm(
+      `Permanently delete "${detail.title}" and all its photos and videos?\n\nThis cannot be undone.`
+    );
+    if (!confirmed) return;
+    setActionLoading("hard-delete");
+    try {
+      const res = await fetch(`${API_URL}/api/v1/admin/properties/${detail.id}/permanent`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await res.json();
+      if (d.success) { onUpdated(); onClose(); }
+      else alert(d.error || "Failed to delete property");
+    } finally { setActionLoading(null); }
+  }, [detail, token, onUpdated, onClose]);
 
   const patchStatus = useCallback(async (newStatus: string) => {
     if (!detail) return;
@@ -545,6 +563,24 @@ export function PropertyReviewModal({ propertyId, token, onClose, onUpdated }: R
                   Reactivate to Review Queue
                 </button>
               )}
+
+              {/* Danger zone — permanent delete */}
+              <div className="mt-4 border-t border-red-500/10 pt-4">
+                <p className="mb-2 text-[10px] uppercase tracking-wider text-red-400/50">Danger Zone</p>
+                <button
+                  onClick={hardDelete}
+                  disabled={!!actionLoading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/25 bg-red-500/8 py-3 text-sm font-medium text-red-400 hover:bg-red-500/15 transition-colors disabled:opacity-50"
+                >
+                  {actionLoading === "hard-delete"
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Trash2 className="h-4 w-4" />}
+                  Delete Permanently
+                </button>
+                <p className="mt-1.5 text-center text-[10px] text-red-400/40">
+                  Removes listing, photos &amp; videos forever
+                </p>
+              </div>
             </div>
           )}
         </div>

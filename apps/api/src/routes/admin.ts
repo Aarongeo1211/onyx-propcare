@@ -5,7 +5,7 @@ import { requireAuth, requireRole, blockUserToken, unblockUserToken } from "../m
 import { getQueryNumber, getSingleQueryParam } from "../utils/request";
 import { logger } from "../lib/logger";
 import { logAudit } from "../middleware/audit";
-import { getStorageSettingsSummary } from "../lib/storage";
+import { getStorageSettingsSummary, deleteFile } from "../lib/storage";
 import { cache } from "../lib/redis";
 
 const ADMIN_STATS_CACHE_KEY = "admin:stats";
@@ -510,6 +510,54 @@ adminRoutes.delete(
     } catch (err) {
       logger.error({ err }, "Error archiving property");
       res.status(500).json({ success: false, error: "Failed to archive property" });
+    }
+  }
+);
+
+// Hard-delete a property and all its associated media files from storage
+adminRoutes.delete(
+  "/properties/:id/permanent",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const propertyId = String(req.params.id);
+
+      // Fetch all media before deleting DB records
+      const property = await prisma.property.findUnique({
+        where: { id: propertyId },
+        include: {
+          images: { select: { id: true, publicId: true } },
+          videos: { select: { id: true, publicId: true } },
+          documents: { select: { id: true, publicId: true } },
+        },
+      });
+
+      if (!property) {
+        return res.status(404).json({ success: false, error: "Property not found" });
+      }
+
+      // Delete all media files from storage (best-effort — don't block on failures)
+      const mediaToDelete = [
+        ...property.images.map((f: { id: string; publicId: string | null }) => f.publicId).filter(Boolean),
+        ...property.videos.map((f: { id: string; publicId: string | null }) => f.publicId).filter(Boolean),
+        ...property.documents.map((f: { id: string; publicId: string | null }) => f.publicId).filter(Boolean),
+      ] as string[];
+
+      await Promise.allSettled(mediaToDelete.map((pid) => deleteFile(pid)));
+
+      // Hard-delete the DB record (cascades to images, videos, documents, soilData, etc.)
+      await prisma.property.delete({ where: { id: propertyId } });
+
+      await logAudit(req, { action: "HARD_DELETE_PROPERTY", entity: "property", entityId: propertyId, details: { title: property.title } });
+      await cache.del("properties:featured");
+      await cache.invalidatePrefix(`properties:type:${property.type}`);
+      cache.del(ADMIN_STATS_CACHE_KEY);
+
+      res.json({ success: true, message: "Property permanently deleted" });
+    } catch (err) {
+      logger.error({ err }, "Error permanently deleting property");
+      res.status(500).json({ success: false, error: "Failed to permanently delete property" });
     }
   }
 );
