@@ -344,7 +344,7 @@ propertyRoutes.get("/featured", async (_req, res) => {
         images: { where: { isPrimary: true }, take: 1 },
         owner: { select: { id: true, name: true } },
       },
-      take: 6,
+      take: 16,
       orderBy: { featuredAt: "desc" },
     });
 

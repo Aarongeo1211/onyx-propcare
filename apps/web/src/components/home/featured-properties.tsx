@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PropertyCard, type PropertyCardData } from "@/components/properties/property-card";
+import { FeaturedCarousel } from "@/components/home/featured-carousel";
 import { useApiQuery } from "@/lib/hooks";
 
 interface FeaturedResponse {
@@ -73,9 +74,11 @@ export function FeaturedProperties({ initialProperties }: FeaturedPropertiesProp
               </div>
             ))}
           </div>
+        ) : properties.length > 4 ? (
+          <FeaturedCarousel properties={properties} />
         ) : properties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-            {properties.slice(0, 4).map((property, index) => (
+            {properties.map((property, index) => (
               <PropertyCard key={property.id} property={property} index={index} />
             ))}
           </div>
