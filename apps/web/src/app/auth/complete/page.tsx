@@ -149,7 +149,7 @@ export default function AuthCompletePage() {
             <Phone className="h-5 w-5" />
           </div>
           <h1 className="font-display text-3xl font-semibold text-cream">Add Phone Number</h1>
-          <p className="mt-2 text-sm leading-6 text-cream/72">
+          <p className="mt-2 text-sm leading-6 text-cream/90">
             Phone is now required for account security and property communication.
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function AuthCompletePage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="mb-2 block text-sm text-cream/60">Phone Number</label>
+            <label className="mb-2 block text-sm text-cream/81">Phone Number</label>
             <Input
               type="tel"
               value={phone}
@@ -172,7 +172,7 @@ export default function AuthCompletePage() {
               required
               autoComplete="tel"
             />
-            <p className="mt-2 text-xs text-cream/62">Use a number where buyers and sellers can reach you.</p>
+            <p className="mt-2 text-xs text-cream/82">Use a number where buyers and sellers can reach you.</p>
           </div>
 
           <Button type="submit" disabled={saving} className="h-12 w-full">

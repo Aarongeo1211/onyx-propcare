@@ -129,7 +129,7 @@ export function DashboardSidebar({ user, onNavigate }: DashboardSidebarProps) {
         {/* Sign Out */}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-cream/70 hover:text-red-500 hover:bg-red-500/5 transition-all duration-200"
+          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-cream/88 hover:text-red-500 hover:bg-red-500/5 transition-all duration-200"
         >
           <LogOut className="w-4.5 h-4.5" />
           Sign Out

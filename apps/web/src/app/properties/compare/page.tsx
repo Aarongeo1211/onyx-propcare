@@ -98,9 +98,9 @@ function BoolCell({ value }: { value: boolean | null | undefined }) {
     return <span className="text-gold font-medium">&#10003;</span>;
   }
   if (value === false) {
-    return <span className="text-cream/62">&#10007;</span>;
+    return <span className="text-cream/82">&#10007;</span>;
   }
-  return <span className="text-cream/55">N/A</span>;
+  return <span className="text-cream/79">N/A</span>;
 }
 
 function CellValue({
@@ -111,7 +111,7 @@ function CellValue({
   highlight?: boolean;
 }) {
   if (value === null || value === undefined || value === "") {
-    return <span className="text-cream/55">N/A</span>;
+    return <span className="text-cream/79">N/A</span>;
   }
   return (
     <span className={highlight ? "text-gold font-medium" : "text-cream"}>
@@ -189,7 +189,7 @@ function ComparePageContent() {
           <h1 className="font-display text-3xl text-cream mb-3">
             Select Properties to Compare
           </h1>
-          <p className="text-cream/68 mb-8 max-w-md mx-auto">
+          <p className="text-cream/86 mb-8 max-w-md mx-auto">
             Browse properties and add up to 3 to your comparison list to see
             them side by side.
           </p>
@@ -222,7 +222,7 @@ function ComparePageContent() {
           <div className="flex items-center gap-4">
             <Link
               href="/properties"
-              className="w-10 h-10 rounded-full border border-cream/10 flex items-center justify-center text-cream/68 hover:text-cream hover:border-cream/30 transition-all"
+              className="w-10 h-10 rounded-full border border-cream/10 flex items-center justify-center text-cream/86 hover:text-cream hover:border-cream/30 transition-all"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
@@ -230,7 +230,7 @@ function ComparePageContent() {
               <h1 className="font-display text-3xl font-semibold text-cream">
                 Compare Properties
               </h1>
-              <p className="text-cream/62 text-sm mt-1">
+              <p className="text-cream/82 text-sm mt-1">
                 {properties.length} properties side by side
               </p>
             </div>
@@ -287,7 +287,7 @@ function ComparePageContent() {
                     <p className="font-display text-2xl font-semibold text-gold mb-1">
                       {formatPrice(prop.price)}
                     </p>
-                    <p className="text-cream/68 text-xs">
+                    <p className="text-cream/86 text-xs">
                       {prop.district}, {prop.state}
                     </p>
                   </div>
@@ -709,7 +709,7 @@ function Row({
     <>
       {/* Sticky label cell */}
       <div
-        className={`${bgClass} px-4 py-3 text-sm text-cream/68 font-medium sticky left-0 z-10 border-r border-cream/5`}
+        className={`${bgClass} px-4 py-3 text-sm text-cream/86 font-medium sticky left-0 z-10 border-r border-cream/5`}
       >
         {label}
       </div>

@@ -61,11 +61,11 @@ function PendingContent() {
       <h1 className="font-display text-2xl font-semibold text-cream mb-3">
         Check your inbox
       </h1>
-      <p className="text-cream/50 font-body text-sm leading-relaxed mb-2">
+      <p className="text-cream/78 font-body text-sm leading-relaxed mb-2">
         We&apos;ve sent a verification link to{" "}
-        {email ? <strong className="text-cream/70">{email}</strong> : "your email address"}.
+        {email ? <strong className="text-cream/88">{email}</strong> : "your email address"}.
       </p>
-      <p className="text-cream/62 font-body text-xs mb-8">
+      <p className="text-cream/82 font-body text-xs mb-8">
         Click the link in the email to activate your account. The link expires in 24 hours.
       </p>
 
@@ -117,12 +117,12 @@ function PendingContent() {
       <div className="h-px bg-cream/5 my-5" />
 
       <div className="flex flex-col gap-3 text-sm">
-        <p className="text-cream/62 font-body text-xs">
+        <p className="text-cream/82 font-body text-xs">
           Didn&apos;t receive it? Check your spam folder or try resending.
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center justify-center gap-1.5 text-cream/68 hover:text-cream/70 transition-colors font-body text-xs"
+          className="inline-flex items-center justify-center gap-1.5 text-cream/86 hover:text-cream/88 transition-colors font-body text-xs"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to login
@@ -151,7 +151,7 @@ export default function VerifyEmailPendingPage() {
                   <Loader2 className="w-9 h-9 text-gold animate-spin" />
                 </div>
               </div>
-              <p className="text-cream/68 font-body text-sm">Loading...</p>
+              <p className="text-cream/86 font-body text-sm">Loading...</p>
             </div>
           }
         >

@@ -806,8 +806,8 @@ export default function EditPropertyPage() {
   }
 
   const inputClass =
-    "w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/72 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all";
-  const labelClass = "block text-sm font-body text-cream/60 mb-2";
+    "w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/90 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all";
+  const labelClass = "block text-sm font-body text-cream/81 mb-2";
 
   return (
     <>
@@ -826,7 +826,7 @@ export default function EditPropertyPage() {
           {/* Back */}
           <button
             onClick={handleNavigateAway}
-            className="flex items-center gap-2 text-sm font-body text-cream/65 hover:text-cream transition-colors mb-6"
+            className="flex items-center gap-2 text-sm font-body text-cream/84 hover:text-cream transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Properties
@@ -915,7 +915,7 @@ export default function EditPropertyPage() {
                           className={`flex-1 py-3 text-sm font-body rounded-xl border transition-all duration-300 ${
                             form.listingType === lt
                               ? "bg-gold/10 border-gold/40 text-gold"
-                              : "bg-onyx-800/50 border-cream/10 text-cream/65 hover:border-cream/20"
+                              : "bg-onyx-800/50 border-cream/10 text-cream/84 hover:border-cream/20"
                           }`}
                         >
                           {lt === "SALE" ? "For Sale" : lt === "LEASE" ? "For Lease" : "For Rent"}
@@ -1049,7 +1049,7 @@ export default function EditPropertyPage() {
                       <div className="w-10 h-6 bg-onyx-800 border border-cream/10 rounded-full peer-checked:bg-gold/20 peer-checked:border-gold/40 transition-all" />
                       <div className="absolute top-1 left-1 w-4 h-4 bg-cream/30 rounded-full peer-checked:translate-x-4 peer-checked:bg-gold transition-all" />
                     </div>
-                    <span className="text-sm font-body text-cream/60">Road Access</span>
+                    <span className="text-sm font-body text-cream/81">Road Access</span>
                   </label>
 
                   {form.roadAccess && (
@@ -1066,7 +1066,7 @@ export default function EditPropertyPage() {
                     <div className="w-10 h-6 bg-onyx-800 border border-cream/10 rounded-full peer-checked:bg-gold/20 peer-checked:border-gold/40 transition-all" />
                     <div className="absolute top-1 left-1 w-4 h-4 bg-cream/30 rounded-full peer-checked:translate-x-4 peer-checked:bg-gold transition-all" />
                   </div>
-                  <span className="text-sm font-body text-cream/60">Boundary Wall</span>
+                  <span className="text-sm font-body text-cream/81">Boundary Wall</span>
                 </label>
               </div>
             </div>
@@ -1088,7 +1088,7 @@ export default function EditPropertyPage() {
                   </div>
                 ))}
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-cream/60">Maximum 7 nearby entries.</p>
+                  <p className="text-xs text-cream/81">Maximum 7 nearby entries.</p>
                   <button type="button" onClick={addNearbyLocation} disabled={nearbyLocations.length >= 7} className="px-4 py-2 text-xs font-body text-gold border border-gold/20 rounded-lg disabled:opacity-40">Add Nearby</button>
                 </div>
               </div>
@@ -1113,12 +1113,12 @@ export default function EditPropertyPage() {
                 <textarea name="cropHistory" value={form.cropHistory} onChange={handleChange} rows={3} placeholder="Crop history" className={`${inputClass} resize-none`} />
                 <textarea name="encumbrance" value={form.encumbrance} onChange={handleChange} rows={3} placeholder="Encumbrance notes" className={`${inputClass} resize-none`} />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="hasClearTitle" checked={form.hasClearTitle} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Clear title available</span></label>
-                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isDisputeFree" checked={form.isDisputeFree} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Dispute free</span></label>
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="hasClearTitle" checked={form.hasClearTitle} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Clear title available</span></label>
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isDisputeFree" checked={form.isDisputeFree} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Dispute free</span></label>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isNAOrder" checked={form.isNAOrder} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">NA order</span></label>
-                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isTPScheme" checked={form.isTPScheme} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">TP scheme</span></label>
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isNAOrder" checked={form.isNAOrder} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">NA order</span></label>
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="isTPScheme" checked={form.isTPScheme} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">TP scheme</span></label>
                   <input name="zonalType" value={form.zonalType} onChange={handleChange} placeholder="Zonal type" className={inputClass} />
                 </div>
               </div>
@@ -1214,11 +1214,11 @@ export default function EditPropertyPage() {
                 />
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
-                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.encumbranceCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Encumbrance checked</span></label>
-                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.litigationCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Litigation checked</span></label>
-                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.naOrderVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, naOrderVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">NA order verified</span></label>
-                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.tpSchemeVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, tpSchemeVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">TP scheme verified</span></label>
-                <label className="flex items-center gap-3 cursor-pointer md:col-span-2"><input type="checkbox" checked={legalReport.revenueRecordOk} onChange={(e) => setLegalReport((prev) => ({ ...prev, revenueRecordOk: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Revenue records matched</span></label>
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.encumbranceCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Encumbrance checked</span></label>
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.litigationCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Litigation checked</span></label>
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.naOrderVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, naOrderVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">NA order verified</span></label>
+                <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.tpSchemeVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, tpSchemeVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">TP scheme verified</span></label>
+                <label className="flex items-center gap-3 cursor-pointer md:col-span-2"><input type="checkbox" checked={legalReport.revenueRecordOk} onChange={(e) => setLegalReport((prev) => ({ ...prev, revenueRecordOk: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Revenue records matched</span></label>
               </div>
             </div>
 
@@ -1233,14 +1233,14 @@ export default function EditPropertyPage() {
                     Property Images
                   </h2>
                 </div>
-                <span className="text-xs font-body text-cream/65">
+                <span className="text-xs font-body text-cream/84">
                   {totalImages} / {MAX_IMAGES} images
                 </span>
               </div>
 
               {existingImages.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs font-body text-cream/65 mb-2">Current Images</p>
+                  <p className="text-xs font-body text-cream/84 mb-2">Current Images</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {existingImages.map((img) => (
                       <div key={img.id} className="relative group aspect-[4/3] rounded-lg overflow-hidden border border-cream/10">
@@ -1266,7 +1266,7 @@ export default function EditPropertyPage() {
 
               {newImages.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs font-body text-cream/65 mb-2">New Images</p>
+                  <p className="text-xs font-body text-cream/84 mb-2">New Images</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {newImages.map((img, i) => (
                       <div key={img.publicId} className="relative group aspect-[4/3] rounded-lg overflow-hidden border border-gold/20">
@@ -1310,13 +1310,13 @@ export default function EditPropertyPage() {
                   {uploading ? (
                     <Loader2 className="w-8 h-8 text-gold animate-spin" />
                   ) : (
-                    <Upload className="w-8 h-8 text-cream/72" />
+                    <Upload className="w-8 h-8 text-cream/90" />
                   )}
                   <div>
-                    <p className="text-sm font-body text-cream/60">
+                    <p className="text-sm font-body text-cream/81">
                       {uploading ? "Uploading..." : "Drag & drop images or click to browse"}
                     </p>
-                    <p className="text-xs font-body text-cream/60 mt-1">
+                    <p className="text-xs font-body text-cream/81 mt-1">
                       JPEG, PNG, WebP up to 5MB each
                     </p>
                   </div>
@@ -1332,7 +1332,7 @@ export default function EditPropertyPage() {
                   </div>
                   <div>
                     <h2 className="font-display text-xl font-semibold text-cream">Listing Videos</h2>
-                    <p className="text-xs text-cream/60 mt-1">Manage walkthrough videos for this listing.</p>
+                    <p className="text-xs text-cream/81 mt-1">Manage walkthrough videos for this listing.</p>
                   </div>
                 </div>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
@@ -1357,7 +1357,7 @@ export default function EditPropertyPage() {
                       <div className="flex flex-col gap-3 md:flex-row md:items-center">
                         <video src={video.url} controls className="h-28 w-full rounded-lg bg-black md:w-56" />
                         <div className="flex-1">
-                          <label className="mb-2 block text-xs uppercase tracking-wide text-cream/65">Video Title</label>
+                          <label className="mb-2 block text-xs uppercase tracking-wide text-cream/84">Video Title</label>
                           <input
                             value={video.title}
                             onChange={(event) =>
@@ -1382,7 +1382,7 @@ export default function EditPropertyPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-cream/60">No videos attached yet.</p>
+                <p className="text-sm text-cream/81">No videos attached yet.</p>
               )}
             </div>
 
@@ -1394,7 +1394,7 @@ export default function EditPropertyPage() {
                   </div>
                   <div>
                     <h2 className="font-display text-xl font-semibold text-cream">Property Documents</h2>
-                    <p className="text-xs text-cream/60 mt-1">Keep the brochure, deeds, and plot documents synced.</p>
+                    <p className="text-xs text-cream/81 mt-1">Keep the brochure, deeds, and plot documents synced.</p>
                   </div>
                 </div>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
@@ -1456,7 +1456,7 @@ export default function EditPropertyPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-cream/60">No documents attached yet.</p>
+                <p className="text-sm text-cream/81">No documents attached yet.</p>
               )}
             </div>
 
@@ -1468,7 +1468,7 @@ export default function EditPropertyPage() {
                   </div>
                   <div>
                     <h2 className="font-display text-xl font-semibold text-cream">Drone Map</h2>
-                    <p className="text-xs text-cream/60 mt-1">Replace or refine the drone survey for this listing.</p>
+                    <p className="text-xs text-cream/81 mt-1">Replace or refine the drone survey for this listing.</p>
                   </div>
                 </div>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold hover:bg-gold/10">
@@ -1520,7 +1520,7 @@ export default function EditPropertyPage() {
                   />
                 </div>
               ) : (
-                <p className="text-sm text-cream/60">No drone map attached yet.</p>
+                <p className="text-sm text-cream/81">No drone map attached yet.</p>
               )}
             </div>
 
@@ -1529,7 +1529,7 @@ export default function EditPropertyPage() {
               <button
                 type="button"
                 onClick={handleNavigateAway}
-                className="px-6 py-3 text-sm font-body text-cream/50 border border-cream/10 rounded-xl hover:text-cream hover:border-cream/20 transition-all"
+                className="px-6 py-3 text-sm font-body text-cream/78 border border-cream/10 rounded-xl hover:text-cream hover:border-cream/20 transition-all"
               >
                 Cancel
               </button>

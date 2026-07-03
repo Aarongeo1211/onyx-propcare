@@ -36,7 +36,7 @@ export default function Error({
         </motion.h1>
 
         <motion.p
-          className="text-cream/50 font-body text-lg max-w-md mx-auto mb-10"
+          className="text-cream/78 font-body text-lg max-w-md mx-auto mb-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}

@@ -42,8 +42,8 @@ export function CompareButton({ propertyId, variant = "card" }: CompareButtonPro
             compared
               ? "bg-gold/20 border-gold text-gold shadow-lg shadow-gold/20"
               : canAddMore
-                ? "bg-onyx-950/60 border-cream/10 text-cream/50 hover:text-gold hover:border-gold/40 hover:bg-gold/10"
-                : "bg-onyx-950/60 border-cream/5 text-cream/55 cursor-not-allowed"
+                ? "bg-onyx-950/60 border-cream/10 text-cream/78 hover:text-gold hover:border-gold/40 hover:bg-gold/10"
+                : "bg-onyx-950/60 border-cream/5 text-cream/79 cursor-not-allowed"
           }
         `}
       >

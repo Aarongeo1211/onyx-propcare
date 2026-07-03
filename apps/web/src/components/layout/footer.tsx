@@ -42,7 +42,7 @@ export function Footer() {
               <Logo className="h-16 w-auto" />
             </Link>
 
-            <p className="text-cream/65 text-sm leading-relaxed max-w-sm">
+            <p className="text-cream/84 text-sm leading-relaxed max-w-sm">
               Your trusted partner for land. A dedicated platform built
               exclusively for land, plots, and farmlands — land and land only.
             </p>
@@ -50,7 +50,7 @@ export function Footer() {
               Best investment on earth is earth itself.
             </p>
 
-            <div className="space-y-3 text-sm text-cream/65">
+            <div className="space-y-3 text-sm text-cream/84">
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-gold/60" />
                 Byrathi, Bengaluru, Karnataka 560077
@@ -77,7 +77,7 @@ export function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-cream/60 hover:text-gold transition-colors duration-300"
+                      className="text-sm text-cream/81 hover:text-gold transition-colors duration-300"
                     >
                       {link.label}
                     </Link>
@@ -90,10 +90,10 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-16 pt-8 border-t border-cream/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-cream/55">
+          <p className="text-xs text-cream/79">
             &copy; {new Date().getFullYear()} Onyx Propcare. All rights reserved.
           </p>
-          <p className="text-xs text-cream/55">
+          <p className="text-xs text-cream/79">
             Built with care for India&apos;s land ecosystem.
           </p>
         </div>

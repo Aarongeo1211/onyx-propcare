@@ -306,14 +306,14 @@ export default function PricingPage() {
           <h1 className="mx-auto mt-6 max-w-4xl font-display text-4xl font-semibold text-cream md:text-5xl lg:text-6xl">
             Seller plans shaped for real listing inventory, not placeholder tiers
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base text-cream/55 md:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base text-cream/79 md:text-lg">
             Pick the category pack that matches your inventory, publish with the right media limits,
             and stay ready for Railway deployment with live Razorpay checkout when keys are present.
           </p>
           {!paymentsEnabled && (
             <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-earth-green/25 bg-earth-green/10 px-5 py-4 text-left text-sm text-cream/75">
               <p className="font-medium text-earth-green">Seller onboarding is live with the free plan.</p>
-              <p className="mt-1 text-cream/60">
+              <p className="mt-1 text-cream/81">
                 Paid plans are temporarily locked until Razorpay is configured in production. Sellers can still activate the free pack and start listing immediately.
               </p>
             </div>
@@ -327,18 +327,18 @@ export default function PricingPage() {
               <h2 className="mt-4 font-display text-3xl text-cream">
                 {freePlan?.name ?? "Free listing pack"}
               </h2>
-              <p className="mt-3 text-sm text-cream/55">
+              <p className="mt-3 text-sm text-cream/79">
                 A lightweight entry pack for trying the workflow, validating seller access, and publishing up to 10 listings.
               </p>
 
               <div className="mt-6 flex items-end gap-2">
                 <span className="font-display text-5xl text-cream">₹0</span>
-                <span className="pb-2 text-sm text-cream/65">for 30 days</span>
+                <span className="pb-2 text-sm text-cream/84">for 30 days</span>
               </div>
 
               <div className="mt-6 space-y-3">
                 {(freePlan?.features ?? ["Basic listing", "Low visibility", "10 listing slots"]).map((feature) => (
-                  <div key={feature} className="flex items-start gap-3 text-sm text-cream/70">
+                  <div key={feature} className="flex items-start gap-3 text-sm text-cream/88">
                     <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-earth-green" />
                     <span>{feature}</span>
                   </div>
@@ -374,7 +374,7 @@ export default function PricingPage() {
                 {usage && (
                   <div className="rounded-2xl border border-gold/20 bg-onyx-950/30 px-4 py-3 text-left">
                     <p className="text-xs uppercase tracking-[0.2em] text-gold/80">Current usage</p>
-                    <p className="mt-1 text-sm text-cream/70">
+                    <p className="mt-1 text-sm text-cream/88">
                       {usage.propertiesUsed} used
                       {usage.maxProperties === -1 ? " across unlimited slots" : ` out of ${usage.maxProperties} total slots`}
                     </p>
@@ -391,7 +391,7 @@ export default function PricingPage() {
                     ? "Paid checkout is live with Razorpay for production seller onboarding"
                     : "Paid plans stay locked until Razorpay is configured, while the free pack remains available",
                 ].map((item) => (
-                  <div key={item} className="rounded-2xl border border-cream/10 bg-onyx-950/35 p-4 text-sm text-cream/65">
+                  <div key={item} className="rounded-2xl border border-cream/10 bg-onyx-950/35 p-4 text-sm text-cream/84">
                     {item}
                   </div>
                 ))}
@@ -415,7 +415,7 @@ export default function PricingPage() {
                 className={`rounded-[1rem] px-4 py-2.5 text-sm font-medium transition ${
                   selectedCategory === value
                     ? "bg-gold text-onyx-950 shadow-[0_10px_30px_rgba(201,168,76,0.25)]"
-                    : "text-cream/60 hover:text-cream"
+                    : "text-cream/81 hover:text-cream"
                 }`}
               >
                 {label}
@@ -453,18 +453,18 @@ export default function PricingPage() {
                   <div className={isPremium ? "pt-10" : ""}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-cream/10 bg-onyx-950/35 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-cream/70">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-cream/10 bg-onyx-950/35 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-cream/88">
                           {plan.type === "FEATURED" ? <Star className="h-3.5 w-3.5 text-earth-terracotta" /> : null}
                           {plan.type === "PREMIUM" ? <Crown className="h-3.5 w-3.5 text-gold" /> : null}
-                          {plan.type === "BASIC" ? <LayoutGrid className="h-3.5 w-3.5 text-cream/55" /> : null}
+                          {plan.type === "BASIC" ? <LayoutGrid className="h-3.5 w-3.5 text-cream/79" /> : null}
                           {plan.name}
                         </div>
                         <h3 className="mt-4 font-display text-3xl text-cream">{plan.name}</h3>
-                        <p className="mt-2 text-sm text-cream/55">{getVisibilityLabel(plan)}</p>
+                        <p className="mt-2 text-sm text-cream/79">{getVisibilityLabel(plan)}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-display text-4xl text-gold">₹{plan.price.toLocaleString("en-IN")}</p>
-                        <p className="text-xs text-cream/65">for {plan.listingDuration} days</p>
+                        <p className="text-xs text-cream/84">for {plan.listingDuration} days</p>
                       </div>
                     </div>
 
@@ -479,13 +479,13 @@ export default function PricingPage() {
 
                     <div className="mt-6 space-y-3">
                       {plan.features.map((feature) => (
-                        <div key={feature} className="flex items-start gap-3 text-sm text-cream/70">
+                        <div key={feature} className="flex items-start gap-3 text-sm text-cream/88">
                           <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-gold" />
                           <span>{feature}</span>
                         </div>
                       ))}
                       {plan.hasVerifiedBadge && (
-                        <div className="flex items-start gap-3 text-sm text-cream/70">
+                        <div className="flex items-start gap-3 text-sm text-cream/88">
                           <BadgeCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-gold" />
                           <span>Verified badge on listing cards</span>
                         </div>
@@ -517,7 +517,7 @@ export default function PricingPage() {
                       <ArrowRight className="h-4 w-4" />
                     </button>
                     {isPaidUnavailable && (
-                      <p className="mt-3 text-xs text-cream/72">
+                      <p className="mt-3 text-xs text-cream/90">
                         Paid checkout will unlock after Razorpay is connected. Free onboarding is available now.
                       </p>
                     )}

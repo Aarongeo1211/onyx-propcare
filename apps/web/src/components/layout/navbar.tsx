@@ -74,7 +74,7 @@ export function Navbar() {
   return (
     <>
       {/* Top bar */}
-      <div className="hidden lg:block bg-onyx-950 border-b border-cream/5 text-cream/68 text-xs">
+      <div className="hidden lg:block bg-onyx-950 border-b border-cream/5 text-cream/86 text-xs">
         <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5">
@@ -117,7 +117,7 @@ export function Navbar() {
                   onMouseEnter={() => setInsightsOpen(true)}
                   onMouseLeave={() => setInsightsOpen(false)}
                 >
-                  <button className="flex items-center gap-1 text-sm font-body text-cream/60 hover:text-gold transition-colors duration-300">
+                  <button className="flex items-center gap-1 text-sm font-body text-cream/81 hover:text-gold transition-colors duration-300">
                     {link.label}
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${insightsOpen ? "rotate-180" : ""}`} />
                   </button>
@@ -134,7 +134,7 @@ export function Navbar() {
                           <Link
                             key={child.label}
                             href={child.href}
-                            className="block px-4 py-2.5 text-sm text-cream/60 hover:text-gold hover:bg-gold/5 transition-all duration-200"
+                            className="block px-4 py-2.5 text-sm text-cream/81 hover:text-gold hover:bg-gold/5 transition-all duration-200"
                           >
                             {child.label}
                           </Link>
@@ -147,7 +147,7 @@ export function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href!}
-                  className="text-sm font-body text-cream/60 hover:text-gold transition-colors duration-300 relative group"
+                  className="text-sm font-body text-cream/81 hover:text-gold transition-colors duration-300 relative group"
                 >
                   {link.label}
                   <span className="absolute -bottom-1 left-0 w-0 h-px bg-gold group-hover:w-full transition-all duration-300" />
@@ -188,12 +188,12 @@ export function Navbar() {
                     <div className="text-sm font-body text-cream/80 group-hover:text-cream transition-colors">
                       {session.user.name}
                     </div>
-                    <div className="text-[10px] font-body text-cream/62 uppercase tracking-wider">
+                    <div className="text-[10px] font-body text-cream/82 uppercase tracking-wider">
                       {session.user.role}
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-cream/62 transition-transform duration-300 ${
+                    className={`w-4 h-4 text-cream/82 transition-transform duration-300 ${
                       userMenuOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -213,7 +213,7 @@ export function Navbar() {
                         <div className="text-sm font-body text-cream/80">
                           {session.user.name}
                         </div>
-                        <div className="text-xs font-body text-cream/62 mt-0.5">
+                        <div className="text-xs font-body text-cream/82 mt-0.5">
                           {session.user.email}
                         </div>
                       </div>
@@ -222,7 +222,7 @@ export function Navbar() {
                         <Link
                           href="/dashboard/properties"
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/60 hover:text-gold hover:bg-gold/5 transition-all duration-200"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/81 hover:text-gold hover:bg-gold/5 transition-all duration-200"
                         >
                           <Building2 className="w-4 h-4" />
                           My Properties
@@ -230,7 +230,7 @@ export function Navbar() {
                         <Link
                           href="/dashboard/favorites"
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/60 hover:text-gold hover:bg-gold/5 transition-all duration-200"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/81 hover:text-gold hover:bg-gold/5 transition-all duration-200"
                         >
                           <Heart className="w-4 h-4" />
                           Favorites
@@ -238,7 +238,7 @@ export function Navbar() {
                         <Link
                           href="/dashboard"
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/60 hover:text-gold hover:bg-gold/5 transition-all duration-200"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/81 hover:text-gold hover:bg-gold/5 transition-all duration-200"
                         >
                           <User className="w-4 h-4" />
                           Dashboard
@@ -251,7 +251,7 @@ export function Navbar() {
                             setUserMenuOpen(false);
                             signOut({ callbackUrl: "/" });
                           }}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/60 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 w-full"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-cream/81 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 w-full"
                         >
                           <LogOut className="w-4 h-4" />
                           Sign Out
@@ -266,7 +266,7 @@ export function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm text-cream/60 hover:text-cream transition-colors duration-300"
+                  className="text-sm text-cream/81 hover:text-cream transition-colors duration-300"
                 >
                   Sign In
                 </Link>
@@ -283,7 +283,7 @@ export function Navbar() {
 
           {/* Mobile toggle */}
           <button
-            className="lg:hidden text-cream/70 hover:text-gold transition-colors"
+            className="lg:hidden text-cream/88 hover:text-gold transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -306,14 +306,14 @@ export function Navbar() {
                 {navLinks.map((link) =>
                   "children" in link ? (
                     <div key={link.label} className="space-y-2">
-                      <span className="text-sm font-medium text-cream/68 uppercase tracking-wider">
+                      <span className="text-sm font-medium text-cream/86 uppercase tracking-wider">
                         {link.label}
                       </span>
                       {link.children?.map((child) => (
                         <Link
                           key={child.label}
                           href={child.href}
-                          className="block pl-4 py-1.5 text-sm text-cream/60 hover:text-gold"
+                          className="block pl-4 py-1.5 text-sm text-cream/81 hover:text-gold"
                           onClick={() => setMobileOpen(false)}
                         >
                           {child.label}
@@ -324,7 +324,7 @@ export function Navbar() {
                     <Link
                       key={link.label}
                       href={link.href!}
-                      className="block py-2 text-cream/70 hover:text-gold"
+                      className="block py-2 text-cream/88 hover:text-gold"
                       onClick={() => setMobileOpen(false)}
                     >
                       {link.label}
@@ -340,7 +340,7 @@ export function Navbar() {
                         </div>
                         <div>
                           <div className="text-sm text-cream/80">{session.user.name}</div>
-                          <div className="text-[10px] text-cream/62 uppercase tracking-wider">
+                          <div className="text-[10px] text-cream/82 uppercase tracking-wider">
                             {session.user.role}
                           </div>
                         </div>
@@ -354,21 +354,21 @@ export function Navbar() {
                       </Link>
                       <Link
                         href="/dashboard/properties"
-                        className="text-sm text-cream/60 hover:text-gold py-1.5 pl-4"
+                        className="text-sm text-cream/81 hover:text-gold py-1.5 pl-4"
                         onClick={() => setMobileOpen(false)}
                       >
                         My Properties
                       </Link>
                       <Link
                         href="/dashboard/favorites"
-                        className="text-sm text-cream/60 hover:text-gold py-1.5 pl-4"
+                        className="text-sm text-cream/81 hover:text-gold py-1.5 pl-4"
                         onClick={() => setMobileOpen(false)}
                       >
                         Favorites
                       </Link>
                       <Link
                         href="/dashboard"
-                        className="text-sm text-cream/60 hover:text-gold py-1.5 pl-4"
+                        className="text-sm text-cream/81 hover:text-gold py-1.5 pl-4"
                         onClick={() => setMobileOpen(false)}
                       >
                         Dashboard
@@ -387,7 +387,7 @@ export function Navbar() {
                     <>
                       <Link
                         href="/login"
-                        className="text-center py-2.5 text-sm text-cream/60 border border-cream/10 rounded-lg"
+                        className="text-center py-2.5 text-sm text-cream/81 border border-cream/10 rounded-lg"
                         onClick={() => setMobileOpen(false)}
                       >
                         Sign In

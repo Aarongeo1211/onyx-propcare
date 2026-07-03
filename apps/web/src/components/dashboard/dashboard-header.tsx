@@ -26,18 +26,18 @@ export function DashboardHeader({
             {title}
           </h1>
           {subtitle && (
-            <p className="text-sm font-body text-cream/65 mt-0.5">{subtitle}</p>
+            <p className="text-sm font-body text-cream/84 mt-0.5">{subtitle}</p>
           )}
         </div>
 
         <div className="flex items-center gap-4">
           {/* Search */}
           <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cream/72" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cream/90" />
             <input
               type="text"
               placeholder="Search..."
-              className="w-56 pl-10 pr-4 py-2 bg-onyx-900/50 border border-cream/8 rounded-lg text-sm font-body text-cream placeholder:text-cream/72 focus:outline-none focus:border-gold/30 transition-colors"
+              className="w-56 pl-10 pr-4 py-2 bg-onyx-900/50 border border-cream/8 rounded-lg text-sm font-body text-cream placeholder:text-cream/90 focus:outline-none focus:border-gold/30 transition-colors"
             />
           </div>
 
@@ -47,7 +47,7 @@ export function DashboardHeader({
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/20 flex items-center justify-center text-gold font-display text-xs font-semibold">
                 {user.name?.charAt(0)?.toUpperCase() || "U"}
               </div>
-              <span className="text-sm font-body text-cream/70 hidden lg:block">
+              <span className="text-sm font-body text-cream/88 hidden lg:block">
                 {user.name}
               </span>
             </div>

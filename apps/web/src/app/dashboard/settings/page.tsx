@@ -147,16 +147,16 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="font-display text-lg text-cream">Profile</h2>
-              <p className="text-xs text-cream/65">Update your personal details</p>
+              <p className="text-xs text-cream/84">Update your personal details</p>
             </div>
           </div>
 
           {loading ? (
-            <div className="text-cream/65 text-sm">Loading...</div>
+            <div className="text-cream/84 text-sm">Loading...</div>
           ) : (
             <form onSubmit={saveProfile} className="space-y-4">
               <div>
-                <label className="text-xs uppercase tracking-wider text-cream/50 mb-1.5 block">Name</label>
+                <label className="text-xs uppercase tracking-wider text-cream/78 mb-1.5 block">Name</label>
                 <input
                   type="text"
                   value={name}
@@ -168,18 +168,18 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-wider text-cream/50 mb-1.5 block">Email</label>
+                <label className="text-xs uppercase tracking-wider text-cream/78 mb-1.5 block">Email</label>
                 <input
                   type="email"
                   value={profile?.email || ""}
                   disabled
-                  className="w-full px-4 py-2.5 bg-onyx-950/30 border border-cream/5 rounded-lg text-sm text-cream/50 cursor-not-allowed"
+                  className="w-full px-4 py-2.5 bg-onyx-950/30 border border-cream/5 rounded-lg text-sm text-cream/78 cursor-not-allowed"
                 />
-                <p className="text-[11px] text-cream/60 mt-1">Email cannot be changed. Contact support if needed.</p>
+                <p className="text-[11px] text-cream/81 mt-1">Email cannot be changed. Contact support if needed.</p>
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-wider text-cream/50 mb-1.5 block">Phone</label>
+                <label className="text-xs uppercase tracking-wider text-cream/78 mb-1.5 block">Phone</label>
                 <input
                   type="tel"
                   value={phone}
@@ -191,12 +191,12 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-wider text-cream/50 mb-1.5 block">Role</label>
+                <label className="text-xs uppercase tracking-wider text-cream/78 mb-1.5 block">Role</label>
                 <input
                   type="text"
                   value={profile?.role || ""}
                   disabled
-                  className="w-full px-4 py-2.5 bg-onyx-950/30 border border-cream/5 rounded-lg text-sm text-cream/50 cursor-not-allowed"
+                  className="w-full px-4 py-2.5 bg-onyx-950/30 border border-cream/5 rounded-lg text-sm text-cream/78 cursor-not-allowed"
                 />
               </div>
 
@@ -238,13 +238,13 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="font-display text-lg text-cream">Change Password</h2>
-              <p className="text-xs text-cream/65">Min 8 chars, with uppercase, lowercase, number</p>
+              <p className="text-xs text-cream/84">Min 8 chars, with uppercase, lowercase, number</p>
             </div>
           </div>
 
           <form onSubmit={changePassword} className="space-y-4">
             <div>
-              <label className="text-xs uppercase tracking-wider text-cream/50 mb-1.5 block">Current password</label>
+              <label className="text-xs uppercase tracking-wider text-cream/78 mb-1.5 block">Current password</label>
               <input
                 type="password"
                 value={currentPassword}
@@ -254,7 +254,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wider text-cream/50 mb-1.5 block">New password</label>
+              <label className="text-xs uppercase tracking-wider text-cream/78 mb-1.5 block">New password</label>
               <input
                 type="password"
                 value={newPassword}
@@ -265,7 +265,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wider text-cream/50 mb-1.5 block">Confirm new password</label>
+              <label className="text-xs uppercase tracking-wider text-cream/78 mb-1.5 block">Confirm new password</label>
               <input
                 type="password"
                 value={confirmPassword}

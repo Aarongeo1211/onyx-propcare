@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
         <motion.div custom={0} variants={fadeUp}>
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 text-cream/68 hover:text-cream/70 transition-colors font-body text-sm mb-8"
+            className="inline-flex items-center gap-2 text-cream/86 hover:text-cream/88 transition-colors font-body text-sm mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to login
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
             <h2 className="font-display text-2xl font-semibold text-cream mb-3">
               Check Your Email
             </h2>
-            <p className="text-cream/68 font-body mb-8">
+            <p className="text-cream/86 font-body mb-8">
               If an account exists with that email, a password reset link has been sent.
             </p>
             <Link href="/login">
@@ -87,14 +87,14 @@ export default function ForgotPasswordPage() {
               <h2 className="font-display text-3xl font-semibold text-cream mb-2">
                 Forgot Password
               </h2>
-              <p className="text-cream/68 font-body mb-8">
+              <p className="text-cream/86 font-body mb-8">
                 Enter your email and we&apos;ll send you a link to reset your password.
               </p>
             </motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <motion.div custom={2} variants={fadeUp}>
-                <label className="block text-sm font-body text-cream/60 mb-2">
+                <label className="block text-sm font-body text-cream/81 mb-2">
                   Email Address
                 </label>
                 <Input

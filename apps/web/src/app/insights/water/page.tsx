@@ -105,7 +105,7 @@ export default function WaterInsightsPage() {
             Water Analysis Insights
           </motion.h1>
           <motion.p
-            className="text-cream/50 font-body text-lg max-w-2xl mx-auto leading-relaxed"
+            className="text-cream/78 font-body text-lg max-w-2xl mx-auto leading-relaxed"
             {...fadeUp}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
@@ -122,7 +122,7 @@ export default function WaterInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Water Sources
           </h2>
-          <p className="text-cream/68 font-body max-w-lg mx-auto">
+          <p className="text-cream/86 font-body max-w-lg mx-auto">
             Different water sources carry different levels of reliability, cost,
             and investment implications for land buyers.
           </p>
@@ -141,7 +141,7 @@ export default function WaterInsightsPage() {
                 </div>
                 <div>
                   <h3 className="font-display text-xl font-semibold text-cream mb-2">{source.name}</h3>
-                  <p className="text-cream/68 font-body text-sm leading-relaxed">{source.description}</p>
+                  <p className="text-cream/86 font-body text-sm leading-relaxed">{source.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -154,7 +154,7 @@ export default function WaterInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Key Water Parameters
           </h2>
-          <p className="text-cream/68 font-body max-w-lg mx-auto">
+          <p className="text-cream/86 font-body max-w-lg mx-auto">
             Our water reports measure these critical factors to give you a
             complete picture of water security for any property.
           </p>
@@ -173,7 +173,7 @@ export default function WaterInsightsPage() {
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-semibold text-cream mb-1">{param.name}</h3>
-                  <p className="text-cream/68 font-body text-sm leading-relaxed">{param.description}</p>
+                  <p className="text-cream/86 font-body text-sm leading-relaxed">{param.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -190,13 +190,13 @@ export default function WaterInsightsPage() {
           <h2 className="font-display text-2xl md:text-3xl font-semibold text-cream mb-4">
             How Water Availability Affects Land Value
           </h2>
-          <p className="text-cream/50 font-body text-base leading-relaxed mb-4">
+          <p className="text-cream/78 font-body text-base leading-relaxed mb-4">
             Land with assured water supply can be worth two to five times more
             than similar plots without irrigation access. Canal-irrigated parcels
             in states like Punjab and Maharashtra consistently command top
             valuations in the agricultural land market.
           </p>
-          <p className="text-cream/50 font-body text-base leading-relaxed">
+          <p className="text-cream/78 font-body text-base leading-relaxed">
             Conversely, falling water tables and poor water quality are leading
             causes of land value depreciation in semi-arid regions. Our water
             analysis reports quantify these risks with real data, helping buyers
@@ -214,7 +214,7 @@ export default function WaterInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-4">
             Explore Properties with Water Data
           </h2>
-          <p className="text-cream/50 font-body max-w-lg mx-auto mb-8">
+          <p className="text-cream/78 font-body max-w-lg mx-auto mb-8">
             Find verified listings with detailed water analysis reports covering
             source, quality, and seasonal availability.
           </p>

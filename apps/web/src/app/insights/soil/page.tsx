@@ -117,7 +117,7 @@ export default function SoilInsightsPage() {
             Soil Analysis Insights
           </motion.h1>
           <motion.p
-            className="text-cream/50 font-body text-lg max-w-2xl mx-auto leading-relaxed"
+            className="text-cream/78 font-body text-lg max-w-2xl mx-auto leading-relaxed"
             {...fadeUp}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
@@ -133,7 +133,7 @@ export default function SoilInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Types of Soil in India
           </h2>
-          <p className="text-cream/68 font-body max-w-lg mx-auto">
+          <p className="text-cream/86 font-body max-w-lg mx-auto">
             India has diverse soil types, each with unique characteristics that
             determine agricultural potential and land value.
           </p>
@@ -150,7 +150,7 @@ export default function SoilInsightsPage() {
                 <soil.icon className="w-6 h-6 text-gold" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">{soil.name}</h3>
-              <p className="text-cream/68 font-body text-sm leading-relaxed">{soil.description}</p>
+              <p className="text-cream/86 font-body text-sm leading-relaxed">{soil.description}</p>
             </motion.div>
           ))}
         </div>
@@ -161,7 +161,7 @@ export default function SoilInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Key Soil Parameters We Test
           </h2>
-          <p className="text-cream/68 font-body max-w-lg mx-auto">
+          <p className="text-cream/86 font-body max-w-lg mx-auto">
             Every property on Onyx Propcare includes a detailed soil report
             covering these critical metrics.
           </p>
@@ -180,7 +180,7 @@ export default function SoilInsightsPage() {
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-semibold text-cream mb-1">{param.name}</h3>
-                  <p className="text-cream/68 font-body text-sm leading-relaxed">{param.description}</p>
+                  <p className="text-cream/86 font-body text-sm leading-relaxed">{param.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -197,13 +197,13 @@ export default function SoilInsightsPage() {
           <h2 className="font-display text-2xl md:text-3xl font-semibold text-cream mb-4">
             How Soil Quality Affects Land Value
           </h2>
-          <p className="text-cream/50 font-body text-base leading-relaxed mb-4">
+          <p className="text-cream/78 font-body text-base leading-relaxed mb-4">
             Fertile land with balanced nutrients and good texture commands
             premium prices in the agricultural market. Buyers evaluating land for
             farming, plantation, or even future development need to understand
             what lies beneath the surface.
           </p>
-          <p className="text-cream/50 font-body text-base leading-relaxed">
+          <p className="text-cream/78 font-body text-base leading-relaxed">
             Poor soil can reduce crop yield by up to 60%, increase input costs
             through excessive fertilizer use, and limit the range of viable crops.
             Our soil analysis reports help buyers quantify these risks before
@@ -221,7 +221,7 @@ export default function SoilInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-4">
             Explore Properties with Soil Data
           </h2>
-          <p className="text-cream/50 font-body max-w-lg mx-auto mb-8">
+          <p className="text-cream/78 font-body max-w-lg mx-auto mb-8">
             Browse verified listings that include comprehensive soil analysis
             reports so you can invest with confidence.
           </p>

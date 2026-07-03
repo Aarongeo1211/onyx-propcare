@@ -71,7 +71,7 @@ function SubscriptionSuccessContent() {
             Success
           </span>
           <h1 className="mt-6 font-display text-4xl text-cream md:text-5xl">{content.title}</h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-cream/60">{content.description}</p>
+          <p className="mt-4 max-w-xl text-base leading-7 text-cream/81">{content.description}</p>
 
           <div className="mt-8 space-y-3">
             {[
@@ -79,7 +79,7 @@ function SubscriptionSuccessContent() {
               "Admin and seller dashboards reflect the active pack",
               "You can immediately create a new property with the matching category rules",
             ].map((item) => (
-              <div key={item} className="flex items-start gap-3 text-sm text-cream/70">
+              <div key={item} className="flex items-start gap-3 text-sm text-cream/88">
                 <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-gold" />
                 <span>{item}</span>
               </div>
@@ -96,7 +96,7 @@ function SubscriptionSuccessContent() {
             </Link>
             <Link
               href="/dashboard/subscription"
-              className="inline-flex items-center justify-center rounded-xl border border-cream/10 bg-onyx-900/50 px-6 py-3.5 text-sm text-cream/70 transition hover:border-gold/25 hover:text-cream"
+              className="inline-flex items-center justify-center rounded-xl border border-cream/10 bg-onyx-900/50 px-6 py-3.5 text-sm text-cream/88 transition hover:border-gold/25 hover:text-cream"
             >
               Review My Plans
             </Link>
@@ -115,7 +115,7 @@ function SubscriptionSuccessContent() {
             </div>
           </div>
           <h2 className="mt-6 font-display text-3xl text-cream">Ready to publish</h2>
-          <p className="mt-3 text-sm leading-7 text-cream/60">
+          <p className="mt-3 text-sm leading-7 text-cream/81">
             Your plan is active and the listing flow will now apply category, media, and visibility rules automatically.
           </p>
         </motion.div>

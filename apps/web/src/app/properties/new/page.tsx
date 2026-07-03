@@ -728,7 +728,7 @@ export default function NewPropertyPage() {
             <h1 className="mt-6 font-display text-3xl md:text-4xl font-semibold text-cream">
               Turn Your Buyer Account Into a Seller Account
             </h1>
-            <p className="mt-4 max-w-2xl text-sm md:text-base font-body leading-relaxed text-cream/72">
+            <p className="mt-4 max-w-2xl text-sm md:text-base font-body leading-relaxed text-cream/90">
               You can use the same account to browse and list properties. Upgrade once, and we will
               take you straight into the listing workflow and seller plans.
             </p>
@@ -739,7 +739,7 @@ export default function NewPropertyPage() {
                 "Unlock seller dashboard and listing plans",
                 "Start publishing properties without re-registering",
               ].map((item) => (
-                <div key={item} className="rounded-2xl border border-cream/8 bg-onyx-950/60 p-4 text-sm text-cream/55">
+                <div key={item} className="rounded-2xl border border-cream/8 bg-onyx-950/60 p-4 text-sm text-cream/79">
                   {item}
                 </div>
               ))}
@@ -758,7 +758,7 @@ export default function NewPropertyPage() {
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gold">Email verification required</p>
-                    <p className="mt-1 text-sm text-cream/50">
+                    <p className="mt-1 text-sm text-cream/78">
                       Please verify your email address before becoming a seller. Check your inbox for a verification link.
                     </p>
                     {verificationResent ? (
@@ -802,7 +802,7 @@ export default function NewPropertyPage() {
               <button
                 type="button"
                 onClick={() => router.push("/")}
-                className="rounded-xl border border-cream/10 px-6 py-3 text-sm text-cream/60 hover:border-gold/30 hover:text-gold"
+                className="rounded-xl border border-cream/10 px-6 py-3 text-sm text-cream/81 hover:border-gold/30 hover:text-gold"
               >
                 Continue Browsing
               </button>
@@ -843,7 +843,7 @@ export default function NewPropertyPage() {
           <h1 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-2">
             List a New Property
           </h1>
-          <p className="text-cream/68 font-body">
+          <p className="text-cream/86 font-body">
             Fill in the details below to create your property listing
           </p>
         </motion.div>
@@ -864,12 +864,12 @@ export default function NewPropertyPage() {
                 <span className="font-body font-medium text-cream text-sm">
                   {selectedPlan?.name ?? "No matching plan"}
                 </span>
-                <span className="text-cream/62 text-xs ml-2">
+                <span className="text-cream/82 text-xs ml-2">
                   {usage.daysRemaining} days remaining
                 </span>
               </div>
             </div>
-            <span className="text-sm font-body text-cream/60">
+            <span className="text-sm font-body text-cream/81">
               {!selectedPlan
                 ? "No compatible listing pack"
                 : selectedPlan.maxProperties === -1
@@ -924,7 +924,7 @@ export default function NewPropertyPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body ${
                   feat.available
                     ? "bg-gold/10 text-gold border border-gold/20"
-                    : "bg-onyx-800/50 text-cream/58 border border-cream/5"
+                    : "bg-onyx-800/50 text-cream/80 border border-cream/5"
                 }`}
               >
                 {feat.available ? (
@@ -934,7 +934,7 @@ export default function NewPropertyPage() {
                 )}
                 {feat.label}
                 {!feat.available && (
-                  <span className="text-[10px] text-cream/55 ml-1">
+                  <span className="text-[10px] text-cream/79 ml-1">
                     Upgrade
                   </span>
                 )}
@@ -1001,7 +1001,7 @@ export default function NewPropertyPage() {
             <div className="space-y-5">
               {/* Title */}
               <div>
-                <label className="block text-sm font-body text-cream/60 mb-2">
+                <label className="block text-sm font-body text-cream/81 mb-2">
                   Property Title *
                 </label>
                 <input
@@ -1012,13 +1012,13 @@ export default function NewPropertyPage() {
                   minLength={5}
                   maxLength={200}
                   placeholder="e.g., Premium Black Soil Farmland near Nashik"
-                  className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                  className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-body text-cream/60 mb-2">
+                <label className="block text-sm font-body text-cream/81 mb-2">
                   Description *
                 </label>
                 <textarea
@@ -1029,14 +1029,14 @@ export default function NewPropertyPage() {
                   minLength={20}
                   rows={5}
                   placeholder="Describe your property in detail..."
-                  className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all resize-none"
+                  className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all resize-none"
                 />
               </div>
 
               {/* Type + Listing Type */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Property Type *
                   </label>
                   <select
@@ -1054,7 +1054,7 @@ export default function NewPropertyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Listing Type *
                   </label>
                   <div className="flex gap-3">
@@ -1068,7 +1068,7 @@ export default function NewPropertyPage() {
                         className={`flex-1 py-3 text-sm font-body rounded-xl border transition-all duration-300 ${
                           form.listingType === lt
                             ? "bg-gold/10 border-gold/40 text-gold"
-                            : "bg-onyx-800/50 border-cream/10 text-cream/68 hover:border-cream/20"
+                            : "bg-onyx-800/50 border-cream/10 text-cream/86 hover:border-cream/20"
                         }`}
                       >
                         {lt === "SALE" ? "For Sale" : lt === "LEASE" ? "For Lease" : "For Rent"}
@@ -1080,7 +1080,7 @@ export default function NewPropertyPage() {
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-body text-cream/60 mb-2">
+                <label className="block text-sm font-body text-cream/81 mb-2">
                   Price (INR) *
                 </label>
                 <div className="relative">
@@ -1095,7 +1095,7 @@ export default function NewPropertyPage() {
                     required
                     min={1}
                     placeholder="Enter price"
-                    className="w-full pl-8 pr-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                    className="w-full pl-8 pr-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   />
                 </div>
               </div>
@@ -1134,7 +1134,7 @@ export default function NewPropertyPage() {
               {/* State + District */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     State *
                   </label>
                   <select
@@ -1153,7 +1153,7 @@ export default function NewPropertyPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     District *
                   </label>
                   <input
@@ -1162,7 +1162,7 @@ export default function NewPropertyPage() {
                     onChange={handleChange}
                     required
                     placeholder="Enter district"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   />
                 </div>
               </div>
@@ -1170,7 +1170,7 @@ export default function NewPropertyPage() {
               {/* Village + Taluka */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Village
                   </label>
                   <input
@@ -1178,11 +1178,11 @@ export default function NewPropertyPage() {
                     value={form.village}
                     onChange={handleChange}
                     placeholder="Enter village"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Taluka
                   </label>
                   <input
@@ -1190,7 +1190,7 @@ export default function NewPropertyPage() {
                     value={form.taluka}
                     onChange={handleChange}
                     placeholder="Enter taluka"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   />
                 </div>
               </div>
@@ -1198,7 +1198,7 @@ export default function NewPropertyPage() {
               {/* Pincode + Address */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Pincode
                   </label>
                   <input
@@ -1207,11 +1207,11 @@ export default function NewPropertyPage() {
                     onChange={handleChange}
                     placeholder="e.g., 422202"
                     maxLength={6}
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Address *
                   </label>
                   <input
@@ -1220,7 +1220,7 @@ export default function NewPropertyPage() {
                     onChange={handleChange}
                     required
                     placeholder="Full address / Survey No."
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   />
                 </div>
               </div>
@@ -1247,7 +1247,7 @@ export default function NewPropertyPage() {
               {/* Area + Unit */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Total Area *
                   </label>
                   <input
@@ -1259,11 +1259,11 @@ export default function NewPropertyPage() {
                     required
                     min={0.01}
                     placeholder="Enter total area"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">
+                  <label className="block text-sm font-body text-cream/81 mb-2">
                     Area Unit *
                   </label>
                   <select
@@ -1283,7 +1283,7 @@ export default function NewPropertyPage() {
 
               {/* Facing */}
               <div>
-                <label className="block text-sm font-body text-cream/60 mb-2">
+                <label className="block text-sm font-body text-cream/81 mb-2">
                   Facing
                 </label>
                 <select
@@ -1316,7 +1316,7 @@ export default function NewPropertyPage() {
                       <div className="w-10 h-6 bg-onyx-800 border border-cream/10 rounded-full peer-checked:bg-gold/20 peer-checked:border-gold/40 transition-all" />
                       <div className="absolute top-1 left-1 w-4 h-4 bg-cream/30 rounded-full peer-checked:translate-x-4 peer-checked:bg-gold transition-all" />
                     </div>
-                    <span className="text-sm font-body text-cream/60">
+                    <span className="text-sm font-body text-cream/81">
                       Road Access
                     </span>
                   </label>
@@ -1324,7 +1324,7 @@ export default function NewPropertyPage() {
 
                 {form.roadAccess && (
                   <div>
-                    <label className="block text-sm font-body text-cream/60 mb-2">
+                    <label className="block text-sm font-body text-cream/81 mb-2">
                       Road Width (feet)
                     </label>
                     <input
@@ -1333,7 +1333,7 @@ export default function NewPropertyPage() {
                       value={form.roadWidth}
                       onChange={handleChange}
                       placeholder="e.g., 30"
-                      className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
+                      className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
                     />
                   </div>
                 )}
@@ -1353,7 +1353,7 @@ export default function NewPropertyPage() {
                     <div className="w-10 h-6 bg-onyx-800 border border-cream/10 rounded-full peer-checked:bg-gold/20 peer-checked:border-gold/40 transition-all" />
                     <div className="absolute top-1 left-1 w-4 h-4 bg-cream/30 rounded-full peer-checked:translate-x-4 peer-checked:bg-gold transition-all" />
                   </div>
-                  <span className="text-sm font-body text-cream/60">
+                  <span className="text-sm font-body text-cream/81">
                     Boundary Wall
                   </span>
                 </label>
@@ -1383,7 +1383,7 @@ export default function NewPropertyPage() {
                     value={location.name}
                     onChange={(e) => updateNearbyLocation(index, "name", e.target.value)}
                     placeholder="Location name"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40"
                   />
                   <input
                     type="number"
@@ -1392,13 +1392,13 @@ export default function NewPropertyPage() {
                     value={location.distanceKm}
                     onChange={(e) => updateNearbyLocation(index, "distanceKm", e.target.value)}
                     placeholder="Distance (km)"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40"
                   />
                   <input
                     value={location.category}
                     onChange={(e) => updateNearbyLocation(index, "category", e.target.value)}
                     placeholder="Type e.g. School"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40"
+                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40"
                   />
                   <button
                     type="button"
@@ -1411,7 +1411,7 @@ export default function NewPropertyPage() {
               ))}
 
               <div className="flex items-center justify-between">
-                <p className="text-xs text-cream/65">Add up to 7 nearby landmarks, schools, roads, or hubs.</p>
+                <p className="text-xs text-cream/84">Add up to 7 nearby landmarks, schools, roads, or hubs.</p>
                 <button
                   type="button"
                   onClick={addNearbyLocation}
@@ -1442,50 +1442,50 @@ export default function NewPropertyPage() {
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">Soil Type</label>
-                  <input name="soilType" value={form.soilType} onChange={handleChange} placeholder="e.g., Black cotton soil" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+                  <label className="block text-sm font-body text-cream/81 mb-2">Soil Type</label>
+                  <input name="soilType" value={form.soilType} onChange={handleChange} placeholder="e.g., Black cotton soil" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
                 </div>
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">Water Source</label>
-                  <input name="waterSource" value={form.waterSource} onChange={handleChange} placeholder="e.g., Borewell, canal" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+                  <label className="block text-sm font-body text-cream/81 mb-2">Water Source</label>
+                  <input name="waterSource" value={form.waterSource} onChange={handleChange} placeholder="e.g., Borewell, canal" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">Irrigation</label>
-                  <input name="irrigation" value={form.irrigation} onChange={handleChange} placeholder="e.g., Drip irrigation" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+                  <label className="block text-sm font-body text-cream/81 mb-2">Irrigation</label>
+                  <input name="irrigation" value={form.irrigation} onChange={handleChange} placeholder="e.g., Drip irrigation" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
                 </div>
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">Annual Yield</label>
-                  <input name="annualYield" value={form.annualYield} onChange={handleChange} placeholder="e.g., 120 quintals soybean" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+                  <label className="block text-sm font-body text-cream/81 mb-2">Annual Yield</label>
+                  <input name="annualYield" value={form.annualYield} onChange={handleChange} placeholder="e.g., 120 quintals soybean" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-body text-cream/60 mb-2">Crop History</label>
-                <textarea name="cropHistory" value={form.cropHistory} onChange={handleChange} rows={3} placeholder="Past crops, seasons, rotations..." className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 resize-none" />
+                <label className="block text-sm font-body text-cream/81 mb-2">Crop History</label>
+                <textarea name="cropHistory" value={form.cropHistory} onChange={handleChange} rows={3} placeholder="Past crops, seasons, rotations..." className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 resize-none" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">Ownership Type</label>
-                  <input name="ownershipType" value={form.ownershipType} onChange={handleChange} placeholder="e.g., Freehold" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+                  <label className="block text-sm font-body text-cream/81 mb-2">Ownership Type</label>
+                  <input name="ownershipType" value={form.ownershipType} onChange={handleChange} placeholder="e.g., Freehold" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
                 </div>
                 <div>
-                  <label className="block text-sm font-body text-cream/60 mb-2">Survey Number</label>
-                  <input name="surveyNumber" value={form.surveyNumber} onChange={handleChange} placeholder="Survey / plot reference" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+                  <label className="block text-sm font-body text-cream/81 mb-2">Survey Number</label>
+                  <input name="surveyNumber" value={form.surveyNumber} onChange={handleChange} placeholder="Survey / plot reference" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" name="hasClearTitle" checked={form.hasClearTitle} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
-                  <span className="text-sm font-body text-cream/60">Clear title available</span>
+                  <span className="text-sm font-body text-cream/81">Clear title available</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" name="isDisputeFree" checked={form.isDisputeFree} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
-                  <span className="text-sm font-body text-cream/60">Dispute free</span>
+                  <span className="text-sm font-body text-cream/81">Dispute free</span>
                 </label>
               </div>
 
@@ -1493,19 +1493,19 @@ export default function NewPropertyPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" name="isNAOrder" checked={form.isNAOrder} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
-                    <span className="text-sm font-body text-cream/60">NA Order</span>
+                    <span className="text-sm font-body text-cream/81">NA Order</span>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" name="isTPScheme" checked={form.isTPScheme} onChange={handleChange} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" />
-                    <span className="text-sm font-body text-cream/60">TP Scheme</span>
+                    <span className="text-sm font-body text-cream/81">TP Scheme</span>
                   </label>
-                  <input name="zonalType" value={form.zonalType} onChange={handleChange} placeholder="Zonal type" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+                  <input name="zonalType" value={form.zonalType} onChange={handleChange} placeholder="Zonal type" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-body text-cream/60 mb-2">Encumbrance Notes</label>
-                <textarea name="encumbrance" value={form.encumbrance} onChange={handleChange} rows={3} placeholder="Loan, lien, or legal remarks if any" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 resize-none" />
+                <label className="block text-sm font-body text-cream/81 mb-2">Encumbrance Notes</label>
+                <textarea name="encumbrance" value={form.encumbrance} onChange={handleChange} rows={3} placeholder="Loan, lien, or legal remarks if any" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 resize-none" />
               </div>
             </div>
           </motion.div>
@@ -1519,16 +1519,16 @@ export default function NewPropertyPage() {
           >
             <h2 className="font-display text-xl font-semibold text-cream mb-6">Soil Report Submission</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input value={soilReport.soilType} onChange={(e) => setSoilReport((prev) => ({ ...prev, soilType: e.target.value }))} placeholder="Report soil type" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input value={soilReport.texture} onChange={(e) => setSoilReport((prev) => ({ ...prev, texture: e.target.value }))} placeholder="Texture" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={soilReport.ph} onChange={(e) => setSoilReport((prev) => ({ ...prev, ph: e.target.value }))} placeholder="pH" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input value={soilReport.fertility} onChange={(e) => setSoilReport((prev) => ({ ...prev, fertility: e.target.value }))} placeholder="Fertility" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={soilReport.nitrogen} onChange={(e) => setSoilReport((prev) => ({ ...prev, nitrogen: e.target.value }))} placeholder="Nitrogen" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={soilReport.phosphorus} onChange={(e) => setSoilReport((prev) => ({ ...prev, phosphorus: e.target.value }))} placeholder="Phosphorus" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={soilReport.potassium} onChange={(e) => setSoilReport((prev) => ({ ...prev, potassium: e.target.value }))} placeholder="Potassium" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.01" value={soilReport.organicCarbon} onChange={(e) => setSoilReport((prev) => ({ ...prev, organicCarbon: e.target.value }))} placeholder="Organic carbon %" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+              <input value={soilReport.soilType} onChange={(e) => setSoilReport((prev) => ({ ...prev, soilType: e.target.value }))} placeholder="Report soil type" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input value={soilReport.texture} onChange={(e) => setSoilReport((prev) => ({ ...prev, texture: e.target.value }))} placeholder="Texture" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.ph} onChange={(e) => setSoilReport((prev) => ({ ...prev, ph: e.target.value }))} placeholder="pH" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input value={soilReport.fertility} onChange={(e) => setSoilReport((prev) => ({ ...prev, fertility: e.target.value }))} placeholder="Fertility" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.nitrogen} onChange={(e) => setSoilReport((prev) => ({ ...prev, nitrogen: e.target.value }))} placeholder="Nitrogen" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.phosphorus} onChange={(e) => setSoilReport((prev) => ({ ...prev, phosphorus: e.target.value }))} placeholder="Phosphorus" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={soilReport.potassium} onChange={(e) => setSoilReport((prev) => ({ ...prev, potassium: e.target.value }))} placeholder="Potassium" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.01" value={soilReport.organicCarbon} onChange={(e) => setSoilReport((prev) => ({ ...prev, organicCarbon: e.target.value }))} placeholder="Organic carbon %" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
               <input type="date" value={soilReport.testedAt} onChange={(e) => setSoilReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm focus:outline-none focus:border-gold/40" />
-              <input value={soilReport.reportUrl} onChange={(e) => setSoilReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+              <input value={soilReport.reportUrl} onChange={(e) => setSoilReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
             </div>
             <label className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
               {uploadingReportField === "soil" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
@@ -1543,8 +1543,8 @@ export default function NewPropertyPage() {
                 className="hidden"
               />
             </label>
-            <textarea value={soilReport.suitableCrops} onChange={(e) => setSoilReport((prev) => ({ ...prev, suitableCrops: e.target.value }))} rows={3} placeholder="Suitable crops (comma separated)" className="w-full mt-5 px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40 resize-none" />
-            <p className="mt-3 text-xs text-cream/65">Submitted soil reports will remain pending until admin approval.</p>
+            <textarea value={soilReport.suitableCrops} onChange={(e) => setSoilReport((prev) => ({ ...prev, suitableCrops: e.target.value }))} rows={3} placeholder="Suitable crops (comma separated)" className="w-full mt-5 px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 resize-none" />
+            <p className="mt-3 text-xs text-cream/84">Submitted soil reports will remain pending until admin approval.</p>
           </motion.div>
           )}
 
@@ -1557,16 +1557,16 @@ export default function NewPropertyPage() {
           >
             <h2 className="font-display text-xl font-semibold text-cream mb-6">Water Report Submission</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input type="number" step="0.1" value={waterReport.waterTableDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterTableDepth: e.target.value }))} placeholder="Water table depth (ft)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input value={waterReport.waterQuality} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterQuality: e.target.value }))} placeholder="Water quality" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={waterReport.tdsLevel} onChange={(e) => setWaterReport((prev) => ({ ...prev, tdsLevel: e.target.value }))} placeholder="TDS level" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" value={waterReport.borewellCount} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellCount: e.target.value }))} placeholder="Borewell count" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={waterReport.borewellDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellDepth: e.target.value }))} placeholder="Borewell depth" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={waterReport.canalDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, canalDistance: e.target.value }))} placeholder="Canal distance (km)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={waterReport.riverDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, riverDistance: e.target.value }))} placeholder="River distance (km)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input type="number" step="0.1" value={waterReport.rainfallAvg} onChange={(e) => setWaterReport((prev) => ({ ...prev, rainfallAvg: e.target.value }))} placeholder="Average rainfall (mm/year)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.waterTableDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterTableDepth: e.target.value }))} placeholder="Water table depth (ft)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input value={waterReport.waterQuality} onChange={(e) => setWaterReport((prev) => ({ ...prev, waterQuality: e.target.value }))} placeholder="Water quality" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.tdsLevel} onChange={(e) => setWaterReport((prev) => ({ ...prev, tdsLevel: e.target.value }))} placeholder="TDS level" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" value={waterReport.borewellCount} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellCount: e.target.value }))} placeholder="Borewell count" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.borewellDepth} onChange={(e) => setWaterReport((prev) => ({ ...prev, borewellDepth: e.target.value }))} placeholder="Borewell depth" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.canalDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, canalDistance: e.target.value }))} placeholder="Canal distance (km)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.riverDistance} onChange={(e) => setWaterReport((prev) => ({ ...prev, riverDistance: e.target.value }))} placeholder="River distance (km)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input type="number" step="0.1" value={waterReport.rainfallAvg} onChange={(e) => setWaterReport((prev) => ({ ...prev, rainfallAvg: e.target.value }))} placeholder="Average rainfall (mm/year)" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
               <input type="date" value={waterReport.testedAt} onChange={(e) => setWaterReport((prev) => ({ ...prev, testedAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))} className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm focus:outline-none focus:border-gold/40" />
-              <input value={waterReport.reportUrl} onChange={(e) => setWaterReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Water report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+              <input value={waterReport.reportUrl} onChange={(e) => setWaterReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Water report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
             </div>
             <label className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
               {uploadingReportField === "water" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
@@ -1581,7 +1581,7 @@ export default function NewPropertyPage() {
                 className="hidden"
               />
             </label>
-            <p className="mt-3 text-xs text-cream/65">Water reports stay attached to the listing while admin approval metadata remains available for review.</p>
+            <p className="mt-3 text-xs text-cream/84">Water reports stay attached to the listing while admin approval metadata remains available for review.</p>
           </motion.div>
           )}
 
@@ -1593,10 +1593,10 @@ export default function NewPropertyPage() {
           >
             <h2 className="font-display text-xl font-semibold text-cream mb-6">Legal Check Submission</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input value={legalReport.titleStatus} onChange={(e) => setLegalReport((prev) => ({ ...prev, titleStatus: e.target.value }))} placeholder="Title status e.g. clear" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input value={legalReport.reportUrl} onChange={(e) => setLegalReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Legal report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input value={legalReport.encumbranceResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceResult: e.target.value }))} placeholder="Encumbrance result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
-              <input value={legalReport.litigationResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationResult: e.target.value }))} placeholder="Litigation result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/55 focus:outline-none focus:border-gold/40" />
+              <input value={legalReport.titleStatus} onChange={(e) => setLegalReport((prev) => ({ ...prev, titleStatus: e.target.value }))} placeholder="Title status e.g. clear" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input value={legalReport.reportUrl} onChange={(e) => setLegalReport((prev) => ({ ...prev, reportUrl: e.target.value }))} placeholder="Legal report URL" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input value={legalReport.encumbranceResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceResult: e.target.value }))} placeholder="Encumbrance result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
+              <input value={legalReport.litigationResult} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationResult: e.target.value }))} placeholder="Litigation result" className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40" />
             </div>
             <label className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-2 text-sm text-gold cursor-pointer hover:bg-gold/10">
               {uploadingReportField === "legal" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
@@ -1612,13 +1612,13 @@ export default function NewPropertyPage() {
               />
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
-              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.encumbranceCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Encumbrance checked</span></label>
-              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.litigationCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Litigation checked</span></label>
-              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.naOrderVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, naOrderVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">NA order verified</span></label>
-              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.tpSchemeVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, tpSchemeVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">TP scheme verified</span></label>
-              <label className="flex items-center gap-3 cursor-pointer md:col-span-2"><input type="checkbox" checked={legalReport.revenueRecordOk} onChange={(e) => setLegalReport((prev) => ({ ...prev, revenueRecordOk: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/60">Revenue records matched</span></label>
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.encumbranceCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, encumbranceCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Encumbrance checked</span></label>
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.litigationCheck} onChange={(e) => setLegalReport((prev) => ({ ...prev, litigationCheck: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Litigation checked</span></label>
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.naOrderVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, naOrderVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">NA order verified</span></label>
+              <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={legalReport.tpSchemeVerified} onChange={(e) => setLegalReport((prev) => ({ ...prev, tpSchemeVerified: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">TP scheme verified</span></label>
+              <label className="flex items-center gap-3 cursor-pointer md:col-span-2"><input type="checkbox" checked={legalReport.revenueRecordOk} onChange={(e) => setLegalReport((prev) => ({ ...prev, revenueRecordOk: e.target.checked }))} className="h-4 w-4 accent-[var(--color-gold,#c8a97e)]" /><span className="text-sm text-cream/81">Revenue records matched</span></label>
             </div>
-            <p className="mt-3 text-xs text-cream/65">Legal checks become visible as verified only after admin approval.</p>
+            <p className="mt-3 text-xs text-cream/84">Legal checks become visible as verified only after admin approval.</p>
           </motion.div>
 
           {/* Section: Property Images */}
@@ -1637,7 +1637,7 @@ export default function NewPropertyPage() {
                   Property Images
                 </h2>
               </div>
-              <span className="text-xs font-body text-cream/68">
+              <span className="text-xs font-body text-cream/86">
                 {uploadedImages.length} / {hasUnlimitedImages ? "Unlimited" : maxImages} images
               </span>
             </div>
@@ -1668,13 +1668,13 @@ export default function NewPropertyPage() {
                 {uploading ? (
                   <Loader2 className="w-8 h-8 text-gold animate-spin" />
                 ) : (
-                  <Upload className="w-8 h-8 text-cream/55" />
+                  <Upload className="w-8 h-8 text-cream/79" />
                 )}
                 <div>
-                  <p className="text-sm font-body text-cream/60">
+                  <p className="text-sm font-body text-cream/81">
                     {uploading ? "Uploading..." : "Drag & drop images or click to browse"}
                   </p>
-                  <p className="text-xs font-body text-cream/62 mt-1">
+                  <p className="text-xs font-body text-cream/82 mt-1">
                     JPEG, PNG, WebP up to 5MB each
                   </p>
                 </div>
@@ -1722,10 +1722,10 @@ export default function NewPropertyPage() {
                 </div>
                 <div>
                   <h2 className="font-display text-xl font-semibold text-cream">Listing Videos</h2>
-                  <p className="text-xs text-cream/65 mt-1">Upload walkthrough videos for this listing.</p>
+                  <p className="text-xs text-cream/84 mt-1">Upload walkthrough videos for this listing.</p>
                 </div>
               </div>
-              <span className="text-xs font-body text-cream/68">
+              <span className="text-xs font-body text-cream/86">
                 {uploadedVideos.length} / 5 videos
               </span>
             </div>
@@ -1745,7 +1745,7 @@ export default function NewPropertyPage() {
                   className="hidden"
                 />
               </label>
-              <p className="mt-2 text-xs text-cream/65">MP4, WebM, or MOV up to 100MB each.</p>
+              <p className="mt-2 text-xs text-cream/84">MP4, WebM, or MOV up to 100MB each.</p>
             </div>
 
             {uploadedVideos.length > 0 && (
@@ -1755,7 +1755,7 @@ export default function NewPropertyPage() {
                     <div className="flex flex-col gap-3 md:flex-row md:items-center">
                       <video src={video.url} controls className="h-28 w-full rounded-lg bg-black md:w-56" />
                       <div className="flex-1">
-                        <label className="mb-2 block text-xs uppercase tracking-wide text-cream/68">Video Title</label>
+                        <label className="mb-2 block text-xs uppercase tracking-wide text-cream/86">Video Title</label>
                         <input
                           value={video.title}
                           onChange={(event) =>
@@ -1794,7 +1794,7 @@ export default function NewPropertyPage() {
               </div>
               <div>
                 <h2 className="font-display text-xl font-semibold text-cream">Property Documents</h2>
-                <p className="text-xs text-cream/65 mt-1">Upload brochure, title proof, maps, extracts, or approvals.</p>
+                <p className="text-xs text-cream/84 mt-1">Upload brochure, title proof, maps, extracts, or approvals.</p>
               </div>
             </div>
 
@@ -1818,7 +1818,7 @@ export default function NewPropertyPage() {
                 {uploadedDocuments.map((document, index) => (
                   <div key={document.publicId} className="grid gap-3 rounded-xl border border-cream/8 bg-onyx-800/30 p-4 md:grid-cols-[1.3fr_1fr_auto]">
                     <div>
-                      <label className="mb-2 block text-xs uppercase tracking-wide text-cream/68">Document Name</label>
+                      <label className="mb-2 block text-xs uppercase tracking-wide text-cream/86">Document Name</label>
                       <input
                         value={document.name}
                         onChange={(event) =>
@@ -1832,7 +1832,7 @@ export default function NewPropertyPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-xs uppercase tracking-wide text-cream/68">Type</label>
+                      <label className="mb-2 block text-xs uppercase tracking-wide text-cream/86">Type</label>
                       <select
                         value={document.type}
                         onChange={(event) =>
@@ -1877,7 +1877,7 @@ export default function NewPropertyPage() {
               </div>
               <div>
                 <h2 className="font-display text-xl font-semibold text-cream">Drone Map</h2>
-                <p className="text-xs text-cream/65 mt-1">Add an orthographic survey or plotted drone view for this listing.</p>
+                <p className="text-xs text-cream/84 mt-1">Add an orthographic survey or plotted drone view for this listing.</p>
               </div>
             </div>
 
@@ -1942,7 +1942,7 @@ export default function NewPropertyPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="px-6 py-3 text-sm font-body text-cream/50 border border-cream/10 rounded-xl hover:text-cream hover:border-cream/20 transition-all"
+              className="px-6 py-3 text-sm font-body text-cream/78 border border-cream/10 rounded-xl hover:text-cream hover:border-cream/20 transition-all"
             >
               Cancel
             </button>

@@ -59,7 +59,7 @@ export default function ContactPage() {
   };
 
   const inputClass =
-    "w-full bg-onyx-900/60 border border-cream/10 rounded-xl px-4 py-3 text-cream font-body text-sm placeholder:text-cream/58 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-colors duration-200";
+    "w-full bg-onyx-900/60 border border-cream/10 rounded-xl px-4 py-3 text-cream font-body text-sm placeholder:text-cream/80 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-colors duration-200";
 
   return (
     <div className="min-h-screen bg-onyx-950">
@@ -88,7 +88,7 @@ export default function ContactPage() {
           </motion.h1>
 
           <motion.p
-            className="text-cream/50 font-body text-lg max-w-xl mx-auto"
+            className="text-cream/78 font-body text-lg max-w-xl mx-auto"
             {...fadeUp}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
@@ -121,7 +121,7 @@ export default function ContactPage() {
                     <h4 className="font-body font-medium text-cream text-sm mb-0.5">
                       Email
                     </h4>
-                    <p className="text-cream/68 font-body text-sm">
+                    <p className="text-cream/86 font-body text-sm">
                       support@onyxpropcare.com
                     </p>
                   </div>
@@ -135,7 +135,7 @@ export default function ContactPage() {
                     <h4 className="font-body font-medium text-cream text-sm mb-0.5">
                       Phone
                     </h4>
-                    <p className="text-cream/68 font-body text-sm">
+                    <p className="text-cream/86 font-body text-sm">
                       +91 81470 57801
                     </p>
                   </div>
@@ -149,7 +149,7 @@ export default function ContactPage() {
                     <h4 className="font-body font-medium text-cream text-sm mb-0.5">
                       Office
                     </h4>
-                    <p className="text-cream/68 font-body text-sm leading-relaxed">
+                    <p className="text-cream/86 font-body text-sm leading-relaxed">
                       Onyx Propcare Pvt. Ltd.<br />1st Floor, No.36, Shop No.4, Bidarahalli Hobli,<br />Dr SRK Nagar Post, Near Anjaneya Temple,<br />Byrathi, Bengaluru, Bengaluru Urban,<br />Karnataka, 560077
                     </p>
                   </div>
@@ -161,7 +161,7 @@ export default function ContactPage() {
               <h3 className="font-body font-medium text-cream text-sm mb-2">
                 Business Hours
               </h3>
-              <p className="text-cream/68 font-body text-sm leading-relaxed">
+              <p className="text-cream/86 font-body text-sm leading-relaxed">
                 Monday - Friday: 9:00 AM - 6:00 PM IST
                 <br />
                 Saturday: 10:00 AM - 2:00 PM IST
@@ -185,7 +185,7 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-cream/60 font-body text-xs mb-1.5">
+                    <label className="block text-cream/81 font-body text-xs mb-1.5">
                       Name
                     </label>
                     <input
@@ -199,7 +199,7 @@ export default function ContactPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-cream/60 font-body text-xs mb-1.5">
+                    <label className="block text-cream/81 font-body text-xs mb-1.5">
                       Email
                     </label>
                     <input
@@ -216,7 +216,7 @@ export default function ContactPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-cream/60 font-body text-xs mb-1.5">
+                    <label className="block text-cream/81 font-body text-xs mb-1.5">
                       Phone
                     </label>
                     <input
@@ -229,7 +229,7 @@ export default function ContactPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-cream/60 font-body text-xs mb-1.5">
+                    <label className="block text-cream/81 font-body text-xs mb-1.5">
                       Subject
                     </label>
                     <select
@@ -248,7 +248,7 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label className="block text-cream/60 font-body text-xs mb-1.5">
+                  <label className="block text-cream/81 font-body text-xs mb-1.5">
                     Message
                   </label>
                   <textarea

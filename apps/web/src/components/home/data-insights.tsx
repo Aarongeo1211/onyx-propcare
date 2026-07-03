@@ -124,7 +124,7 @@ export function DataInsights() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-cream/72 max-w-2xl mx-auto text-base lg:text-lg font-body leading-relaxed"
+            className="text-cream/90 max-w-2xl mx-auto text-base lg:text-lg font-body leading-relaxed"
           >
             Every property comes with four layers of verified data — transforming
             how you evaluate land investments in India.
@@ -159,7 +159,7 @@ export function DataInsights() {
                       >
                         <insight.icon className={`w-7 h-7 ${insight.iconColor}`} />
                       </div>
-                      <span className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-onyx-950 border border-cream/10 flex items-center justify-center text-[10px] font-mono font-medium text-cream/50">
+                      <span className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-onyx-950 border border-cream/10 flex items-center justify-center text-[10px] font-mono font-medium text-cream/78">
                         {insight.number}
                       </span>
                     </div>
@@ -169,7 +169,7 @@ export function DataInsights() {
                       <h3 className="font-display text-2xl lg:text-3xl font-semibold text-cream/90 mb-2 group-hover:text-gold transition-colors duration-300">
                         {insight.title}
                       </h3>
-                      <p className="text-sm lg:text-base text-cream/72 leading-relaxed font-body">
+                      <p className="text-sm lg:text-base text-cream/90 leading-relaxed font-body">
                         {insight.description}
                       </p>
                     </div>
@@ -185,7 +185,7 @@ export function DataInsights() {
                         key={metric.label}
                         className="flex flex-col gap-0.5 px-4 py-3 rounded-xl bg-cream/[0.02] border border-cream/[0.04] hover:bg-cream/[0.04] transition-colors duration-300"
                       >
-                        <span className="text-[11px] text-cream/62 font-body uppercase tracking-wider">
+                        <span className="text-[11px] text-cream/82 font-body uppercase tracking-wider">
                           {metric.label}
                         </span>
                         <span className={`text-sm font-mono font-medium ${insight.iconColor}`}>

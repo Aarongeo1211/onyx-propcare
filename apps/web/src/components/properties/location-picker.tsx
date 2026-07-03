@@ -341,7 +341,7 @@ export default function LocationPicker(props: LocationPickerProps) {
     <div ref={containerRef} className="relative space-y-4 rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
       <div className="flex flex-col gap-3 overflow-visible lg:flex-row">
         <div className="relative flex-1 overflow-visible">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/58" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/80" />
           <input
             value={query}
             onChange={(event) => {
@@ -350,13 +350,13 @@ export default function LocationPicker(props: LocationPickerProps) {
             }}
             onFocus={() => setSearchOpen(true)}
             placeholder="Search exact plot location, village, survey road..."
-            className="w-full rounded-xl border border-cream/10 bg-onyx-900/70 py-3 pl-10 pr-4 text-sm text-cream placeholder:text-cream/55 focus:border-gold/40 focus:outline-none"
+            className="w-full rounded-xl border border-cream/10 bg-onyx-900/70 py-3 pl-10 pr-4 text-sm text-cream placeholder:text-cream/79 focus:border-gold/40 focus:outline-none"
           />
 
           {searchOpen && (searching || results.length > 0) && (
             <div className="absolute left-0 right-0 top-full z-[9999] mt-2 max-h-[60vh] overflow-y-auto rounded-xl border border-cream/10 bg-onyx-900 shadow-2xl shadow-black/40 md:max-h-72">
               {searching ? (
-                <div className="flex items-center gap-2 px-4 py-3 text-sm text-cream/72">
+                <div className="flex items-center gap-2 px-4 py-3 text-sm text-cream/90">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Searching locations...
                 </div>
@@ -370,7 +370,7 @@ export default function LocationPicker(props: LocationPickerProps) {
                       e.preventDefault();
                       handleResultSelect(result);
                     }}
-                    className="block w-full border-b border-cream/5 px-4 py-3 text-left text-sm text-cream/65 transition active:bg-gold/10 hover:bg-gold/5 hover:text-cream"
+                    className="block w-full border-b border-cream/5 px-4 py-3 text-left text-sm text-cream/84 transition active:bg-gold/10 hover:bg-gold/5 hover:text-cream"
                   >
                     {result.display_name}
                   </button>
@@ -404,8 +404,8 @@ export default function LocationPicker(props: LocationPickerProps) {
 
           <div className="mt-4 space-y-3 text-sm">
             <div>
-              <p className="text-cream/58">Coordinates</p>
-              <p className="mt-1 font-mono text-cream/70">
+              <p className="text-cream/80">Coordinates</p>
+              <p className="mt-1 font-mono text-cream/88">
                 {latitude !== null && longitude !== null
                   ? `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
                   : "Pin not selected yet"}
@@ -413,13 +413,13 @@ export default function LocationPicker(props: LocationPickerProps) {
             </div>
 
             <div>
-              <p className="text-cream/58">Resolved address</p>
-              <p className="mt-1 leading-relaxed text-cream/60">
+              <p className="text-cream/80">Resolved address</p>
+              <p className="mt-1 leading-relaxed text-cream/81">
                 {currentSummary || "Search, click, or drag the marker to fill the location fields."}
               </p>
             </div>
 
-            <div className="rounded-xl border border-cream/10 bg-onyx-950/50 p-3 text-xs leading-relaxed text-cream/68">
+            <div className="rounded-xl border border-cream/10 bg-onyx-950/50 p-3 text-xs leading-relaxed text-cream/86">
               Click on the map or drag the marker to pin the exact plot. You can still edit the address fields manually after autofill.
             </div>
           </div>

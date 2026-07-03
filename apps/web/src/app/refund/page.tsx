@@ -75,14 +75,14 @@ export default function RefundPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
           <p className="text-sm uppercase tracking-[0.35em] text-gold/60">Billing</p>
           <h1 className="mt-3 font-display text-4xl text-cream">Refund Requests</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/72">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/90">
             Use this page to submit, track, and document subscription refund requests. The support team reviews each case inside the admin console with a full audit trail.
           </p>
         </motion.div>
 
         {!session?.user ? (
           <div className="rounded-3xl border border-cream/8 bg-onyx-900/35 p-8">
-            <p className="text-sm text-cream/72">Log in to submit and track refund requests for your account.</p>
+            <p className="text-sm text-cream/90">Log in to submit and track refund requests for your account.</p>
             <div className="mt-6">
               <Link href="/login">
                 <Button>Log In</Button>
@@ -126,22 +126,22 @@ export default function RefundPage() {
               <h2 className="font-display text-2xl text-cream">Request History</h2>
               <div className="mt-6 space-y-4">
                 {requests.length === 0 ? (
-                  <p className="text-sm text-cream/68">No refund requests submitted yet.</p>
+                  <p className="text-sm text-cream/86">No refund requests submitted yet.</p>
                 ) : (
                   requests.map((request) => (
                     <div key={request.id} className="rounded-2xl border border-cream/8 bg-onyx-950/35 p-4">
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className="rounded-full border border-cream/10 px-3 py-1 text-[10px] uppercase tracking-wide text-cream/55">
+                        <span className="rounded-full border border-cream/10 px-3 py-1 text-[10px] uppercase tracking-wide text-cream/79">
                           {request.status.replace(/_/g, " ")}
                         </span>
-                        <span className="text-xs text-cream/58">{new Date(request.createdAt).toLocaleDateString("en-IN")}</span>
+                        <span className="text-xs text-cream/80">{new Date(request.createdAt).toLocaleDateString("en-IN")}</span>
                       </div>
                       {request.subscription?.plan && (
                         <p className="mt-3 text-xs text-gold/70">
                           {request.subscription.plan.name} • ₹{request.subscription.plan.price.toLocaleString("en-IN")}
                         </p>
                       )}
-                      <p className="mt-3 text-sm text-cream/50">{request.reason}</p>
+                      <p className="mt-3 text-sm text-cream/78">{request.reason}</p>
                     </div>
                   ))
                 )}

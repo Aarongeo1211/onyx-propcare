@@ -74,7 +74,7 @@ function ResetPasswordForm() {
         <h2 className="font-display text-2xl font-semibold text-cream mb-3">
           Invalid Reset Link
         </h2>
-        <p className="text-cream/68 font-body mb-8">
+        <p className="text-cream/86 font-body mb-8">
           This password reset link is invalid or has expired.
         </p>
         <Link href="/forgot-password">
@@ -97,7 +97,7 @@ function ResetPasswordForm() {
         <h2 className="font-display text-2xl font-semibold text-cream mb-3">
           Password Reset
         </h2>
-        <p className="text-cream/68 font-body">
+        <p className="text-cream/86 font-body">
           Redirecting you to login...
         </p>
       </motion.div>
@@ -109,7 +109,7 @@ function ResetPasswordForm() {
       <motion.div custom={0} variants={fadeUp}>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-cream/68 hover:text-cream/70 transition-colors font-body text-sm mb-8"
+          className="inline-flex items-center gap-2 text-cream/86 hover:text-cream/88 transition-colors font-body text-sm mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to login
@@ -120,7 +120,7 @@ function ResetPasswordForm() {
         <h2 className="font-display text-3xl font-semibold text-cream mb-2">
           Set New Password
         </h2>
-        <p className="text-cream/68 font-body mb-8">
+        <p className="text-cream/86 font-body mb-8">
           Enter your new password below.
         </p>
       </motion.div>
@@ -138,7 +138,7 @@ function ResetPasswordForm() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <motion.div custom={2} variants={fadeUp}>
-          <label className="block text-sm font-body text-cream/60 mb-2">
+          <label className="block text-sm font-body text-cream/81 mb-2">
             New Password
           </label>
           <div className="relative">
@@ -154,7 +154,7 @@ function ResetPasswordForm() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-cream/62 hover:text-cream/60 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-cream/82 hover:text-cream/81 transition-colors"
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -162,7 +162,7 @@ function ResetPasswordForm() {
         </motion.div>
 
         <motion.div custom={3} variants={fadeUp}>
-          <label className="block text-sm font-body text-cream/60 mb-2">
+          <label className="block text-sm font-body text-cream/81 mb-2">
             Confirm Password
           </label>
           <Input

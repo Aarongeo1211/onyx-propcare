@@ -337,7 +337,7 @@ export function PropertyDetailPageClient({
 
               <h1 className="heading-md mb-2 text-cream">{property.title}</h1>
 
-              <div className="mb-4 flex items-center gap-1.5 text-sm text-cream/68">
+              <div className="mb-4 flex items-center gap-1.5 text-sm text-cream/86">
                 <MapPin className="h-4 w-4" />
                 <span>
                   {property.address}
@@ -349,9 +349,9 @@ export function PropertyDetailPageClient({
 
               <div className="flex items-baseline gap-3">
                 <span className="font-display text-4xl font-semibold text-gold">{formatPrice(property.price)}</span>
-                <span className="text-sm text-cream/62">({formatPriceFull(property.price)})</span>
+                <span className="text-sm text-cream/82">({formatPriceFull(property.price)})</span>
                 {property.isNegotiable && (
-                  <span className="rounded-full border border-cream/10 px-2 py-0.5 text-xs text-cream/68">
+                  <span className="rounded-full border border-cream/10 px-2 py-0.5 text-xs text-cream/86">
                     Negotiable
                   </span>
                 )}
@@ -392,7 +392,7 @@ export function PropertyDetailPageClient({
               className="mb-10"
             >
               <h2 className="mb-4 font-display text-xl font-semibold text-cream">About this Property</h2>
-              <div className="whitespace-pre-line text-sm leading-relaxed text-cream/50 font-body">
+              <div className="whitespace-pre-line text-sm leading-relaxed text-cream/78 font-body">
                 {property.description}
               </div>
             </motion.div>
@@ -409,7 +409,7 @@ export function PropertyDetailPageClient({
                   {property.nearbyLocations.slice(0, 7).map((location, index) => (
                     <div key={`${location.name}-${index}`} className="rounded-xl border border-cream/8 bg-onyx-900/30 p-4">
                       <p className="text-sm font-medium text-cream">{location.name}</p>
-                      <p className="mt-1 text-xs text-cream/65">
+                      <p className="mt-1 text-xs text-cream/84">
                         {location.distanceKm} km away
                         {location.category ? ` - ${location.category}` : ""}
                       </p>
@@ -461,7 +461,7 @@ export function PropertyDetailPageClient({
                       className="rounded-xl border border-cream/8 bg-onyx-900/30 p-4 transition-colors hover:border-gold/20 hover:bg-onyx-900/50"
                     >
                       <p className="text-sm font-medium text-cream">{document.name}</p>
-                      <p className="mt-1 text-xs uppercase tracking-wide text-cream/65">
+                      <p className="mt-1 text-xs uppercase tracking-wide text-cream/84">
                         {document.type.replace(/_/g, " ")}
                       </p>
                     </a>
@@ -533,7 +533,7 @@ export function PropertyDetailPageClient({
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="font-display text-xl font-semibold text-cream">Location</h2>
-                    <p className="mt-1 text-sm text-cream/65">
+                    <p className="mt-1 text-sm text-cream/84">
                       Exact property pin based on the seller&apos;s selected map location.
                     </p>
                   </div>
@@ -558,12 +558,12 @@ export function PropertyDetailPageClient({
             <div className="sticky top-24 space-y-6">
               <div className="rounded-2xl border border-cream/8 bg-onyx-900/50 p-6 backdrop-blur-sm">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-cream/10 bg-onyx-800 text-lg font-display text-cream/68">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-cream/10 bg-onyx-800 text-lg font-display text-cream/86">
                     {property.owner.name.charAt(0)}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-cream">{property.owner.name}</p>
-                    <p className="text-xs text-cream/62">Property Owner</p>
+                    <p className="text-xs text-cream/82">Property Owner</p>
                   </div>
                 </div>
 
@@ -619,12 +619,12 @@ export function PropertyDetailPageClient({
                   <div className="py-6 text-center">
                     <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
                     <p className="font-medium text-cream">Inquiry Sent!</p>
-                    <p className="mt-1 text-xs text-cream/68">The owner will contact you soon.</p>
+                    <p className="mt-1 text-xs text-cream/86">The owner will contact you soon.</p>
                   </div>
                 ) : !session?.user ? (
                   <div className="py-6 text-center">
-                    <MessageSquare className="mx-auto mb-3 h-8 w-8 text-cream/55" />
-                    <p className="mb-3 text-sm text-cream/60">Please log in to send an inquiry.</p>
+                    <MessageSquare className="mx-auto mb-3 h-8 w-8 text-cream/79" />
+                    <p className="mb-3 text-sm text-cream/81">Please log in to send an inquiry.</p>
                     <Link href="/login">
                       <Button variant="outline" size="sm" className="w-full">
                         Log in
@@ -642,21 +642,21 @@ export function PropertyDetailPageClient({
                       placeholder="Your name"
                       value={inquiryForm.name}
                       onChange={(event) => setInquiryForm((prev) => ({ ...prev, name: event.target.value }))}
-                      className="w-full rounded-lg border border-cream/10 bg-onyx-900/60 px-3 py-2 text-sm text-cream placeholder:text-cream/58 focus:border-gold/40 focus:outline-none"
+                      className="w-full rounded-lg border border-cream/10 bg-onyx-900/60 px-3 py-2 text-sm text-cream placeholder:text-cream/80 focus:border-gold/40 focus:outline-none"
                     />
                     <input
                       type="tel"
                       placeholder="Phone number"
                       value={inquiryForm.phone}
                       onChange={(event) => setInquiryForm((prev) => ({ ...prev, phone: event.target.value }))}
-                      className="w-full rounded-lg border border-cream/10 bg-onyx-900/60 px-3 py-2 text-sm text-cream placeholder:text-cream/58 focus:border-gold/40 focus:outline-none"
+                      className="w-full rounded-lg border border-cream/10 bg-onyx-900/60 px-3 py-2 text-sm text-cream placeholder:text-cream/80 focus:border-gold/40 focus:outline-none"
                     />
                     <textarea
                       placeholder="I'm interested in this property..."
                       value={inquiryForm.message}
                       onChange={(event) => setInquiryForm((prev) => ({ ...prev, message: event.target.value }))}
                       rows={3}
-                      className="w-full resize-none rounded-lg border border-cream/10 bg-onyx-900/60 px-3 py-2 text-sm text-cream placeholder:text-cream/58 focus:border-gold/40 focus:outline-none"
+                      className="w-full resize-none rounded-lg border border-cream/10 bg-onyx-900/60 px-3 py-2 text-sm text-cream placeholder:text-cream/80 focus:border-gold/40 focus:outline-none"
                     />
                     <Button
                       onClick={handleInquiry}
@@ -692,19 +692,19 @@ export function PropertyDetailPageClient({
                 <h3 className="mb-4 text-sm font-medium text-cream">Price Summary</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-cream/68">Total Price</span>
+                    <span className="text-cream/86">Total Price</span>
                     <span className="font-medium text-cream">{formatPriceFull(property.price)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cream/68">Price per {property.areaUnit}</span>
+                    <span className="text-cream/86">Price per {property.areaUnit}</span>
                     <span className="text-cream">{formatPrice(property.price / property.totalArea)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cream/68">Total Area</span>
+                    <span className="text-cream/86">Total Area</span>
                     <span className="text-cream">{formatArea(property.totalArea, property.areaUnit)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-cream/68">Listing Type</span>
+                    <span className="text-cream/86">Listing Type</span>
                     <span className="text-cream">{property.listingType === "SALE" ? "For Sale" : "For Lease"}</span>
                   </div>
                 </div>
@@ -813,7 +813,7 @@ function getDefaultTab(property: PropertyDetail): DataTab {
 function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <div className="rounded-xl border border-cream/8 bg-onyx-900/30 p-4">
-      <div className="mb-1 flex items-center gap-2 text-cream/62">
+      <div className="mb-1 flex items-center gap-2 text-cream/82">
         <span className="flex h-4 w-4 items-center justify-center [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
         <span className="text-xs">{label}</span>
       </div>
@@ -837,7 +837,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-all ${
-        active ? "border-gold text-gold" : "border-transparent text-cream/68 hover:border-cream/10 hover:text-cream/60"
+        active ? "border-gold text-gold" : "border-transparent text-cream/86 hover:border-cream/10 hover:text-cream/81"
       }`}
     >
       {icon}
@@ -884,7 +884,7 @@ function SoilDataTab({ data }: { data: SoilData }) {
         </div>
       )}
 
-      {data.testedAt && <p className="text-xs text-cream/58">Tested on {new Date(data.testedAt).toLocaleDateString("en-IN")}</p>}
+      {data.testedAt && <p className="text-xs text-cream/80">Tested on {new Date(data.testedAt).toLocaleDateString("en-IN")}</p>}
       {data.reportUrl && (
         <a href={data.reportUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm text-gold hover:text-gold-light">
           Open soil report
@@ -906,7 +906,7 @@ function WaterDataTab({ data }: { data: WaterData }) {
         <DataField label="River Distance" value={data.riverDistance ? `${data.riverDistance} km` : "N/A"} />
         <DataField label="Avg Rainfall" value={data.rainfallAvg ? `${data.rainfallAvg} mm/yr` : "N/A"} />
       </div>
-      {data.testedAt && <p className="text-xs text-cream/58">Tested on {new Date(data.testedAt).toLocaleDateString("en-IN")}</p>}
+      {data.testedAt && <p className="text-xs text-cream/80">Tested on {new Date(data.testedAt).toLocaleDateString("en-IN")}</p>}
       {data.reportUrl && (
         <a href={data.reportUrl} target="_blank" rel="noreferrer" className="inline-flex text-sm text-gold hover:text-gold-light">
           Open water report
@@ -942,7 +942,7 @@ function LegalCheckTab({ data }: { data: LegalCheck }) {
         />
       </div>
       {data.verifiedBy && (
-        <p className="text-xs text-cream/58">
+        <p className="text-xs text-cream/80">
           Verified by {data.verifiedBy}
           {data.verifiedAt && ` on ${new Date(data.verifiedAt).toLocaleDateString("en-IN")}`}
         </p>
@@ -962,11 +962,11 @@ function DroneMapTab({ data }: { data: DroneMap }) {
       <div className="relative aspect-video overflow-hidden rounded-lg bg-onyx-800/50">
         <Image src={data.mapUrl} alt="Drone survey map" fill className="object-contain" />
       </div>
-      <div className="flex gap-4 text-xs text-cream/68">
+      <div className="flex gap-4 text-xs text-cream/86">
         {data.resolution && <span>Resolution: {data.resolution}</span>}
         {data.capturedAt && <span>Captured: {new Date(data.capturedAt).toLocaleDateString("en-IN")}</span>}
       </div>
-      {data.notes && <p className="text-sm text-cream/50">{data.notes}</p>}
+      {data.notes && <p className="text-sm text-cream/78">{data.notes}</p>}
     </div>
   );
 }
@@ -974,7 +974,7 @@ function DroneMapTab({ data }: { data: DroneMap }) {
 function DataField({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div>
-      <p className="mb-1 text-xs text-cream/62">{label}</p>
+      <p className="mb-1 text-xs text-cream/82">{label}</p>
       <p className={`text-sm font-medium ${highlight ? "text-gold" : "text-cream"}`}>{value}</p>
     </div>
   );
@@ -985,7 +985,7 @@ function NPKBar({ label, value, max, color }: { label: string; value: number | n
   return (
     <div className="flex-1">
       <div className="mb-1 flex items-baseline justify-between">
-        <span className="text-xs text-cream/68">{label}</span>
+        <span className="text-xs text-cream/86">{label}</span>
         <span className="text-xs text-cream">{value || 0}</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-onyx-800">
@@ -1014,7 +1014,7 @@ function LegalItem({
       {icons[status]}
       <div>
         <p className="text-sm font-medium text-cream">{label}</p>
-        <p className="text-xs capitalize text-cream/68">{detail}</p>
+        <p className="text-xs capitalize text-cream/86">{detail}</p>
       </div>
     </div>
   );
@@ -1048,7 +1048,7 @@ function PropertyNotFound() {
     <div className="flex min-h-screen items-center justify-center bg-onyx-950 pt-20">
       <div className="text-center">
         <h1 className="mb-4 font-display text-3xl text-cream">Property Not Found</h1>
-        <p className="mb-6 text-cream/68">The property you are looking for does not exist or has been removed.</p>
+        <p className="mb-6 text-cream/86">The property you are looking for does not exist or has been removed.</p>
         <Link href="/properties">
           <Button>Browse Properties</Button>
         </Link>

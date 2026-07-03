@@ -89,14 +89,14 @@ export default function DashboardSubscriptionPage() {
         {!usage ? (
           <div className="mx-auto max-w-2xl rounded-[2rem] border border-cream/10 bg-onyx-900/55 p-10 text-center backdrop-blur-xl">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-cream/10 bg-onyx-950/40">
-              <CreditCard className="h-8 w-8 text-cream/55" />
+              <CreditCard className="h-8 w-8 text-cream/79" />
             </div>
             <h3 className="mt-6 font-display text-2xl text-cream">No active listing plan</h3>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-cream/50">
+            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-cream/78">
               Activate a pack to unlock category-aware listing limits, featured placement, and the media allowance tied to your seller inventory.
             </p>
             {!paymentsEnabled && (
-              <div className="mx-auto mt-5 max-w-lg rounded-2xl border border-earth-green/20 bg-earth-green/10 px-4 py-3 text-left text-sm text-cream/65">
+              <div className="mx-auto mt-5 max-w-lg rounded-2xl border border-earth-green/20 bg-earth-green/10 px-4 py-3 text-left text-sm text-cream/84">
                 <p className="font-medium text-earth-green">Free seller onboarding is available now.</p>
                 <p className="mt-1">
                   Paid packs will unlock here automatically once Razorpay is configured in production.
@@ -124,7 +124,7 @@ export default function DashboardSubscriptionPage() {
                     Active packs
                   </span>
                   <h2 className="mt-4 font-display text-3xl text-cream">{usage.planName}</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-7 text-cream/60">
+                  <p className="mt-2 max-w-2xl text-sm leading-7 text-cream/81">
                     {usage.activePlans.length} active pack{usage.activePlans.length > 1 ? "s" : ""} are powering your listings right now. Limits below are aggregated across all current packs.
                   </p>
                 </div>
@@ -151,7 +151,7 @@ export default function DashboardSubscriptionPage() {
 
               {usage.maxProperties !== -1 && (
                 <div className="mt-8">
-                  <div className="mb-2 flex items-center justify-between text-sm text-cream/55">
+                  <div className="mb-2 flex items-center justify-between text-sm text-cream/79">
                     <span>Property slot usage</span>
                     <span>{propertyUsagePercent}%</span>
                   </div>
@@ -180,7 +180,7 @@ export default function DashboardSubscriptionPage() {
                     <div>
                       <p className="text-xs uppercase tracking-[0.22em] text-gold/75">{plan.category.replace(/_/g, " ")}</p>
                       <h3 className="mt-2 font-display text-2xl text-cream">{plan.name}</h3>
-                      <p className="mt-2 text-sm text-cream/50">Pack code: {plan.code}</p>
+                      <p className="mt-2 text-sm text-cream/78">Pack code: {plan.code}</p>
                     </div>
                     <div className="rounded-full border border-gold/20 bg-gold/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-gold">
                       {plan.type}
@@ -190,7 +190,7 @@ export default function DashboardSubscriptionPage() {
                   <div className="mt-6 grid grid-cols-2 gap-3">
                     <div className="rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
                       <LayoutGrid className="h-4 w-4 text-gold" />
-                      <p className="mt-2 text-sm text-cream/70">
+                      <p className="mt-2 text-sm text-cream/88">
                         {plan.maxProperties === -1
                           ? `${plan.propertiesUsed} used / unlimited`
                           : `${plan.propertiesUsed} of ${plan.maxProperties} slots used`}
@@ -198,15 +198,15 @@ export default function DashboardSubscriptionPage() {
                     </div>
                     <div className="rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
                       <ImageIcon className="h-4 w-4 text-gold" />
-                      <p className="mt-2 text-sm text-cream/70">{formatLimit(plan.maxImages, "images")}</p>
+                      <p className="mt-2 text-sm text-cream/88">{formatLimit(plan.maxImages, "images")}</p>
                     </div>
                     <div className="rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
                       <Video className="h-4 w-4 text-gold" />
-                      <p className="mt-2 text-sm text-cream/70">{formatLimit(plan.maxVideos, "videos")}</p>
+                      <p className="mt-2 text-sm text-cream/88">{formatLimit(plan.maxVideos, "videos")}</p>
                     </div>
                     <div className="rounded-2xl border border-cream/10 bg-onyx-950/35 p-4">
                       <Calendar className="h-4 w-4 text-gold" />
-                      <p className="mt-2 text-sm text-cream/70">
+                      <p className="mt-2 text-sm text-cream/88">
                         Expires{" "}
                         {plan.endDate
                           ? new Date(plan.endDate).toLocaleDateString("en-IN", {

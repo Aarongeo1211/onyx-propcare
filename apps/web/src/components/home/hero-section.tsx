@@ -147,7 +147,7 @@ function SearchPanel({
             className={`flex items-center gap-1.5 border transition-all duration-300 ${tabClass} ${
               activeTab === tab.value
                 ? "border-gold/30 bg-gold/10 text-gold shadow-sm"
-                : "border-cream/10 bg-onyx-900 text-cream/70 hover:text-cream hover:border-cream/20"
+                : "border-cream/10 bg-onyx-900 text-cream/88 hover:text-cream hover:border-cream/20"
             }`}
           >
             <tab.icon className="h-3.5 w-3.5" />
@@ -162,7 +162,7 @@ function SearchPanel({
             <div className="relative shrink-0">
               <button
                 onClick={onToggleDropdown}
-                className={`flex items-center gap-2 whitespace-nowrap rounded-xl border border-cream/10 bg-onyx-900 text-left transition-colors hover:border-gold/30 hover:text-cream lg:rounded-2xl lg:border-0 lg:bg-transparent ${compact ? "px-3 py-2 text-sm text-cream/70" : "px-3 py-2.5 text-sm text-cream/65"}`}
+                className={`flex items-center gap-2 whitespace-nowrap rounded-xl border border-cream/10 bg-onyx-900 text-left transition-colors hover:border-gold/30 hover:text-cream lg:rounded-2xl lg:border-0 lg:bg-transparent ${compact ? "px-3 py-2 text-sm text-cream/88" : "px-3 py-2.5 text-sm text-cream/84"}`}
               >
                 <MapPin className="h-4 w-4 text-gold" />
                 <span className={selectedState ? "text-cream" : ""}>{selectedState || "All India"}</span>
@@ -179,7 +179,7 @@ function SearchPanel({
                   >
                     <button
                       onClick={() => onStateSelect("")}
-                      className="w-full px-4 py-2 text-left text-sm text-cream/55 transition-colors hover:bg-gold/5 hover:text-cream"
+                      className="w-full px-4 py-2 text-left text-sm text-cream/79 transition-colors hover:bg-gold/5 hover:text-cream"
                     >
                       All India
                     </button>
@@ -188,7 +188,7 @@ function SearchPanel({
                         key={state}
                         onClick={() => onStateSelect(state)}
                         className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-gold/5 ${
-                          selectedState === state ? "text-gold" : "text-cream/65 hover:text-cream"
+                          selectedState === state ? "text-gold" : "text-cream/84 hover:text-cream"
                         }`}
                       >
                         {state}
@@ -202,14 +202,14 @@ function SearchPanel({
             <div className="mx-2 h-7 w-px bg-cream/10" />
 
             <div className="relative flex min-w-0 flex-1 items-center">
-              <Search className="pointer-events-none ml-3 hidden h-4.5 w-4.5 text-cream/62 transition-colors group-focus-within:text-gold sm:block" />
+              <Search className="pointer-events-none ml-3 hidden h-4.5 w-4.5 text-cream/82 transition-colors group-focus-within:text-gold sm:block" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder="Search by state, district, taluk or locality"
-                className={`w-full flex-1 bg-transparent text-cream placeholder:text-cream/50 focus:outline-none font-body ${inputClass}`}
+                className={`w-full flex-1 bg-transparent text-cream placeholder:text-cream/78 focus:outline-none font-body ${inputClass}`}
               />
             </div>
 
