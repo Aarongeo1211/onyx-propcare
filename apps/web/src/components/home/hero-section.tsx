@@ -202,7 +202,7 @@ function SearchPanel({
             <div className="mx-2 h-7 w-px bg-cream/10" />
 
             <div className="relative flex min-w-0 flex-1 items-center">
-              <Search className="pointer-events-none ml-3 hidden h-4.5 w-4.5 text-cream/30 transition-colors group-focus-within:text-gold sm:block" />
+              <Search className="pointer-events-none ml-3 hidden h-4.5 w-4.5 text-cream/62 transition-colors group-focus-within:text-gold sm:block" />
               <input
                 type="text"
                 value={searchQuery}

@@ -92,7 +92,7 @@ export default function AboutPage() {
           </motion.p>
 
           <motion.p
-            className="text-cream/40 font-body text-base max-w-2xl mx-auto leading-relaxed mt-4"
+            className="text-cream/68 font-body text-base max-w-2xl mx-auto leading-relaxed mt-4"
             {...fadeUp}
             transition={{ duration: 0.6, delay: 0.25 }}
           >
@@ -151,7 +151,7 @@ export default function AboutPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Why Choose Us
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Four pillars that set Onyx Propcare apart from every other land
             marketplace in India.
           </p>
@@ -171,7 +171,7 @@ export default function AboutPage() {
               <h3 className="font-display text-xl font-semibold text-cream mb-2">
                 {feature.title}
               </h3>
-              <p className="text-cream/40 font-body text-sm leading-relaxed">
+              <p className="text-cream/68 font-body text-sm leading-relaxed">
                 {feature.description}
               </p>
             </motion.div>
@@ -192,7 +192,7 @@ export default function AboutPage() {
               <div className="font-display text-3xl md:text-4xl font-bold text-gold mb-1">
                 {stat.value}
               </div>
-              <div className="text-cream/40 font-body text-sm">
+              <div className="text-cream/68 font-body text-sm">
                 {stat.label}
               </div>
             </motion.div>
@@ -210,7 +210,7 @@ export default function AboutPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Our Team
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             The people behind Onyx Prop Care
           </p>
         </motion.div>

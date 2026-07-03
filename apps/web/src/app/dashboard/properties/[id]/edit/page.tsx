@@ -806,7 +806,7 @@ export default function EditPropertyPage() {
   }
 
   const inputClass =
-    "w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/45 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all";
+    "w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/72 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all";
   const labelClass = "block text-sm font-body text-cream/60 mb-2";
 
   return (
@@ -1310,7 +1310,7 @@ export default function EditPropertyPage() {
                   {uploading ? (
                     <Loader2 className="w-8 h-8 text-gold animate-spin" />
                   ) : (
-                    <Upload className="w-8 h-8 text-cream/45" />
+                    <Upload className="w-8 h-8 text-cream/72" />
                   )}
                   <div>
                     <p className="text-sm font-body text-cream/60">

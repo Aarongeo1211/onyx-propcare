@@ -133,7 +133,7 @@ export default function SoilInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Types of Soil in India
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             India has diverse soil types, each with unique characteristics that
             determine agricultural potential and land value.
           </p>
@@ -150,7 +150,7 @@ export default function SoilInsightsPage() {
                 <soil.icon className="w-6 h-6 text-gold" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">{soil.name}</h3>
-              <p className="text-cream/40 font-body text-sm leading-relaxed">{soil.description}</p>
+              <p className="text-cream/68 font-body text-sm leading-relaxed">{soil.description}</p>
             </motion.div>
           ))}
         </div>
@@ -161,7 +161,7 @@ export default function SoilInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Key Soil Parameters We Test
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Every property on Onyx Propcare includes a detailed soil report
             covering these critical metrics.
           </p>
@@ -180,7 +180,7 @@ export default function SoilInsightsPage() {
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-semibold text-cream mb-1">{param.name}</h3>
-                  <p className="text-cream/40 font-body text-sm leading-relaxed">{param.description}</p>
+                  <p className="text-cream/68 font-body text-sm leading-relaxed">{param.description}</p>
                 </div>
               </div>
             </motion.div>

@@ -181,7 +181,7 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
             </h3>
 
             {/* Location */}
-            <div className="flex items-center gap-1.5 text-cream/40 text-sm mb-3">
+            <div className="flex items-center gap-1.5 text-cream/68 text-sm mb-3">
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="truncate">
                 {property.district}, {property.state}
@@ -226,14 +226,14 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               {/* Share + Price per unit on right */}
               <div className="ml-auto flex items-center gap-2">
                 {property.totalArea > 0 && (
-                  <span className="text-xs text-cream/30">
+                  <span className="text-xs text-cream/62">
                     {formatPrice(property.price / property.totalArea)}/{property.areaUnit.replace(/s$/, "")}
                   </span>
                 )}
                 <div className="relative">
                   <button
                     onClick={handleShare}
-                    className="flex items-center justify-center w-6 h-6 rounded-lg text-cream/30 hover:text-cream/70 hover:bg-cream/5 transition-colors"
+                    className="flex items-center justify-center w-6 h-6 rounded-lg text-cream/62 hover:text-cream/70 hover:bg-cream/5 transition-colors"
                     title="Share property"
                   >
                     {shareCopied ? (
@@ -255,7 +255,7 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               type="button"
               onClick={handleCall}
               disabled={status === "authenticated" && !property.owner?.phone}
-              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gold/20 bg-gold/10 text-sm font-medium text-gold transition-colors hover:bg-gold/15 disabled:cursor-not-allowed disabled:border-cream/10 disabled:bg-cream/5 disabled:text-cream/25"
+              className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gold/20 bg-gold/10 text-sm font-medium text-gold transition-colors hover:bg-gold/15 disabled:cursor-not-allowed disabled:border-cream/10 disabled:bg-cream/5 disabled:text-cream/58"
               title={callLabel}
             >
               <Phone className="h-4 w-4" />

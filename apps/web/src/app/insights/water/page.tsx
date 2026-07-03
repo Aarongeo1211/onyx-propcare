@@ -122,7 +122,7 @@ export default function WaterInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Water Sources
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Different water sources carry different levels of reliability, cost,
             and investment implications for land buyers.
           </p>
@@ -141,7 +141,7 @@ export default function WaterInsightsPage() {
                 </div>
                 <div>
                   <h3 className="font-display text-xl font-semibold text-cream mb-2">{source.name}</h3>
-                  <p className="text-cream/40 font-body text-sm leading-relaxed">{source.description}</p>
+                  <p className="text-cream/68 font-body text-sm leading-relaxed">{source.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -154,7 +154,7 @@ export default function WaterInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Key Water Parameters
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Our water reports measure these critical factors to give you a
             complete picture of water security for any property.
           </p>
@@ -173,7 +173,7 @@ export default function WaterInsightsPage() {
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-semibold text-cream mb-1">{param.name}</h3>
-                  <p className="text-cream/40 font-body text-sm leading-relaxed">{param.description}</p>
+                  <p className="text-cream/68 font-body text-sm leading-relaxed">{param.description}</p>
                 </div>
               </div>
             </motion.div>

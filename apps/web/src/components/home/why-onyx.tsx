@@ -64,7 +64,7 @@ export function WhyOnyx() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-cream/30 text-sm font-body leading-relaxed"
+              className="text-cream/62 text-sm font-body leading-relaxed"
             >
               Onyx Propcare isn&apos;t just another listing platform.
               We combine technology, on-ground verification, and expert
@@ -92,7 +92,7 @@ export function WhyOnyx() {
                 <h3 className="font-display text-lg font-semibold text-cream mb-2 group-hover:text-gold transition-colors duration-300">
                   {reason.title}
                 </h3>
-                <p className="text-xs text-cream/30 font-body leading-relaxed">
+                <p className="text-xs text-cream/62 font-body leading-relaxed">
                   {reason.description}
                 </p>
               </motion.div>

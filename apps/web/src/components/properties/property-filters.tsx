@@ -73,7 +73,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
           )}
         </div>
         {activeFilterCount > 0 && (
-          <button onClick={clearFilters} className="text-xs text-cream/40 hover:text-gold transition-colors">
+          <button onClick={clearFilters} className="text-xs text-cream/68 hover:text-gold transition-colors">
             Clear all
           </button>
         )}
@@ -123,7 +123,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 filters.listingType === lt
                   ? "bg-gold/15 text-gold border border-gold/30"
-                  : "bg-onyx-900/40 text-cream/40 border border-cream/8 hover:border-cream/15 hover:text-cream/60"
+                  : "bg-onyx-900/40 text-cream/68 border border-cream/8 hover:border-cream/15 hover:text-cream/60"
               }`}
             >
               {lt === "SALE" ? "Buy" : lt === "LEASE" ? "Lease" : "Rent"}
@@ -152,7 +152,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
             value={filters.district || ""}
             onChange={(e) => updateFilter("district", e.target.value)}
             placeholder="District"
-            className="w-full bg-onyx-900/60 border border-cream/10 rounded-lg px-3 py-2 text-sm text-cream placeholder:text-cream/25 focus:outline-none focus:border-gold/40"
+            className="w-full bg-onyx-900/60 border border-cream/10 rounded-lg px-3 py-2 text-sm text-cream placeholder:text-cream/58 focus:outline-none focus:border-gold/40"
           />
         </div>
       </FilterSection>
@@ -186,7 +186,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
               onClick={() => {
                 onChange({ ...filters, minPrice: undefined, maxPrice: undefined, page: 1 });
               }}
-              className="text-xs text-cream/30 hover:text-gold transition-colors mt-1"
+              className="text-xs text-cream/62 hover:text-gold transition-colors mt-1"
             >
               Clear price filter
             </button>
@@ -196,7 +196,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
 
       {/* Results count */}
       <div className="pt-4 border-t border-cream/8">
-        <p className="text-xs text-cream/30 text-center">
+        <p className="text-xs text-cream/62 text-center">
           {totalResults} {totalResults === 1 ? "property" : "properties"} found
         </p>
       </div>
@@ -245,7 +245,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-display text-xl text-cream">Filters</h2>
-                <button onClick={() => setMobileOpen(false)} className="p-2 text-cream/40 hover:text-cream">
+                <button onClick={() => setMobileOpen(false)} className="p-2 text-cream/68 hover:text-cream">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -284,7 +284,7 @@ function FilterSection({
       >
         <span className="text-sm font-medium text-cream/80">{title}</span>
         <ChevronDown
-          className={`w-4 h-4 text-cream/30 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-cream/62 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       <AnimatePresence initial={false}>

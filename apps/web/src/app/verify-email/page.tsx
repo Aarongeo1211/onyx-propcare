@@ -65,7 +65,7 @@ function VerifyEmailContent() {
           <h1 className="font-display text-2xl font-semibold text-cream mb-3">
             Verifying your email…
           </h1>
-          <p className="text-cream/40 font-body text-sm">
+          <p className="text-cream/68 font-body text-sm">
             Please wait while we confirm your email address.
           </p>
         </>
@@ -99,7 +99,7 @@ function VerifyEmailContent() {
             </Button>
             <Link
               href="/"
-              className="text-cream/30 hover:text-cream/60 transition-colors font-body text-sm"
+              className="text-cream/62 hover:text-cream/60 transition-colors font-body text-sm"
             >
               Browse properties
             </Link>
@@ -132,7 +132,7 @@ function VerifyEmailContent() {
             </Link>
             <Link
               href="/"
-              className="text-cream/30 hover:text-cream/60 transition-colors font-body text-sm"
+              className="text-cream/62 hover:text-cream/60 transition-colors font-body text-sm"
             >
               Go to homepage
             </Link>
@@ -162,7 +162,7 @@ export default function VerifyEmailPage() {
                   <Loader2 className="w-9 h-9 text-gold animate-spin" />
                 </div>
               </div>
-              <p className="text-cream/40 font-body text-sm">Loading…</p>
+              <p className="text-cream/68 font-body text-sm">Loading…</p>
             </div>
           }
         >

@@ -78,7 +78,7 @@ export function ComparisonBar() {
                     <span className="text-xs text-cream/60 truncate">{prop.title}</span>
                     <button
                       onClick={() => removeFromCompare(prop.id)}
-                      className="text-cream/30 hover:text-cream/60 flex-shrink-0 transition-colors"
+                      className="text-cream/62 hover:text-cream/60 flex-shrink-0 transition-colors"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -90,7 +90,7 @@ export function ComparisonBar() {
               <div className="flex items-center gap-2 ml-auto">
                 <button
                   onClick={clearComparison}
-                  className="text-xs text-cream/30 hover:text-cream/60 transition-colors px-2 py-1"
+                  className="text-xs text-cream/62 hover:text-cream/60 transition-colors px-2 py-1"
                 >
                   Clear All
                 </button>

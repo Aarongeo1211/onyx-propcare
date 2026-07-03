@@ -216,7 +216,7 @@ export function PropertiesPageClient({
             <h1 className="heading-lg mb-2 text-cream">
               Explore <span className="text-gradient-gold">Properties</span>
             </h1>
-            <p className="mb-8 text-lg font-body text-cream/40">
+            <p className="mb-8 text-lg font-body text-cream/68">
               Discover verified farmlands, plots, and orchards across India
             </p>
           </motion.div>
@@ -241,7 +241,7 @@ export function PropertiesPageClient({
               animate={{ opacity: 1 }}
               className="mt-4 flex flex-wrap items-center gap-2"
             >
-              <span className="text-xs text-cream/30">Active:</span>
+              <span className="text-xs text-cream/62">Active:</span>
               {filters.state && (
                 <FilterTag
                   label={filters.state}
@@ -289,14 +289,14 @@ export function PropertiesPageClient({
                 <div ref={sentinelRef} className="h-px" />
 
                 {loadingMore && (
-                  <div className="mt-8 flex items-center justify-center gap-2 text-sm text-cream/40">
+                  <div className="mt-8 flex items-center justify-center gap-2 text-sm text-cream/68">
                     <Loader2 className="h-5 w-5 animate-spin text-gold" />
                     Loading more properties...
                   </div>
                 )}
 
                 {!hasMore && properties.length > PROPERTY_LIMIT && (
-                  <p className="mt-10 text-center text-sm text-cream/25">
+                  <p className="mt-10 text-center text-sm text-cream/58">
                     You&apos;ve seen all {pagination.total} properties
                   </p>
                 )}
@@ -340,10 +340,10 @@ function EmptyState() {
       className="flex flex-col items-center justify-center py-24 text-center"
     >
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-cream/8 bg-onyx-900/50">
-        <SearchX className="h-8 w-8 text-cream/20" />
+        <SearchX className="h-8 w-8 text-cream/55" />
       </div>
       <h3 className="mb-2 font-display text-2xl text-cream">No properties found</h3>
-      <p className="max-w-md text-sm text-cream/40">
+      <p className="max-w-md text-sm text-cream/68">
         Try adjusting your filters or search terms to find the perfect property.
       </p>
     </motion.div>

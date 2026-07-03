@@ -65,7 +65,7 @@ export function StatsBar() {
                 <div className="font-display text-3xl lg:text-4xl font-semibold text-gold mb-1">
                   <AnimatedCounter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 </div>
-                <div className="text-xs text-cream/35 font-body uppercase tracking-wider">
+                <div className="text-xs text-cream/65 font-body uppercase tracking-wider">
                   {stat.label}
                 </div>
               </motion.div>

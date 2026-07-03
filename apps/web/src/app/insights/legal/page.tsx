@@ -148,7 +148,7 @@ export default function LegalInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Our Legal Check Process
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Every property on Onyx Propcare goes through a rigorous three-stage
             legal verification before listing.
           </p>
@@ -165,7 +165,7 @@ export default function LegalInsightsPage() {
                 <step.icon className="w-6 h-6 text-gold" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">{step.name}</h3>
-              <p className="text-cream/40 font-body text-sm leading-relaxed">{step.description}</p>
+              <p className="text-cream/68 font-body text-sm leading-relaxed">{step.description}</p>
             </motion.div>
           ))}
         </div>
@@ -176,7 +176,7 @@ export default function LegalInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Common Legal Issues in Indian Land Deals
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             These are the pitfalls our verification process is designed to catch
             before they become your problem.
           </p>
@@ -195,7 +195,7 @@ export default function LegalInsightsPage() {
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-semibold text-cream mb-1">{issue.name}</h3>
-                  <p className="text-cream/40 font-body text-sm leading-relaxed">{issue.description}</p>
+                  <p className="text-cream/68 font-body text-sm leading-relaxed">{issue.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -208,7 +208,7 @@ export default function LegalInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Documents We Verify
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             A comprehensive review of every document that establishes clear
             ownership and legal standing of the property.
           </p>
@@ -225,7 +225,7 @@ export default function LegalInsightsPage() {
                 <doc.icon className="w-6 h-6 text-gold" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">{doc.name}</h3>
-              <p className="text-cream/40 font-body text-sm leading-relaxed">{doc.description}</p>
+              <p className="text-cream/68 font-body text-sm leading-relaxed">{doc.description}</p>
             </motion.div>
           ))}
         </div>

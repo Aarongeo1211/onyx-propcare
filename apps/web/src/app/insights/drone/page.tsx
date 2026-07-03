@@ -139,7 +139,7 @@ export default function DroneInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             What Our Drone Surveys Cover
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Three core capabilities that give buyers a complete aerial
             perspective of the property.
           </p>
@@ -156,7 +156,7 @@ export default function DroneInsightsPage() {
                 <feature.icon className="w-6 h-6 text-gold" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">{feature.name}</h3>
-              <p className="text-cream/40 font-body text-sm leading-relaxed">{feature.description}</p>
+              <p className="text-cream/68 font-body text-sm leading-relaxed">{feature.description}</p>
             </motion.div>
           ))}
         </div>
@@ -167,7 +167,7 @@ export default function DroneInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             Benefits of Drone Data
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Why aerial survey data is becoming essential for informed land
             investment decisions in India.
           </p>
@@ -184,7 +184,7 @@ export default function DroneInsightsPage() {
                 <benefit.icon className="w-6 h-6 text-gold" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">{benefit.name}</h3>
-              <p className="text-cream/40 font-body text-sm leading-relaxed">{benefit.description}</p>
+              <p className="text-cream/68 font-body text-sm leading-relaxed">{benefit.description}</p>
             </motion.div>
           ))}
         </div>
@@ -195,7 +195,7 @@ export default function DroneInsightsPage() {
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream mb-3">
             How to Read a Drone Map
           </h2>
-          <p className="text-cream/40 font-body max-w-lg mx-auto">
+          <p className="text-cream/68 font-body max-w-lg mx-auto">
             Understanding the three primary map types included in our drone
             survey reports.
           </p>

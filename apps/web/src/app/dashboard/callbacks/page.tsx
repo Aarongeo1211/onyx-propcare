@@ -88,7 +88,7 @@ export default function DashboardCallbacksPage() {
           </div>
         ) : callbacks.length === 0 ? (
           <div className="rounded-2xl border border-cream/8 bg-onyx-900/30 p-10 text-center">
-            <PhoneCall className="mx-auto h-10 w-10 text-cream/45" />
+            <PhoneCall className="mx-auto h-10 w-10 text-cream/72" />
             <h3 className="mt-4 font-display text-xl text-cream">No callbacks yet</h3>
             <p className="mt-2 text-sm text-cream/60">Callback requests from property pages will appear here.</p>
           </div>
@@ -118,7 +118,7 @@ export default function DashboardCallbacksPage() {
                       {callback.property.title}
                       <ExternalLink className="h-3 w-3" />
                     </Link>
-                    {callback.note && <p className="mt-3 text-sm text-cream/45">{callback.note}</p>}
+                    {callback.note && <p className="mt-3 text-sm text-cream/72">{callback.note}</p>}
                   </div>
 
                   <div className="flex flex-col items-start gap-3 md:items-end">

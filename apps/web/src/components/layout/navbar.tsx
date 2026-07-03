@@ -74,7 +74,7 @@ export function Navbar() {
   return (
     <>
       {/* Top bar */}
-      <div className="hidden lg:block bg-onyx-950 border-b border-cream/5 text-cream/40 text-xs">
+      <div className="hidden lg:block bg-onyx-950 border-b border-cream/5 text-cream/68 text-xs">
         <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-1.5">
@@ -188,12 +188,12 @@ export function Navbar() {
                     <div className="text-sm font-body text-cream/80 group-hover:text-cream transition-colors">
                       {session.user.name}
                     </div>
-                    <div className="text-[10px] font-body text-cream/30 uppercase tracking-wider">
+                    <div className="text-[10px] font-body text-cream/62 uppercase tracking-wider">
                       {session.user.role}
                     </div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-cream/30 transition-transform duration-300 ${
+                    className={`w-4 h-4 text-cream/62 transition-transform duration-300 ${
                       userMenuOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -213,7 +213,7 @@ export function Navbar() {
                         <div className="text-sm font-body text-cream/80">
                           {session.user.name}
                         </div>
-                        <div className="text-xs font-body text-cream/30 mt-0.5">
+                        <div className="text-xs font-body text-cream/62 mt-0.5">
                           {session.user.email}
                         </div>
                       </div>
@@ -306,7 +306,7 @@ export function Navbar() {
                 {navLinks.map((link) =>
                   "children" in link ? (
                     <div key={link.label} className="space-y-2">
-                      <span className="text-sm font-medium text-cream/40 uppercase tracking-wider">
+                      <span className="text-sm font-medium text-cream/68 uppercase tracking-wider">
                         {link.label}
                       </span>
                       {link.children?.map((child) => (
@@ -340,7 +340,7 @@ export function Navbar() {
                         </div>
                         <div>
                           <div className="text-sm text-cream/80">{session.user.name}</div>
-                          <div className="text-[10px] text-cream/30 uppercase tracking-wider">
+                          <div className="text-[10px] text-cream/62 uppercase tracking-wider">
                             {session.user.role}
                           </div>
                         </div>

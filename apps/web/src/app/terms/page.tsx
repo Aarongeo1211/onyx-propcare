@@ -73,7 +73,7 @@ export default function TermsPage() {
             Terms of Service
           </motion.h1>
           <motion.p
-            className="text-cream/40 font-body text-sm"
+            className="text-cream/68 font-body text-sm"
             {...fadeUp}
             transition={{ duration: 0.6, delay: 0.1 }}
           >

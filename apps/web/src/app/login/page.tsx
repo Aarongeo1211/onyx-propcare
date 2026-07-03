@@ -123,7 +123,7 @@ export default function LoginPage() {
               Welcome<br />
               <span className="text-gradient-gold">Back</span>
             </h1>
-            <p className="text-cream/40 font-body text-lg max-w-md leading-relaxed">
+            <p className="text-cream/68 font-body text-lg max-w-md leading-relaxed">
               Sign in to access your premium land portfolio, track soil analytics,
               and manage your property investments.
             </p>
@@ -146,11 +146,11 @@ export default function LoginPage() {
           >
             <div>
               <div className="font-display text-3xl text-gold font-semibold">12,500+</div>
-              <div className="text-cream/30 text-sm font-body mt-1">Verified Listings</div>
+              <div className="text-cream/62 text-sm font-body mt-1">Verified Listings</div>
             </div>
             <div>
               <div className="font-display text-3xl text-gold font-semibold">98%</div>
-              <div className="text-cream/30 text-sm font-body mt-1">Clear Titles</div>
+              <div className="text-cream/62 text-sm font-body mt-1">Clear Titles</div>
             </div>
           </motion.div>
         </div>
@@ -175,7 +175,7 @@ export default function LoginPage() {
             <h2 className="font-display text-3xl font-semibold text-cream mb-2">
               Sign In
             </h2>
-            <p className="text-cream/40 font-body mb-8">
+            <p className="text-cream/68 font-body mb-8">
               Enter your credentials to access your account
             </p>
           </motion.div>
@@ -224,7 +224,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cream/30 hover:text-cream/60 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cream/62 hover:text-cream/60 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -237,7 +237,7 @@ export default function LoginPage() {
                   type="checkbox"
                   className="w-4 h-4 rounded border-cream/20 bg-onyx-900/60 text-gold focus:ring-gold/30 focus:ring-2"
                 />
-                <span className="text-sm text-cream/40 font-body">Remember me</span>
+                <span className="text-sm text-cream/68 font-body">Remember me</span>
               </label>
               <Link
                 href="/forgot-password"
@@ -271,7 +271,7 @@ export default function LoginPage() {
           {/* Divider */}
           <motion.div custom={6} variants={fadeUp} className="mt-6 flex items-center gap-4">
             <div className="flex-1 h-px bg-cream/10" />
-            <span className="text-cream/25 text-xs font-body uppercase tracking-wider">
+            <span className="text-cream/58 text-xs font-body uppercase tracking-wider">
               or continue with
             </span>
             <div className="flex-1 h-px bg-cream/10" />
@@ -315,7 +315,7 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.div custom={8} variants={fadeUp} className="mt-6 text-center">
-            <p className="text-cream/30 font-body text-sm">
+            <p className="text-cream/62 font-body text-sm">
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
@@ -333,7 +333,7 @@ export default function LoginPage() {
             className="mt-8 flex items-center gap-4"
           >
             <div className="flex-1 h-px bg-cream/5" />
-            <span className="text-cream/20 text-xs font-body uppercase tracking-wider">
+            <span className="text-cream/55 text-xs font-body uppercase tracking-wider">
               Secure Login
             </span>
             <div className="flex-1 h-px bg-cream/5" />

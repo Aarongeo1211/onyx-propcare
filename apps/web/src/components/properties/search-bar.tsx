@@ -142,7 +142,7 @@ export function SearchBar({
             : "bg-onyx-900/60 border border-cream/10 p-1.5 focus-within:border-gold/40 focus-within:ring-2 focus-within:ring-gold/20"
         }`}
       >
-        <Search className={`w-5 h-5 ml-3 text-cream/25 transition-colors ${isHero ? "group-focus-within:text-gold/60" : ""}`} />
+        <Search className={`w-5 h-5 ml-3 text-cream/58 transition-colors ${isHero ? "group-focus-within:text-gold/60" : ""}`} />
 
         {/* Selected state pill */}
         {selectedState && (
@@ -163,7 +163,7 @@ export function SearchBar({
           onFocus={() => query && setShowSuggestions(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search by location, state, or district..."
-          className={`flex-1 bg-transparent px-4 text-sm text-cream placeholder:text-cream/25 focus:outline-none font-body ${
+          className={`flex-1 bg-transparent px-4 text-sm text-cream placeholder:text-cream/58 focus:outline-none font-body ${
             isHero ? "py-3" : "py-2.5"
           }`}
         />
@@ -197,11 +197,11 @@ export function SearchBar({
                 onClick={() => handleSuggestionClick(suggestion)}
                 className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-sm hover:bg-cream/5 transition-colors"
               >
-                <MapPin className="w-4 h-4 text-cream/30 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-cream/62 flex-shrink-0" />
                 <div>
                   <span className="text-cream">{suggestion.value}</span>
                   {suggestion.type === "district" && suggestion.parent && (
-                    <span className="text-cream/30 ml-1.5 text-xs">{suggestion.parent}</span>
+                    <span className="text-cream/62 ml-1.5 text-xs">{suggestion.parent}</span>
                   )}
                   {suggestion.type === "state" && (
                     <span className="text-gold/50 ml-1.5 text-xs">State</span>

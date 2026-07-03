@@ -172,7 +172,7 @@ export default function RegisterPage() {
               Begin Your<br />
               <span className="text-gradient-gold">Journey</span>
             </h1>
-            <p className="text-cream/40 font-body text-lg max-w-md leading-relaxed">
+            <p className="text-cream/68 font-body text-lg max-w-md leading-relaxed">
               Join thousands of investors and landowners on India&apos;s most
               trusted farmland and plot marketplace.
             </p>
@@ -201,7 +201,7 @@ export default function RegisterPage() {
                 <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center">
                   <Check className="w-3 h-3 text-gold" />
                 </div>
-                <span className="text-cream/40 text-sm font-body">{feature}</span>
+                <span className="text-cream/68 text-sm font-body">{feature}</span>
               </div>
             ))}
           </motion.div>
@@ -230,7 +230,7 @@ export default function RegisterPage() {
             <h2 className="font-display text-3xl font-semibold text-cream mb-2">
               Create Account
             </h2>
-            <p className="text-cream/40 font-body mb-8">
+            <p className="text-cream/68 font-body mb-8">
               Start your property investment journey today
             </p>
           </motion.div>
@@ -260,7 +260,7 @@ export default function RegisterPage() {
                   className={`flex items-center gap-3 p-3.5 rounded-lg border transition-all duration-300 ${
                     form.role === "BUYER"
                       ? "border-gold/50 bg-gold/5 text-gold"
-                      : "border-cream/10 bg-onyx-900/40 text-cream/40 hover:border-cream/20"
+                      : "border-cream/10 bg-onyx-900/40 text-cream/68 hover:border-cream/20"
                   }`}
                 >
                   <ShoppingBag className="w-5 h-5" />
@@ -272,7 +272,7 @@ export default function RegisterPage() {
                   className={`flex items-center gap-3 p-3.5 rounded-lg border transition-all duration-300 ${
                     form.role === "SELLER"
                       ? "border-gold/50 bg-gold/5 text-gold"
-                      : "border-cream/10 bg-onyx-900/40 text-cream/40 hover:border-cream/20"
+                      : "border-cream/10 bg-onyx-900/40 text-cream/68 hover:border-cream/20"
                   }`}
                 >
                   <Building2 className="w-5 h-5" />
@@ -353,7 +353,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cream/30 hover:text-cream/60 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cream/62 hover:text-cream/60 transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -411,7 +411,7 @@ export default function RegisterPage() {
           {/* Divider */}
           <motion.div custom={9} variants={fadeUp} className="mt-5 flex items-center gap-4">
             <div className="flex-1 h-px bg-cream/10" />
-            <span className="text-cream/25 text-xs font-body uppercase tracking-wider">
+            <span className="text-cream/58 text-xs font-body uppercase tracking-wider">
               or
             </span>
             <div className="flex-1 h-px bg-cream/10" />
@@ -452,7 +452,7 @@ export default function RegisterPage() {
           </motion.div>
 
           <motion.div custom={11} variants={fadeUp} className="mt-5 text-center">
-            <p className="text-cream/30 font-body text-sm">
+            <p className="text-cream/62 font-body text-sm">
               Already have an account?{" "}
               <Link
                 href="/login"
@@ -469,7 +469,7 @@ export default function RegisterPage() {
             className="mt-6 flex items-center gap-4"
           >
             <div className="flex-1 h-px bg-cream/5" />
-            <span className="text-cream/20 text-xs font-body uppercase tracking-wider">
+            <span className="text-cream/55 text-xs font-body uppercase tracking-wider">
               Trusted by 50,000+ users
             </span>
             <div className="flex-1 h-px bg-cream/5" />

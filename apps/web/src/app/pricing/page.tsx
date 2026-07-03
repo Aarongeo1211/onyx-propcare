@@ -333,7 +333,7 @@ export default function PricingPage() {
 
               <div className="mt-6 flex items-end gap-2">
                 <span className="font-display text-5xl text-cream">₹0</span>
-                <span className="pb-2 text-sm text-cream/35">for 30 days</span>
+                <span className="pb-2 text-sm text-cream/65">for 30 days</span>
               </div>
 
               <div className="mt-6 space-y-3">
@@ -464,7 +464,7 @@ export default function PricingPage() {
                       </div>
                       <div className="text-right">
                         <p className="font-display text-4xl text-gold">₹{plan.price.toLocaleString("en-IN")}</p>
-                        <p className="text-xs text-cream/35">for {plan.listingDuration} days</p>
+                        <p className="text-xs text-cream/65">for {plan.listingDuration} days</p>
                       </div>
                     </div>
 
@@ -517,7 +517,7 @@ export default function PricingPage() {
                       <ArrowRight className="h-4 w-4" />
                     </button>
                     {isPaidUnavailable && (
-                      <p className="mt-3 text-xs text-cream/45">
+                      <p className="mt-3 text-xs text-cream/72">
                         Paid checkout will unlock after Razorpay is connected. Free onboarding is available now.
                       </p>
                     )}

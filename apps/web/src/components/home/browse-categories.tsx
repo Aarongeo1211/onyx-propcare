@@ -75,7 +75,7 @@ export function BrowseCategories() {
               <h3 className="font-display text-lg font-semibold text-cream group-hover:text-gold">
                 {category.label}
               </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-cream/45">{category.blurb}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-cream/72">{category.blurb}</p>
               <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-gold/0 transition-all group-hover:text-gold">
                 Explore <ArrowRight className="h-3.5 w-3.5" />
               </span>

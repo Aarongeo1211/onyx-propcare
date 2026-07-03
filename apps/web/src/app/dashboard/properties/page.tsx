@@ -184,7 +184,7 @@ export default function DashboardPropertiesPage() {
           ) : properties.length === 0 ? (
             <div className="text-center py-20">
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-onyx-900/50 border border-cream/8 flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-cream/45" />
+                <Building2 className="w-8 h-8 text-cream/72" />
               </div>
               <h3 className="font-display text-xl font-semibold text-cream mb-2">
                 No properties yet
@@ -254,7 +254,7 @@ export default function DashboardPropertiesPage() {
                                     />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                      <Building2 className="w-5 h-5 text-cream/45" />
+                                      <Building2 className="w-5 h-5 text-cream/72" />
                                     </div>
                                   )}
                                 </div>
@@ -356,7 +356,7 @@ export default function DashboardPropertiesPage() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Building2 className="w-6 h-6 text-cream/45" />
+                              <Building2 className="w-6 h-6 text-cream/72" />
                             </div>
                           )}
                         </div>

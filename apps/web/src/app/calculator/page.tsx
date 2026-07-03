@@ -127,7 +127,7 @@ function GoldSlider({
             }}
             className="w-16 h-8 text-right text-sm font-body text-gold bg-onyx-900/60 border border-cream/10 rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-gold/30"
           />
-          <span className="text-xs text-cream/40">{suffix}</span>
+          <span className="text-xs text-cream/68">{suffix}</span>
         </div>
       </div>
       <div className="relative h-2">
@@ -192,7 +192,7 @@ function PriceInput({
           placeholder="0"
         />
         {value > 0 && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-cream/30 font-body">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-cream/62 font-body">
             {formatPrice(value)}
           </span>
         )}
@@ -392,7 +392,7 @@ export default function CalculatorPage() {
                       className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-body transition-all duration-300 ${
                         propertyType === "farmland"
                           ? "bg-gold/15 text-gold border border-gold/30"
-                          : "bg-onyx-800/50 text-cream/40 border border-cream/5 hover:border-cream/10"
+                          : "bg-onyx-800/50 text-cream/68 border border-cream/5 hover:border-cream/10"
                       }`}
                     >
                       <TreePine className="w-4 h-4" />
@@ -403,7 +403,7 @@ export default function CalculatorPage() {
                       className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-body transition-all duration-300 ${
                         propertyType === "residential"
                           ? "bg-gold/15 text-gold border border-gold/30"
-                          : "bg-onyx-800/50 text-cream/40 border border-cream/5 hover:border-cream/10"
+                          : "bg-onyx-800/50 text-cream/68 border border-cream/5 hover:border-cream/10"
                       }`}
                     >
                       <Home className="w-4 h-4" />
@@ -499,33 +499,33 @@ export default function CalculatorPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <motion.div variants={fadeUp} custom={4}>
                 <Card className="p-5">
-                  <p className="text-xs font-body text-cream/40 uppercase tracking-wider">
+                  <p className="text-xs font-body text-cream/68 uppercase tracking-wider">
                     Total Investment
                   </p>
                   <p className="mt-2 font-display text-2xl font-semibold text-cream">
                     {formatPrice(year10?.totalInvested ?? purchasePrice)}
                   </p>
-                  <p className="mt-1 text-xs font-body text-cream/30">
+                  <p className="mt-1 text-xs font-body text-cream/62">
                     Down payment + EMIs
                   </p>
                 </Card>
               </motion.div>
               <motion.div variants={fadeUp} custom={5}>
                 <Card className="p-5">
-                  <p className="text-xs font-body text-cream/40 uppercase tracking-wider">
+                  <p className="text-xs font-body text-cream/68 uppercase tracking-wider">
                     Property Value at 10Y
                   </p>
                   <p className="mt-2 font-display text-2xl font-semibold text-gold">
                     {formatPrice(year10?.propertyValue ?? purchasePrice)}
                   </p>
-                  <p className="mt-1 text-xs font-body text-cream/30">
+                  <p className="mt-1 text-xs font-body text-cream/62">
                     {appreciation}% annual appreciation
                   </p>
                 </Card>
               </motion.div>
               <motion.div variants={fadeUp} custom={6}>
                 <Card className="p-5">
-                  <p className="text-xs font-body text-cream/40 uppercase tracking-wider">
+                  <p className="text-xs font-body text-cream/68 uppercase tracking-wider">
                     Net ROI at 10Y
                   </p>
                   <p
@@ -538,7 +538,7 @@ export default function CalculatorPage() {
                     {(year10?.roiPercent ?? 0) >= 0 ? "+" : ""}
                     {year10?.roiPercent ?? 0}%
                   </p>
-                  <p className="mt-1 text-xs font-body text-cream/30">
+                  <p className="mt-1 text-xs font-body text-cream/62">
                     {breakEvenYear
                       ? `Break-even in year ${breakEvenYear}`
                       : "No break-even in projection"}
@@ -552,7 +552,7 @@ export default function CalculatorPage() {
               <motion.div variants={fadeUp} custom={7}>
                 <Card className="p-5 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-body text-cream/40 uppercase tracking-wider">
+                    <p className="text-xs font-body text-cream/68 uppercase tracking-wider">
                       Monthly EMI
                     </p>
                     <p className="mt-1 font-display text-3xl font-semibold text-cream">
@@ -560,13 +560,13 @@ export default function CalculatorPage() {
                     </p>
                   </div>
                   <div className="text-right space-y-1">
-                    <p className="text-xs font-body text-cream/40">
+                    <p className="text-xs font-body text-cream/68">
                       Total Interest:{" "}
                       <span className="text-cream/60">
                         {formatPrice(Math.round(emiResult.totalInterest))}
                       </span>
                     </p>
-                    <p className="text-xs font-body text-cream/40">
+                    <p className="text-xs font-body text-cream/68">
                       Total Payment:{" "}
                       <span className="text-cream/60">
                         {formatPrice(Math.round(emiResult.totalPayment))}
@@ -585,7 +585,7 @@ export default function CalculatorPage() {
                     <h3 className="font-display text-lg font-semibold text-cream">
                       Value Projection
                     </h3>
-                    <p className="text-xs font-body text-cream/40 mt-1">
+                    <p className="text-xs font-body text-cream/68 mt-1">
                       15-year property value forecast
                     </p>
                   </div>
@@ -684,15 +684,15 @@ export default function CalculatorPage() {
                 <div className="flex items-center gap-6 mt-4 text-xs font-body">
                   <span className="flex items-center gap-1.5">
                     <span className="w-3 h-0.5 bg-gold rounded" />
-                    <span className="text-cream/40">Property Value</span>
+                    <span className="text-cream/68">Property Value</span>
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="w-3 h-0.5 bg-cream/40 rounded border-dashed" />
-                    <span className="text-cream/40">Total Invested</span>
+                    <span className="text-cream/68">Total Invested</span>
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="w-3 h-0.5 bg-emerald-400 rounded" />
-                    <span className="text-cream/40">Rental Income</span>
+                    <span className="text-cream/68">Rental Income</span>
                   </span>
                 </div>
               </Card>
@@ -709,14 +709,14 @@ export default function CalculatorPage() {
                     <h3 className="font-display text-lg font-semibold text-cream">
                       Year-by-Year Breakdown
                     </h3>
-                    <p className="text-xs font-body text-cream/40 mt-0.5">
+                    <p className="text-xs font-body text-cream/68 mt-0.5">
                       Detailed projections for each year
                     </p>
                   </div>
                   {tableOpen ? (
-                    <ChevronUp className="w-5 h-5 text-cream/40" />
+                    <ChevronUp className="w-5 h-5 text-cream/68" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-cream/40" />
+                    <ChevronDown className="w-5 h-5 text-cream/68" />
                   )}
                 </button>
                 {tableOpen && (
@@ -724,22 +724,22 @@ export default function CalculatorPage() {
                     <table className="w-full text-sm font-body">
                       <thead>
                         <tr className="border-b border-cream/5">
-                          <th className="text-left py-3 text-cream/40 font-medium">
+                          <th className="text-left py-3 text-cream/68 font-medium">
                             Year
                           </th>
-                          <th className="text-right py-3 text-cream/40 font-medium">
+                          <th className="text-right py-3 text-cream/68 font-medium">
                             Property Value
                           </th>
-                          <th className="text-right py-3 text-cream/40 font-medium">
+                          <th className="text-right py-3 text-cream/68 font-medium">
                             Rental Income
                           </th>
-                          <th className="text-right py-3 text-cream/40 font-medium">
+                          <th className="text-right py-3 text-cream/68 font-medium">
                             EMI Paid
                           </th>
-                          <th className="text-right py-3 text-cream/40 font-medium">
+                          <th className="text-right py-3 text-cream/68 font-medium">
                             Net Worth
                           </th>
-                          <th className="text-right py-3 text-cream/40 font-medium">
+                          <th className="text-right py-3 text-cream/68 font-medium">
                             ROI %
                           </th>
                         </tr>
@@ -809,7 +809,7 @@ export default function CalculatorPage() {
                 For NRI Investors
               </h2>
             </div>
-            <p className="text-sm font-body text-cream/40">
+            <p className="text-sm font-body text-cream/68">
               See your investment in your preferred currency
             </p>
           </motion.div>
@@ -820,16 +820,16 @@ export default function CalculatorPage() {
               <Card className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-body text-cream/40 uppercase tracking-wider">
+                    <p className="text-xs font-body text-cream/68 uppercase tracking-wider">
                       Property Price (INR)
                     </p>
                     <p className="mt-1 font-display text-2xl font-semibold text-cream">
                       {formatPriceFull(purchasePrice)}
                     </p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-cream/20" />
+                  <ArrowRight className="w-5 h-5 text-cream/55" />
                   <div className="text-right">
-                    <p className="text-xs font-body text-cream/40 uppercase tracking-wider">
+                    <p className="text-xs font-body text-cream/68 uppercase tracking-wider">
                       {CURRENCY_RATES[selectedCurrency]?.name}
                     </p>
                     <p className="mt-1 font-display text-2xl font-semibold text-gold">
@@ -842,7 +842,7 @@ export default function CalculatorPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-body text-cream/40">
+                  <label className="text-xs font-body text-cream/68">
                     Target Currency
                   </label>
                   <select
@@ -858,7 +858,7 @@ export default function CalculatorPage() {
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between text-xs font-body text-cream/30 pt-2 border-t border-cream/5">
+                <div className="flex items-center justify-between text-xs font-body text-cream/62 pt-2 border-t border-cream/5">
                   <span>
                     1 INR = {CURRENCY_RATES[selectedCurrency]?.rate}{" "}
                     {selectedCurrency}
@@ -876,13 +876,13 @@ export default function CalculatorPage() {
                   const info = CURRENCY_RATES[code];
                   return (
                     <Card key={code} className="p-5">
-                      <p className="text-xs font-body text-cream/40 uppercase tracking-wider">
+                      <p className="text-xs font-body text-cream/68 uppercase tracking-wider">
                         {code}
                       </p>
                       <p className="mt-2 font-display text-xl font-semibold text-gold">
                         {formatForeignCompact(conv.amount, conv.symbol)}
                       </p>
-                      <p className="mt-1 text-xs font-body text-cream/30">
+                      <p className="mt-1 text-xs font-body text-cream/62">
                         {info?.name}
                       </p>
                     </Card>
@@ -907,7 +907,7 @@ export default function CalculatorPage() {
                 Farmland vs Residential
               </h2>
             </div>
-            <p className="text-sm font-body text-cream/40 max-w-xl">
+            <p className="text-sm font-body text-cream/68 max-w-xl">
               Compare how your {formatPrice(purchasePrice)} investment performs
               across property types over 15 years. Farmland typically offers
               higher capital appreciation while residential plots provide
@@ -985,14 +985,14 @@ export default function CalculatorPage() {
                       Farmland
                     </span>
                   </div>
-                  <p className="text-xs font-body text-cream/40">
+                  <p className="text-xs font-body text-cream/68">
                     10% appreciation, 2% rental yield
                   </p>
                   <p className="font-display text-xl font-semibold text-cream">
                     {comparisonData.length > 0
                       ? `+${comparisonData[comparisonData.length - 1]?.["Farmland ROI %"]}%`
                       : "—"}{" "}
-                    <span className="text-sm text-cream/40 font-body">
+                    <span className="text-sm text-cream/68 font-body">
                       ROI at 15Y
                     </span>
                   </p>
@@ -1004,14 +1004,14 @@ export default function CalculatorPage() {
                       Residential
                     </span>
                   </div>
-                  <p className="text-xs font-body text-cream/40">
+                  <p className="text-xs font-body text-cream/68">
                     7% appreciation, 4% rental yield
                   </p>
                   <p className="font-display text-xl font-semibold text-cream">
                     {comparisonData.length > 0
                       ? `+${comparisonData[comparisonData.length - 1]?.["Residential ROI %"]}%`
                       : "—"}{" "}
-                    <span className="text-sm text-cream/40 font-body">
+                    <span className="text-sm text-cream/68 font-body">
                       ROI at 15Y
                     </span>
                   </p>

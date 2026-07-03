@@ -83,7 +83,7 @@ export function FeaturedProperties({ initialProperties }: FeaturedPropertiesProp
           <div className="rounded-3xl border border-cream/8 bg-onyx-900/40 p-10 text-center">
             <p className="text-sm uppercase tracking-[0.2em] text-gold/60 mb-2">No featured properties yet</p>
             <h3 className="font-display text-3xl text-cream mb-3">Inventory will appear here as soon as listings are approved.</h3>
-            <p className="text-cream/45 max-w-2xl mx-auto">
+            <p className="text-cream/72 max-w-2xl mx-auto">
               Publish your first premium listing or return later once the marketplace inventory is seeded.
             </p>
           </div>

@@ -79,7 +79,7 @@ export function HowItWorks() {
                 <h3 className="font-display text-xl font-semibold text-cream mb-2 group-hover:text-gold transition-colors duration-300">
                   {step.title}
                 </h3>
-                <p className="text-sm text-cream/30 font-body leading-relaxed max-w-xs mx-auto">
+                <p className="text-sm text-cream/62 font-body leading-relaxed max-w-xs mx-auto">
                   {step.description}
                 </p>
               </motion.div>
