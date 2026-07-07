@@ -28,6 +28,7 @@ import { QueryProvider } from "@/lib/query-provider";
 import { ComparisonProvider, ComparisonBar } from "@/components/comparison";
 import { LayoutShell } from "@/components/layout/layout-shell";
 import { JsonLd } from "@/components/seo/json-ld";
+import { TrackingScripts } from "@/components/analytics/tracking-scripts";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -95,6 +96,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://t3.storageapi.dev" />
       </head>
       <body className="min-h-screen bg-onyx-950 text-cream antialiased">
+        <TrackingScripts />
         <JsonLd data={organizationSchema} />
         <SessionProvider>
           <QueryProvider>

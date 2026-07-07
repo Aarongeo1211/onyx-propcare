@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "@onyx/db";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, optionalAuth } from "../middleware/auth";
 import { sendInquiryNotification } from "../services/email";
 import { getQueryNumber, getSingleQueryParam } from "../utils/request";
 import { logger } from "../lib/logger";
@@ -11,17 +11,29 @@ export const inquiryRoutes = Router();
 const createInquirySchema = z.object({
   message: z.string().min(10).max(2000),
   propertyId: z.string(),
+  guestName: z.string().min(2).max(100).optional(),
+  guestPhone: z.string().min(6).max(20).optional(),
 });
 
-// POST /api/v1/inquiries
-inquiryRoutes.post("/", requireAuth, async (req, res) => {
+// POST /api/v1/inquiries — auth optional; guests must supply guestName + guestPhone
+inquiryRoutes.post("/", optionalAuth, async (req, res) => {
   try {
     const data = createInquirySchema.parse(req.body);
 
+    if (!req.user && (!data.guestName || !data.guestPhone)) {
+      return res.status(400).json({
+        success: false,
+        error: "Name and phone are required for a guest inquiry",
+      });
+    }
+
     const inquiry = await prisma.inquiry.create({
       data: {
-        ...data,
-        userId: req.user!.id,
+        message: data.message,
+        propertyId: data.propertyId,
+        userId: req.user?.id,
+        guestName: req.user ? null : data.guestName,
+        guestPhone: req.user ? null : data.guestPhone,
       },
       include: {
         property: { select: { title: true, slug: true } },
@@ -38,11 +50,13 @@ inquiryRoutes.post("/", requireAuth, async (req, res) => {
     });
 
     if (property) {
+      const buyerName = inquiry.user?.name || inquiry.guestName || "A guest";
+      const buyerContact = inquiry.user?.email || inquiry.guestPhone || "no contact supplied";
       sendInquiryNotification(
         property.owner.email,
         property.title,
-        inquiry.user.name,
-        inquiry.user.email,
+        buyerName,
+        buyerContact,
         data.message
       ).catch(() => {});
     }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { trackLead } from "@/lib/analytics";
 
 const fadeUp = {
   initial: { opacity: 0, y: 30 },
@@ -54,6 +55,7 @@ export function ContactPageContent() {
     }
     setSending(false);
     setSent(true);
+    trackLead("contact");
     setForm({ name: "", email: "", phone: "", subject: "General", message: "" });
     setTimeout(() => setSent(false), 4000);
   };

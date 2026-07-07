@@ -377,8 +377,10 @@ model Inquiry {
   status     InquiryStatus @default(NEW)
   propertyId String
   property   Property      @relation(fields: [propertyId], references: [id])
-  userId     String
-  user       User          @relation(fields: [userId], references: [id])
+  userId     String?
+  user       User?         @relation(fields: [userId], references: [id])
+  guestName  String?
+  guestPhone String?
 
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt

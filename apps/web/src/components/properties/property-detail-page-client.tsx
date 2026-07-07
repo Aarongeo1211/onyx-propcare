@@ -43,6 +43,7 @@ import {
   getPropertyTypeLabel,
   buildPropertyShareText,
 } from "@/lib/utils";
+import { trackLead } from "@/lib/analytics";
 
 const PropertyMap = dynamic(() => import("@/components/properties/property-map"), { ssr: false });
 
@@ -146,18 +147,21 @@ export function PropertyDetailPageClient({
   }, [lightboxOpen, property?.images?.length]);
 
   const handleInquiry = async () => {
-    if (!property || !session?.user?.id || !inquiryForm.name || !inquiryForm.phone || !inquiryForm.message) return;
+    if (!property || !inquiryForm.name || !inquiryForm.phone || !inquiryForm.message) return;
     setInquirySending(true);
     try {
       await apiFetch("/inquiries", {
         method: "POST",
-        token: session.user.accessToken,
+        token: session?.user?.accessToken,
         body: JSON.stringify({
           propertyId: property.id,
           message: `[${inquiryForm.name} | ${inquiryForm.phone}] ${inquiryForm.message}`,
+          guestName: inquiryForm.name,
+          guestPhone: inquiryForm.phone,
         }),
       });
       setInquirySent(true);
+      trackLead("inquiry", property.id);
     } catch (error) {
       console.error("Inquiry failed:", error);
     } finally {
@@ -166,12 +170,12 @@ export function PropertyDetailPageClient({
   };
 
   const handleCallback = async () => {
-    if (!property || !session?.user?.id || !inquiryForm.name || !inquiryForm.phone) return;
+    if (!property || !inquiryForm.name || !inquiryForm.phone) return;
     setCallbackSending(true);
     try {
       await apiFetch("/callbacks", {
         method: "POST",
-        token: session.user.accessToken,
+        token: session?.user?.accessToken,
         body: JSON.stringify({
           name: inquiryForm.name,
           phone: inquiryForm.phone,
@@ -179,6 +183,7 @@ export function PropertyDetailPageClient({
         }),
       });
       setCallbackSent(true);
+      trackLead("callback", property.id);
     } catch (error) {
       console.error("Callback request failed:", error);
     } finally {
@@ -620,16 +625,6 @@ export function PropertyDetailPageClient({
                     <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
                     <p className="font-medium text-cream">Inquiry Sent!</p>
                     <p className="mt-1 text-xs text-cream/86">The owner will contact you soon.</p>
-                  </div>
-                ) : !session?.user ? (
-                  <div className="py-6 text-center">
-                    <MessageSquare className="mx-auto mb-3 h-8 w-8 text-cream/79" />
-                    <p className="mb-3 text-sm text-cream/81">Please log in to send an inquiry.</p>
-                    <Link href="/login">
-                      <Button variant="outline" size="sm" className="w-full">
-                        Log in
-                      </Button>
-                    </Link>
                   </div>
                 ) : (
                   <div className="space-y-3">

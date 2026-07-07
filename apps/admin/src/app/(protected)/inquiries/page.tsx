@@ -10,6 +10,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 interface Inquiry {
   id: string;
   user?: { name: string; email: string } | null;
+  guestName?: string | null;
+  guestPhone?: string | null;
   property?: { title: string } | null;
   message: string;
   status: string;
@@ -92,7 +94,15 @@ export default function InquiriesPage() {
     if (!query) return inquiries;
 
     return inquiries.filter((inquiry) =>
-      [inquiry.user?.name, inquiry.user?.email, inquiry.property?.title, inquiry.message, inquiry.status]
+      [
+        inquiry.user?.name,
+        inquiry.user?.email,
+        inquiry.guestName,
+        inquiry.guestPhone,
+        inquiry.property?.title,
+        inquiry.message,
+        inquiry.status,
+      ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query))
     );
@@ -141,12 +151,17 @@ export default function InquiriesPage() {
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <p className="text-sm font-medium text-cream">{inquiry.user?.name || "Unknown buyer"}</p>
+                      <p className="text-sm font-medium text-cream">{inquiry.user?.name || inquiry.guestName || "Unknown buyer"}</p>
+                      {!inquiry.user && (
+                        <span className="inline-flex rounded-full border border-gold/20 bg-gold/5 px-2 py-0.5 text-[10px] uppercase tracking-wider text-gold/70">
+                          Guest
+                        </span>
+                      )}
                       <span className={`inline-flex rounded-full border px-3 py-1 text-[10px] ${statusColors[inquiry.status] || statusColors.NEW}`}>
                         {inquiry.status.replace(/_/g, " ")}
                       </span>
                     </div>
-                    <p className="text-xs text-cream/35">{inquiry.user?.email || "No email supplied"}</p>
+                    <p className="text-xs text-cream/35">{inquiry.user?.email || inquiry.guestPhone || "No contact supplied"}</p>
                     <p className="text-xs text-gold/65 mt-2">Property: {inquiry.property?.title || "Unknown property"}</p>
                     <p className="text-sm text-cream/55 leading-relaxed mt-3">{inquiry.message}</p>
                   </div>

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "@onyx/db";
 import { z } from "zod";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, optionalAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
 
 export const callbackRoutes = Router();
@@ -12,8 +12,8 @@ const createCallbackSchema = z.object({
   propertyId: z.string(),
 });
 
-// POST /api/v1/callbacks — Request a callback (auth optional via userId)
-callbackRoutes.post("/", requireAuth, async (req, res) => {
+// POST /api/v1/callbacks — Request a callback (auth optional)
+callbackRoutes.post("/", optionalAuth, async (req, res) => {
   try {
     const data = createCallbackSchema.parse(req.body);
 
@@ -31,7 +31,7 @@ callbackRoutes.post("/", requireAuth, async (req, res) => {
         name: data.name,
         phone: data.phone,
         propertyId: data.propertyId,
-        userId: req.user!.id,
+        userId: req.user?.id,
       },
       include: {
         property: { select: { title: true, slug: true } },

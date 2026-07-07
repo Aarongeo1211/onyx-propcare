@@ -86,7 +86,7 @@ export async function sendInquiryNotification(
   to: string,
   propertyTitle: string,
   buyerName: string,
-  buyerEmail: string,
+  buyerContact: string,
   message: string
 ) {
   const html = layout(
@@ -95,7 +95,7 @@ export async function sendInquiryNotification(
      <p ${labelStyle}>Property</p>
      <p ${valueStyle}>${propertyTitle}</p>
      <p ${labelStyle}>From</p>
-     <p ${valueStyle}>${buyerName} (${buyerEmail})</p>
+     <p ${valueStyle}>${buyerName} (${buyerContact})</p>
      <p ${labelStyle}>Message</p>
      <p ${valueStyle}>${message}</p>`
   );

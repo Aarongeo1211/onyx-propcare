@@ -72,7 +72,9 @@ interface Inquiry {
   status: string;
   createdAt: string;
   property: { id: string; title: string; slug: string };
-  user: { id: string; name: string; email: string; phone?: string | null };
+  user: { id: string; name: string; email: string; phone?: string | null } | null;
+  guestName?: string | null;
+  guestPhone?: string | null;
 }
 
 export default function DashboardInquiriesPage() {
@@ -207,21 +209,26 @@ export default function DashboardInquiriesPage() {
                       {/* Inquirer info */}
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-9 h-9 rounded-full bg-cream/5 flex items-center justify-center text-cream/78 font-display text-sm font-semibold shrink-0">
-                          {inquiry.user.name?.charAt(0)?.toUpperCase() || "?"}
+                          {(inquiry.user?.name || inquiry.guestName)?.charAt(0)?.toUpperCase() || "?"}
                         </div>
                         <div>
                           <p className="text-sm font-body text-cream font-medium">
-                            {inquiry.user.name}
+                            {inquiry.user?.name || inquiry.guestName || "Unknown"}
+                            {!inquiry.user && (
+                              <span className="ml-2 text-[10px] uppercase tracking-wider text-gold/70">Guest</span>
+                            )}
                           </p>
                           <div className="flex items-center gap-3 text-xs text-cream/81">
-                            <span className="flex items-center gap-1">
-                              <Mail className="w-3 h-3" />
-                              {inquiry.user.email}
-                            </span>
-                            {inquiry.user.phone && (
+                            {inquiry.user?.email && (
+                              <span className="flex items-center gap-1">
+                                <Mail className="w-3 h-3" />
+                                {inquiry.user.email}
+                              </span>
+                            )}
+                            {(inquiry.user?.phone || inquiry.guestPhone) && (
                               <span className="flex items-center gap-1">
                                 <Phone className="w-3 h-3" />
-                                {inquiry.user.phone}
+                                {inquiry.user?.phone || inquiry.guestPhone}
                               </span>
                             )}
                           </div>
