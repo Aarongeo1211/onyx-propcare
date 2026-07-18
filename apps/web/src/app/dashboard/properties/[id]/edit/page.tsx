@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { INDIAN_STATES, AREA_UNITS } from "@onyx/types";
 import { Badge } from "@onyx/ui";
+import { compressImages } from "@/lib/image-compression";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
@@ -374,7 +375,7 @@ export default function EditPropertyPage() {
   const handleImageUpload = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     const allowed = fileArray.filter(
-      (f) => ["image/jpeg", "image/png", "image/webp"].includes(f.type) && f.size <= 5 * 1024 * 1024
+      (f) => ["image/jpeg", "image/png", "image/webp"].includes(f.type) && f.size <= 50 * 1024 * 1024
     );
     if (allowed.length === 0) return;
 
@@ -389,8 +390,9 @@ export default function EditPropertyPage() {
     setError(null);
 
     try {
+      const compressed = await compressImages(toUpload);
       const formData = new FormData();
-      toUpload.forEach((f) => formData.append("images", f));
+      compressed.forEach((f) => formData.append("images", f));
 
       const res = await fetch(`${API_BASE}/upload/images`, {
         method: "POST",
@@ -1317,7 +1319,7 @@ export default function EditPropertyPage() {
                       {uploading ? "Uploading..." : "Drag & drop images or click to browse"}
                     </p>
                     <p className="text-xs font-body text-cream/81 mt-1">
-                      JPEG, PNG, WebP up to 5MB each
+                      JPEG, PNG, WebP
                     </p>
                   </div>
                 </div>

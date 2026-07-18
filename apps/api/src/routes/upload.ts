@@ -15,7 +15,7 @@ const DOCUMENT_TYPES = [
   "image/jpeg",
   "image/png",
 ];
-const IMAGE_MAX_FILE_SIZE = 5 * 1024 * 1024;
+const IMAGE_MAX_FILE_SIZE = 50 * 1024 * 1024;
 const VIDEO_MAX_FILE_SIZE = 100 * 1024 * 1024;
 const DOCUMENT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -61,7 +61,7 @@ uploadRoutes.post("/images", requireAuth, imageUpload.array("images", 10), async
     logger.error({ err: error }, "Image upload error");
     if (error instanceof multer.MulterError) {
       if (error.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ success: false, error: "File too large. Maximum size is 5MB." });
+        return res.status(400).json({ success: false, error: "File too large. Maximum size is 50MB." });
       }
       if (error.code === "LIMIT_FILE_COUNT") {
         return res.status(400).json({ success: false, error: "Too many files. Maximum is 10." });
