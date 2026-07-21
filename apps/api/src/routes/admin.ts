@@ -537,11 +537,15 @@ adminRoutes.delete(
         return res.status(404).json({ success: false, error: "Property not found" });
       }
 
-      // Images have no publicId — extract the S3 key from the URL path
+      // Images have no publicId — extract the S3 object key from the asset proxy URL
+      // (.../api/v1/upload/files/<encoded key>). Using the raw pathname here previously
+      // kept the "/api/v1/upload/files/" prefix and left it percent-encoded, so every
+      // hard-delete silently failed to remove the image from the bucket.
       const imageKeys = property.images
         .map((f: { id: string; url: string }) => {
           try {
-            return new URL(f.url).pathname.replace(/^\//, "");
+            const match = new URL(f.url).pathname.match(/\/upload\/files\/(.+)$/);
+            return match ? decodeURIComponent(match[1]) : null;
           } catch {
             return null;
           }

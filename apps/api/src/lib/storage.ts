@@ -2,8 +2,10 @@ import type { Request, Response } from "express";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { Agent as HttpsAgent } from "node:https";
 import { DeleteObjectCommand, GetObjectCommand, PutBucketCorsCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { v2 as cloudinary, type UploadApiResponse } from "cloudinary";
 import { env } from "../config/env";
 import { logger } from "./logger";
@@ -79,6 +81,12 @@ export const storageMode: StorageMode = isBucketConfigured
     ? "cloudinary"
     : "local";
 
+// The default NodeHttpHandler caps concurrent connections to the bucket at 50 sockets.
+// Every property image/video is served by proxying through streamBucketFile (below), and
+// Next.js's image optimizer alone fires several concurrent requests per page (one per
+// breakpoint/size), so the default pool saturates under normal traffic and requests queue
+// up for minutes before timing out (504). Raise the ceiling and bound how long a single
+// request can hold a socket so a slow/stalled bucket read can't starve the rest.
 const bucketClient = isBucketConfigured
   ? new S3Client({
       region: process.env.AWS_DEFAULT_REGION || "auto",
@@ -88,6 +96,11 @@ const bucketClient = isBucketConfigured
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
       },
       forcePathStyle: process.env.AWS_URL_STYLE === "path",
+      requestHandler: new NodeHttpHandler({
+        httpsAgent: new HttpsAgent({ keepAlive: true, maxSockets: 500 }),
+        connectionTimeout: 5_000,
+        requestTimeout: 30_000,
+      }),
     })
   : null;
 
@@ -368,7 +381,20 @@ export async function streamBucketFile(
   res.writeHead(status, headers);
 
   // AWS SDK v3 returns a Node.js Readable stream in server environments
-  const body = s3Response.Body as unknown as NodeJS.ReadableStream;
+  const body = s3Response.Body as unknown as NodeJS.ReadableStream & { destroy: (error?: Error) => void };
+
+  // If the client disconnects (nav away, cancelled image-optimizer request, aborted
+  // range fetch) before the bucket read finishes, destroy the upstream stream so its
+  // socket is released back to the S3 client's connection pool immediately — otherwise
+  // it dangles until the bucket times it out, and concurrent requests queue up behind it.
+  res.on("close", () => {
+    body.destroy();
+  });
+  body.on("error", (err: Error) => {
+    logger.warn({ err }, "Bucket stream error");
+    res.destroy();
+  });
+
   body.pipe(res);
 }
 

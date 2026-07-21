@@ -91,6 +91,9 @@ importers:
       '@onyx/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@smithy/node-http-handler':
+        specifier: ^4.7.4
+        version: 4.7.4
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3

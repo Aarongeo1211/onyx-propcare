@@ -15,6 +15,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",
     "@aws-sdk/s3-request-presigner": "^3.1053.0",
+    "@smithy/node-http-handler": "^4.7.4",
     "@onyx/db": "workspace:*",
     "@onyx/types": "workspace:*",
     "bcryptjs": "^3.0.3",
