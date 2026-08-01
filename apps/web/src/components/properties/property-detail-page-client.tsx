@@ -241,10 +241,10 @@ export function PropertyDetailPageClient({
   if (loading && !property) return <PropertyDetailSkeleton />;
   if (!property) return <PropertyNotFound />;
 
-  const images =
-    property.images.length > 0
-      ? property.images
-      : [{ id: "placeholder", url: "/images/placeholder-property.jpg", alt: property.title, isPrimary: true, order: 0 }];
+  const hasImage = property.images.length > 0;
+  const images = hasImage
+    ? property.images
+    : [{ id: "placeholder", url: "/images/placeholder-property.svg", alt: property.title, isPrimary: true, order: 0 }];
   const hasDataTabs = property.soilData || property.waterData || property.legalCheck || property.droneMap;
 
   return (
@@ -262,6 +262,7 @@ export function PropertyDetailPageClient({
               src={images[currentImage].url}
               alt={images[currentImage].alt || property.title}
               fill
+              unoptimized={!hasImage}
               className="object-contain"
               priority
             />

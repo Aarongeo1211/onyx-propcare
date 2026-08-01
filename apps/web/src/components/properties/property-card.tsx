@@ -44,7 +44,8 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
   const { data: session, status } = useSession();
-  const imageUrl = property.images?.[0]?.url || "/images/placeholder-property.jpg";
+  const hasImage = Boolean(property.images?.[0]?.url);
+  const imageUrl = property.images?.[0]?.url || "/images/placeholder-property.svg";
   const imageAlt = property.images?.[0]?.alt || property.title;
   const [shareCopied, setShareCopied] = useState(false);
 
@@ -117,6 +118,7 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               src={imageUrl}
               alt={imageAlt}
               fill
+              unoptimized={!hasImage}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               loading="lazy"

@@ -272,10 +272,11 @@ function ComparePageContent() {
                     <Image
                       src={
                         prop.images?.[0]?.url ||
-                        "/images/placeholder-property.jpg"
+                        "/images/placeholder-property.svg"
                       }
                       alt={prop.title}
                       fill
+                      unoptimized={!prop.images?.[0]?.url}
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
