@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "res.cloudinary.com" },
     ],
+    // No layout on this site renders an image wider than ~1536px, so the stock
+    // 2048/3840 breakpoints only add memory-heavy sharp resizes nobody needs.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
   },
   async headers() {
     return [
