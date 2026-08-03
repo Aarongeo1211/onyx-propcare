@@ -5,6 +5,7 @@ import { z } from "zod";
 import { optionalAuth, requireAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
 import { buildAssetUrl, createPresignedUploadUrl, deleteFile, storageMode, streamBucketFile, uploadFile } from "../lib/storage";
+import { cache } from "../lib/redis";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
@@ -224,7 +225,7 @@ uploadRoutes.post("/property-images", requireAuth, async (req, res) => {
 
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
-      select: { ownerId: true },
+      select: { ownerId: true, slug: true },
     });
 
     if (!property) {
@@ -253,6 +254,8 @@ uploadRoutes.post("/property-images", requireAuth, async (req, res) => {
       where: { propertyId },
       orderBy: { order: "asc" },
     });
+
+    await cache.del(`property:slug:${property.slug}`);
 
     res.status(201).json({ success: true, data: allImages, count: created.count });
   } catch (error) {
@@ -302,7 +305,7 @@ uploadRoutes.delete("/images/:publicId(*)", requireAuth, async (req, res) => {
 
     const image = await prisma.propertyImage.findFirst({
       where: { url: { contains: filename } },
-      include: { property: { select: { ownerId: true } } },
+      include: { property: { select: { ownerId: true, slug: true } } },
     });
 
     if (image) {
@@ -310,6 +313,7 @@ uploadRoutes.delete("/images/:publicId(*)", requireAuth, async (req, res) => {
         return res.status(403).json({ success: false, error: "Not authorized" });
       }
       await prisma.propertyImage.delete({ where: { id: image.id } });
+      await cache.del(`property:slug:${image.property.slug}`);
     }
 
     await deleteFile(publicId);

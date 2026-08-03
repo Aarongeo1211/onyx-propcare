@@ -367,6 +367,12 @@ adminRoutes.patch(
       const propertyId = String(req.params.id);
       const reviewerName = req.user?.name || req.user?.email || "Admin";
 
+      const property = await prisma.property.findUnique({ where: { id: propertyId }, select: { slug: true } });
+      if (!property) {
+        return res.status(404).json({ success: false, error: "Property not found" });
+      }
+      const invalidateDetailCache = () => cache.del(`property:slug:${property.slug}`);
+
       if (section === "soil") {
         const existing = await prisma.soilData.findUnique({ where: { propertyId } });
         if (!existing) {
@@ -383,6 +389,7 @@ adminRoutes.patch(
           },
         });
         await logAudit(req, { action: "REVIEW_SOIL_DATA", entity: "property", entityId: propertyId, details: { approvalStatus, reviewNotes } });
+        await invalidateDetailCache();
         return res.json({ success: true, data: updated });
       }
 
@@ -402,6 +409,7 @@ adminRoutes.patch(
           },
         });
         await logAudit(req, { action: "REVIEW_WATER_DATA", entity: "property", entityId: propertyId, details: { approvalStatus, reviewNotes } });
+        await invalidateDetailCache();
         return res.json({ success: true, data: updated });
       }
 
@@ -420,6 +428,7 @@ adminRoutes.patch(
         },
       });
       await logAudit(req, { action: "REVIEW_LEGAL_DATA", entity: "property", entityId: propertyId, details: { approvalStatus, reviewNotes } });
+      await invalidateDetailCache();
       res.json({ success: true, data: updated });
     } catch (err) {
       if (err instanceof z.ZodError) {
