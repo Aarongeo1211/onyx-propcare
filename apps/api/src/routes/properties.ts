@@ -472,25 +472,40 @@ propertyRoutes.get("/by-id/:id", requireAuth, async (req, res) => {
 });
 
 // GET /api/v1/properties/:slug
+function propertyDetailCacheKey(slug: string) {
+  return `property:slug:${slug}`;
+}
+
 propertyRoutes.get("/:slug", optionalAuth, async (req, res) => {
   try {
-    const property = await prisma.property.findUnique({
-      where: { slug: String(req.params.slug) },
-      include: {
-        images: { orderBy: { order: "asc" } },
-        videos: { orderBy: { order: "asc" } },
-        documents: true,
-        owner: { select: { id: true, name: true, avatar: true, phone: true } },
-        soilData: true,
-        waterData: true,
-        legalCheck: true,
-        droneMap: true,
-        reviews: {
-          include: { user: { select: { name: true, avatar: true } } },
-          orderBy: { createdAt: "desc" },
+    const slug = String(req.params.slug);
+    const cacheKey = propertyDetailCacheKey(slug);
+
+    // Cache the raw row (pre-sanitization) — owner phone is stripped per-request below,
+    // so one cache entry correctly serves both authenticated and anonymous viewers.
+    let property = await cache.get<Record<string, unknown>>(cacheKey);
+
+    if (!property) {
+      property = await prisma.property.findUnique({
+        where: { slug },
+        include: {
+          images: { orderBy: { order: "asc" } },
+          videos: { orderBy: { order: "asc" } },
+          documents: true,
+          owner: { select: { id: true, name: true, avatar: true, phone: true } },
+          soilData: true,
+          waterData: true,
+          legalCheck: true,
+          droneMap: true,
+          reviews: {
+            include: { user: { select: { name: true, avatar: true } } },
+            orderBy: { createdAt: "desc" },
+          },
         },
-      },
-    });
+      });
+
+      if (property) await cache.set(cacheKey, property, 60);
+    }
 
     if (!property) {
       return res.status(404).json({ success: false, error: "Property not found" });
@@ -499,17 +514,18 @@ propertyRoutes.get("/:slug", optionalAuth, async (req, res) => {
     // Respond immediately — track view count asynchronously so it never slows the page load
     res.json({ success: true, data: sanitizePublicProperty(property, Boolean(req.user)) });
 
+    const propertyId = String(property.id);
     const userId = req.user?.id;
     Promise.all([
       prisma.property.update({
-        where: { id: property.id },
+        where: { id: propertyId },
         data: { viewCount: { increment: 1 } },
       }),
       userId
         ? prisma.propertyView.upsert({
-            where: { propertyId_userId: { propertyId: property.id, userId } },
+            where: { propertyId_userId: { propertyId, userId } },
             update: { viewedAt: new Date() },
-            create: { propertyId: property.id, userId },
+            create: { propertyId, userId },
           })
         : Promise.resolve(),
     ]).catch((err) => logger.error({ err }, "Failed to record property view"));
@@ -945,6 +961,7 @@ propertyRoutes.patch("/:id", requireAuth, async (req, res) => {
       if (updated.isFeatured) await cache.del("properties:featured");
       await cache.invalidatePrefix(`properties:type:${updated.type}:state:${updated.state}`);
       await cache.invalidatePrefix(`properties:type:${updated.type}`);
+      await cache.del(propertyDetailCacheKey(property.slug));
     }
 
     res.json({ success: true, data: updated });
@@ -981,6 +998,7 @@ propertyRoutes.delete("/:id", requireAuth, async (req, res) => {
     if (property.isFeatured) await cache.del("properties:featured");
     await cache.invalidatePrefix(`properties:type:${property.type}:state:${property.state}`);
     await cache.invalidatePrefix(`properties:type:${property.type}`);
+    await cache.del(propertyDetailCacheKey(property.slug));
 
     res.json({ success: true, message: "Property deactivated" });
   } catch (error) {

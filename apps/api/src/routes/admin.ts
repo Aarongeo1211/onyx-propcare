@@ -471,7 +471,7 @@ adminRoutes.patch(
           isFeatured: featured,
           featuredAt: featured ? new Date() : null,
         },
-        select: { id: true, title: true, isFeatured: true, featuredAt: true },
+        select: { id: true, slug: true, title: true, isFeatured: true, featuredAt: true },
       });
       await logAudit(req, {
         action: featured ? "FEATURE_PROPERTY" : "UNFEATURE_PROPERTY",
@@ -481,6 +481,7 @@ adminRoutes.patch(
       });
       // Bust the featured properties cache so the homepage reflects the change immediately
       await cache.del("properties:featured");
+      await cache.del(`property:slug:${property.slug}`);
       res.json({ success: true, data: property });
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -506,6 +507,7 @@ adminRoutes.delete(
       // Always bust featured cache on archive — property is guaranteed off the list
       cache.del("properties:featured");
       cache.del(ADMIN_STATS_CACHE_KEY);
+      cache.del(`property:slug:${property.slug}`);
       res.json({ success: true, data: property, message: "Property archived successfully" });
     } catch (err) {
       logger.error({ err }, "Error archiving property");
@@ -568,6 +570,7 @@ adminRoutes.delete(
       await cache.del("properties:featured");
       await cache.invalidatePrefix(`properties:type:${property.type}`);
       cache.del(ADMIN_STATS_CACHE_KEY);
+      cache.del(`property:slug:${property.slug}`);
 
       res.json({ success: true, message: "Property permanently deleted" });
     } catch (err) {
