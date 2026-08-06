@@ -37,6 +37,24 @@ const emptyForm = {
   category: "",
 };
 
+// Parses a fetch Response into { success, data, error }, never throws — a non-JSON
+// body (proxy error page, rate-limit HTML, etc.) becomes a readable message instead
+// of an opaque parse exception, and a non-2xx status always produces an error even
+// if the body happens to be valid JSON with success left undefined.
+async function parseApiResponse(res: Response): Promise<{ success: boolean; data?: any; error?: string }> {
+  let body: any = null;
+  try {
+    body = await res.json();
+  } catch {
+    // fall through with body = null
+  }
+  if (!res.ok) {
+    return { success: false, error: body?.error || `Request failed (${res.status})` };
+  }
+  if (body && typeof body.success === "boolean") return body;
+  return { success: true, data: body };
+}
+
 export default function FortyPlusEventsPage() {
   const { data: session } = useSession();
   const token = (session?.user as any)?.accessToken as string | undefined;
@@ -49,8 +67,14 @@ export default function FortyPlusEventsPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadTargetRef = useRef<string | null>(null);
+
+  function flashSuccess(message: string) {
+    setSuccess(message);
+    setTimeout(() => setSuccess((s) => (s === message ? null : s)), 4000);
+  }
 
   const fetchEvents = useCallback(async () => {
     if (!token) return;
@@ -59,8 +83,14 @@ export default function FortyPlusEventsPage() {
       const res = await fetch(`${API_URL}/api/v1/admin/40plus/events`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      if (data.success) setEvents(data.data || []);
+      const result = await parseApiResponse(res);
+      if (result.success) {
+        setEvents(result.data || []);
+      } else {
+        setError(result.error || "Failed to load events");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? `Failed to load events: ${err.message}` : "Failed to load events");
     } finally {
       setLoading(false);
     }
@@ -90,7 +120,10 @@ export default function FortyPlusEventsPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!token) return;
+    if (!token) {
+      setError("Your session has expired. Please log out and log back in.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -109,9 +142,10 @@ export default function FortyPlusEventsPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Failed to save event");
+      const result = await parseApiResponse(res);
+      if (!result.success) throw new Error(result.error || "Failed to save event");
       setShowForm(false);
+      flashSuccess(editingId ? "Event updated." : "Event created.");
       await fetchEvents();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save event");
@@ -121,22 +155,45 @@ export default function FortyPlusEventsPage() {
   }
 
   async function toggleStatus(event: EventItem) {
-    if (!token) return;
-    await fetch(`${API_URL}/api/v1/admin/40plus/events/${event.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status: event.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED" }),
-    });
-    await fetchEvents();
+    if (!token) {
+      setError("Your session has expired. Please log out and log back in.");
+      return;
+    }
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/admin/40plus/events/${event.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: event.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED" }),
+      });
+      const result = await parseApiResponse(res);
+      if (!result.success) throw new Error(result.error || "Failed to update status");
+      flashSuccess(event.status === "PUBLISHED" ? "Event unpublished." : "Event published.");
+      await fetchEvents();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update status");
+    }
   }
 
   async function handleDelete(event: EventItem) {
-    if (!token || !confirm(`Delete "${event.title}"? This removes all its media too.`)) return;
-    await fetch(`${API_URL}/api/v1/admin/40plus/events/${event.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    await fetchEvents();
+    if (!confirm(`Delete "${event.title}"? This removes all its media too.`)) return;
+    if (!token) {
+      setError("Your session has expired. Please log out and log back in.");
+      return;
+    }
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/admin/40plus/events/${event.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await parseApiResponse(res);
+      if (!result.success) throw new Error(result.error || "Failed to delete event");
+      flashSuccess("Event deleted.");
+      await fetchEvents();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete event");
+    }
   }
 
   function triggerUpload(eventId: string) {
@@ -148,7 +205,11 @@ export default function FortyPlusEventsPage() {
     const eventId = uploadTargetRef.current;
     const files = e.target.files;
     e.target.value = "";
-    if (!eventId || !files || files.length === 0 || !token) return;
+    if (!eventId || !files || files.length === 0) return;
+    if (!token) {
+      setError("Your session has expired. Please log out and log back in.");
+      return;
+    }
 
     const event = events.find((ev) => ev.id === eventId);
     const remaining = MAX_MEDIA - (event?.media.length || 0);
@@ -163,6 +224,11 @@ export default function FortyPlusEventsPage() {
     try {
       const images = fileArray.filter((f) => f.type.startsWith("image/"));
       const videos = fileArray.filter((f) => f.type.startsWith("video/"));
+      const unrecognized = fileArray.length - images.length - videos.length;
+      if (unrecognized > 0) {
+        throw new Error(`${unrecognized} file(s) were not a recognized image or video type and were skipped.`);
+      }
+
       const uploaded: { url: string; publicId: string; type: "IMAGE" | "VIDEO" }[] = [];
 
       if (images.length > 0) {
@@ -173,9 +239,9 @@ export default function FortyPlusEventsPage() {
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error || "Image upload failed");
-        data.data.forEach((r: { url: string; publicId: string }) =>
+        const result = await parseApiResponse(res);
+        if (!result.success) throw new Error(result.error || "Image upload failed");
+        (result.data || []).forEach((r: { url: string; publicId: string }) =>
           uploaded.push({ url: r.url, publicId: r.publicId, type: "IMAGE" })
         );
       }
@@ -188,9 +254,9 @@ export default function FortyPlusEventsPage() {
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error || "Video upload failed");
-        data.data.forEach((r: { url: string; publicId: string }) =>
+        const result = await parseApiResponse(res);
+        if (!result.success) throw new Error(result.error || "Video upload failed");
+        (result.data || []).forEach((r: { url: string; publicId: string }) =>
           uploaded.push({ url: r.url, publicId: r.publicId, type: "VIDEO" })
         );
       }
@@ -201,10 +267,11 @@ export default function FortyPlusEventsPage() {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ media: uploaded }),
         });
-        const attachData = await attachRes.json();
-        if (!attachData.success) throw new Error(attachData.error || "Failed to attach media");
+        const attachResult = await parseApiResponse(attachRes);
+        if (!attachResult.success) throw new Error(attachResult.error || "Failed to attach media");
       }
 
+      flashSuccess(`${uploaded.length} file(s) uploaded.`);
       await fetchEvents();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -214,12 +281,24 @@ export default function FortyPlusEventsPage() {
   }
 
   async function handleRemoveMedia(eventId: string, mediaId: string) {
-    if (!token || !confirm("Remove this poster/video?")) return;
-    await fetch(`${API_URL}/api/v1/admin/40plus/events/${eventId}/media/${mediaId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    await fetchEvents();
+    if (!confirm("Remove this poster/video?")) return;
+    if (!token) {
+      setError("Your session has expired. Please log out and log back in.");
+      return;
+    }
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/admin/40plus/events/${eventId}/media/${mediaId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await parseApiResponse(res);
+      if (!result.success) throw new Error(result.error || "Failed to remove media");
+      flashSuccess("Media removed.");
+      await fetchEvents();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove media");
+    }
   }
 
   return (
@@ -249,6 +328,12 @@ export default function FortyPlusEventsPage() {
           New Event
         </button>
       </div>
+
+      {success && (
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+          {success}
+        </div>
+      )}
 
       {error && (
         <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
