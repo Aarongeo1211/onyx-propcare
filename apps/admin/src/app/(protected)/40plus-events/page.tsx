@@ -68,6 +68,12 @@ export default function FortyPlusEventsPage() {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+  function debug(msg: string) {
+    // eslint-disable-next-line no-console
+    console.log("[40plus-debug]", msg);
+    setDebugLog((d) => [...d.slice(-19), `${new Date().toLocaleTimeString()} ${msg}`]);
+  }
 
   function flashSuccess(message: string) {
     setSuccess(message);
@@ -97,6 +103,20 @@ export default function FortyPlusEventsPage() {
   useEffect(() => {
     void fetchEvents();
   }, [fetchEvents]);
+
+  useEffect(() => {
+    const onFocus = () => debug("window focus");
+    const onBlur = () => debug("window blur");
+    const onVis = () => debug("visibilitychange -> " + document.visibilityState);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("blur", onBlur);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("blur", onBlur);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   function openCreate() {
     setEditingId(null);
@@ -195,22 +215,30 @@ export default function FortyPlusEventsPage() {
   }
 
   async function handleFilesSelected(eventId: string, e: React.ChangeEvent<HTMLInputElement>) {
+    debug(`onChange fired for event ${eventId}`);
     const files = e.target.files;
+    debug(`files.length = ${files ? files.length : "null"}`);
     e.target.value = "";
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      debug("bailing: no files");
+      return;
+    }
     if (!token) {
+      debug("bailing: no token");
       setError("Your session has expired. Please log out and log back in.");
       return;
     }
 
     const event = events.find((ev) => ev.id === eventId);
     const remaining = MAX_MEDIA - (event?.media.length || 0);
+    debug(`event found = ${Boolean(event)}, remaining = ${remaining}`);
     if (remaining <= 0) {
       setError(`This event already has the maximum of ${MAX_MEDIA} posters/videos.`);
       return;
     }
 
     const fileArray = Array.from(files).slice(0, remaining);
+    debug(`proceeding with ${fileArray.length} file(s): ${fileArray.map((f) => f.name).join(", ")}`);
     setUploadingFor(eventId);
     setError(null);
     try {
@@ -224,6 +252,7 @@ export default function FortyPlusEventsPage() {
       const uploaded: { url: string; publicId: string; type: "IMAGE" | "VIDEO" }[] = [];
 
       if (images.length > 0) {
+        debug(`uploading ${images.length} image(s)...`);
         const formData = new FormData();
         images.forEach((f) => formData.append("images", f));
         const res = await fetch(`${API_URL}/api/v1/upload/40plus/images`, {
@@ -231,6 +260,7 @@ export default function FortyPlusEventsPage() {
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
+        debug(`image upload response: ${res.status}`);
         const result = await parseApiResponse(res);
         if (!result.success) throw new Error(result.error || "Image upload failed");
         (result.data || []).forEach((r: { url: string; publicId: string }) =>
@@ -263,9 +293,11 @@ export default function FortyPlusEventsPage() {
         if (!attachResult.success) throw new Error(attachResult.error || "Failed to attach media");
       }
 
+      debug(`done, ${uploaded.length} uploaded`);
       flashSuccess(`${uploaded.length} file(s) uploaded.`);
       await fetchEvents();
     } catch (err) {
+      debug(`ERROR: ${err instanceof Error ? err.message : String(err)}`);
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploadingFor(null);
@@ -295,6 +327,16 @@ export default function FortyPlusEventsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Temporary diagnostic panel — remove once the upload issue is resolved */}
+      <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-yellow-400">
+          Debug log (temporary)
+        </p>
+        <pre className="max-h-48 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-yellow-200">
+          {debugLog.length > 0 ? debugLog.join("\n") : "No events logged yet — try clicking upload."}
+        </pre>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold text-cream">Onyx 40+ Events</h1>
