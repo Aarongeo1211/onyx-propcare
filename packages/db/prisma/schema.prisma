@@ -636,3 +636,47 @@ model PlatformSetting {
   @@index([category, key])
   @@map("platform_settings")
 }
+
+// ─── Onyx 40+ community ──────────────────────────────────
+
+enum FortyPlusEventStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum FortyPlusMediaType {
+  IMAGE
+  VIDEO
+}
+
+model FortyPlusEvent {
+  id          String               @id @default(cuid())
+  title       String
+  slug        String               @unique
+  description String?              @db.Text
+  eventDate   DateTime?
+  location    String?
+  category    String?
+  status      FortyPlusEventStatus @default(DRAFT)
+  order       Int                  @default(0)
+  media       FortyPlusEventMedia[]
+
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([status, order])
+  @@map("forty_plus_events")
+}
+
+model FortyPlusEventMedia {
+  id       String             @id @default(cuid())
+  url      String
+  publicId String
+  type     FortyPlusMediaType
+  order    Int                @default(0)
+  eventId  String
+  event    FortyPlusEvent     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("forty_plus_event_media")
+}

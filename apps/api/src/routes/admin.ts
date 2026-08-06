@@ -780,3 +780,214 @@ adminRoutes.delete(
     }
   }
 );
+
+// ─── Onyx 40+ events ────────────────────────────────────────────────────────
+
+const MAX_EVENT_MEDIA = 5;
+
+function invalidateFortyPlusCache(slug: string) {
+  return Promise.all([
+    cache.del("40plus:events:published"),
+    cache.del(`40plus:events:slug:${slug}`),
+  ]);
+}
+
+function slugifyEventTitle(title: string) {
+  return (
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") +
+    "-" +
+    Date.now().toString(36)
+  );
+}
+
+adminRoutes.get("/40plus/events", requireAuth, requireRole("ADMIN", "SUPER_ADMIN"), async (_req, res) => {
+  try {
+    const events = await prisma.fortyPlusEvent.findMany({
+      include: { media: { orderBy: { order: "asc" } } },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    });
+    res.json({ success: true, data: events });
+  } catch (err) {
+    logger.error({ err }, "Error listing 40+ events");
+    res.status(500).json({ success: false, error: "Failed to list events" });
+  }
+});
+
+const createEventSchema = z.object({
+  title: z.string().min(3).max(160),
+  description: z.string().max(3000).optional(),
+  eventDate: z.string().datetime().optional(),
+  location: z.string().max(200).optional(),
+  category: z.string().max(80).optional(),
+  status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
+  order: z.number().int().optional(),
+});
+
+adminRoutes.post("/40plus/events", requireAuth, requireRole("ADMIN", "SUPER_ADMIN"), async (req, res) => {
+  try {
+    const data = createEventSchema.parse(req.body);
+    const event = await prisma.fortyPlusEvent.create({
+      data: {
+        title: data.title,
+        slug: slugifyEventTitle(data.title),
+        description: data.description || null,
+        eventDate: data.eventDate ? new Date(data.eventDate) : null,
+        location: data.location || null,
+        category: data.category || null,
+        status: data.status || "DRAFT",
+        order: data.order ?? 0,
+      },
+      include: { media: true },
+    });
+    await logAudit(req, { action: "CREATE_40PLUS_EVENT", entity: "forty_plus_event", entityId: event.id });
+    if (event.status === "PUBLISHED") await invalidateFortyPlusCache(event.slug);
+    res.status(201).json({ success: true, data: event });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: err.errors });
+    }
+    logger.error({ err }, "Error creating 40+ event");
+    res.status(500).json({ success: false, error: "Failed to create event" });
+  }
+});
+
+const updateEventSchema = createEventSchema.partial();
+
+adminRoutes.patch("/40plus/events/:id", requireAuth, requireRole("ADMIN", "SUPER_ADMIN"), async (req, res) => {
+  try {
+    const data = updateEventSchema.parse(req.body);
+    const eventId = String(req.params.id);
+    const existing = await prisma.fortyPlusEvent.findUnique({ where: { id: eventId } });
+    if (!existing) return res.status(404).json({ success: false, error: "Event not found" });
+
+    const event = await prisma.fortyPlusEvent.update({
+      where: { id: eventId },
+      data: {
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.description !== undefined && { description: data.description || null }),
+        ...(data.eventDate !== undefined && { eventDate: data.eventDate ? new Date(data.eventDate) : null }),
+        ...(data.location !== undefined && { location: data.location || null }),
+        ...(data.category !== undefined && { category: data.category || null }),
+        ...(data.status !== undefined && { status: data.status }),
+        ...(data.order !== undefined && { order: data.order }),
+      },
+      include: { media: { orderBy: { order: "asc" } } },
+    });
+    await logAudit(req, { action: "UPDATE_40PLUS_EVENT", entity: "forty_plus_event", entityId: event.id });
+    await invalidateFortyPlusCache(existing.slug);
+    if (event.slug !== existing.slug) await invalidateFortyPlusCache(event.slug);
+    res.json({ success: true, data: event });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: err.errors });
+    }
+    logger.error({ err }, "Error updating 40+ event");
+    res.status(500).json({ success: false, error: "Failed to update event" });
+  }
+});
+
+adminRoutes.delete("/40plus/events/:id", requireAuth, requireRole("ADMIN", "SUPER_ADMIN"), async (req, res) => {
+  try {
+    const event = await prisma.fortyPlusEvent.findUnique({
+      where: { id: String(req.params.id) },
+      include: { media: true },
+    });
+    if (!event) return res.status(404).json({ success: false, error: "Event not found" });
+
+    await Promise.allSettled(event.media.map((m) => deleteFile(m.publicId)));
+    await prisma.fortyPlusEvent.delete({ where: { id: event.id } });
+
+    await logAudit(req, { action: "DELETE_40PLUS_EVENT", entity: "forty_plus_event", entityId: event.id, details: { title: event.title } });
+    await invalidateFortyPlusCache(event.slug);
+    res.json({ success: true, message: "Event deleted" });
+  } catch (err) {
+    logger.error({ err }, "Error deleting 40+ event");
+    res.status(500).json({ success: false, error: "Failed to delete event" });
+  }
+});
+
+const addEventMediaSchema = z.object({
+  media: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        publicId: z.string(),
+        type: z.enum(["IMAGE", "VIDEO"]),
+      })
+    )
+    .min(1),
+});
+
+adminRoutes.post("/40plus/events/:id/media", requireAuth, requireRole("ADMIN", "SUPER_ADMIN"), async (req, res) => {
+  try {
+    const { media } = addEventMediaSchema.parse(req.body);
+    const event = await prisma.fortyPlusEvent.findUnique({
+      where: { id: String(req.params.id) },
+      include: { media: true },
+    });
+    if (!event) return res.status(404).json({ success: false, error: "Event not found" });
+
+    if (event.media.length + media.length > MAX_EVENT_MEDIA) {
+      return res.status(400).json({
+        success: false,
+        error: `An event can have at most ${MAX_EVENT_MEDIA} posters/videos (${event.media.length} already attached).`,
+      });
+    }
+
+    const startOrder = event.media.length;
+    await prisma.fortyPlusEventMedia.createMany({
+      data: media.map((m, i) => ({
+        url: m.url,
+        publicId: m.publicId,
+        type: m.type,
+        order: startOrder + i,
+        eventId: event.id,
+      })),
+    });
+
+    const updated = await prisma.fortyPlusEvent.findUnique({
+      where: { id: event.id },
+      include: { media: { orderBy: { order: "asc" } } },
+    });
+
+    await logAudit(req, { action: "ADD_40PLUS_EVENT_MEDIA", entity: "forty_plus_event", entityId: event.id, details: { count: media.length } });
+    await invalidateFortyPlusCache(event.slug);
+    res.status(201).json({ success: true, data: updated });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ success: false, error: err.errors });
+    }
+    logger.error({ err }, "Error adding 40+ event media");
+    res.status(500).json({ success: false, error: "Failed to add media" });
+  }
+});
+
+adminRoutes.delete(
+  "/40plus/events/:id/media/:mediaId",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const media = await prisma.fortyPlusEventMedia.findUnique({
+        where: { id: String(req.params.mediaId) },
+        include: { event: { select: { id: true, slug: true } } },
+      });
+      if (!media || media.eventId !== String(req.params.id)) {
+        return res.status(404).json({ success: false, error: "Media not found" });
+      }
+
+      await prisma.fortyPlusEventMedia.delete({ where: { id: media.id } });
+      await deleteFile(media.publicId);
+
+      await logAudit(req, { action: "REMOVE_40PLUS_EVENT_MEDIA", entity: "forty_plus_event", entityId: media.eventId });
+      await invalidateFortyPlusCache(media.event.slug);
+      res.json({ success: true, message: "Media removed" });
+    } catch (err) {
+      logger.error({ err }, "Error removing 40+ event media");
+      res.status(500).json({ success: false, error: "Failed to remove media" });
+    }
+  }
+);

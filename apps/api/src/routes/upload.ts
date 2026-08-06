@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { prisma } from "@onyx/db";
 import { z } from "zod";
-import { optionalAuth, requireAuth } from "../middleware/auth";
+import { optionalAuth, requireAuth, requireRole } from "../middleware/auth";
 import { logger } from "../lib/logger";
 import { buildAssetUrl, createPresignedUploadUrl, deleteFile, storageMode, streamBucketFile, uploadFile } from "../lib/storage";
 import { cache } from "../lib/redis";
@@ -123,6 +123,73 @@ uploadRoutes.post("/documents", requireAuth, documentUpload.array("documents", 1
     res.status(500).json({ success: false, error: "Failed to upload documents" });
   }
 });
+
+// ─── Onyx 40+ event media (admin only) ────────────────────────────────────────
+
+uploadRoutes.post(
+  "/40plus/images",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  imageUpload.array("images", 5),
+  async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ success: false, error: "No images provided" });
+      }
+
+      const results = await Promise.all(
+        files.map((file) =>
+          uploadFile(req, file, {
+            folder: "onyx-propcare/40plus-events",
+            resourceType: "image",
+            format: file.mimetype.split("/")[1] === "jpeg" ? "jpg" : file.mimetype.split("/")[1],
+          })
+        )
+      );
+
+      res.json({ success: true, data: results });
+    } catch (error) {
+      logger.error({ err: error }, "40+ event image upload error");
+      if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ success: false, error: "File too large. Maximum size is 50MB." });
+      }
+      res.status(500).json({ success: false, error: "Failed to upload images" });
+    }
+  }
+);
+
+uploadRoutes.post(
+  "/40plus/videos",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  videoUpload.array("videos", 5),
+  async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ success: false, error: "No videos provided" });
+      }
+
+      const results = await Promise.all(
+        files.map((file) =>
+          uploadFile(req, file, {
+            folder: "onyx-propcare/40plus-events",
+            resourceType: "video",
+          })
+        )
+      );
+
+      res.json({ success: true, data: results });
+    } catch (error) {
+      logger.error({ err: error }, "40+ event video upload error");
+      if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ success: false, error: "Video too large. Maximum size is 100MB." });
+      }
+      res.status(500).json({ success: false, error: "Failed to upload videos" });
+    }
+  }
+);
 
 // ─── Presigned upload URL endpoints (browser → bucket direct upload) ──────────
 
