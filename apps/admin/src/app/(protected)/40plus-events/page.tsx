@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Plus, Trash2, Image as ImageIcon, Video, Loader2, Pencil, X, Eye, EyeOff } from "lucide-react";
@@ -68,8 +68,6 @@ export default function FortyPlusEventsPage() {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadTargetRef = useRef<string | null>(null);
 
   function flashSuccess(message: string) {
     setSuccess(message);
@@ -196,16 +194,10 @@ export default function FortyPlusEventsPage() {
     }
   }
 
-  function triggerUpload(eventId: string) {
-    uploadTargetRef.current = eventId;
-    fileInputRef.current?.click();
-  }
-
-  async function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const eventId = uploadTargetRef.current;
+  async function handleFilesSelected(eventId: string, e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     e.target.value = "";
-    if (!eventId || !files || files.length === 0) return;
+    if (!files || files.length === 0) return;
     if (!token) {
       setError("Your session has expired. Please log out and log back in.");
       return;
@@ -303,15 +295,6 @@ export default function FortyPlusEventsPage() {
 
   return (
     <div className="space-y-6">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
-        multiple
-        className="hidden"
-        onChange={handleFilesSelected}
-      />
-
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold text-cream">Onyx 40+ Events</h1>
@@ -508,11 +491,10 @@ export default function FortyPlusEventsPage() {
                   </div>
                 ))}
                 {event.media.length < MAX_MEDIA && (
-                  <button
-                    type="button"
-                    onClick={() => triggerUpload(event.id)}
-                    disabled={uploadingFor === event.id}
-                    className="flex h-20 w-28 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-cream/15 text-cream/35 hover:border-gold/30 hover:text-gold disabled:opacity-50"
+                  <label
+                    className={`flex h-20 w-28 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-cream/15 text-cream/35 hover:border-gold/30 hover:text-gold ${
+                      uploadingFor === event.id ? "pointer-events-none opacity-50" : "cursor-pointer"
+                    }`}
                   >
                     {uploadingFor === event.id ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
@@ -522,7 +504,19 @@ export default function FortyPlusEventsPage() {
                         <span className="text-[10px]">{event.media.length}/{MAX_MEDIA} added</span>
                       </>
                     )}
-                  </button>
+                    {/* A label-wrapped input triggers via the browser's native label-click-through,
+                        not a scripted .click() — privacy-hardened browsers (e.g. Brave Shields) can
+                        silently swallow programmatic clicks on hidden file inputs, so this avoids
+                        that failure mode entirely rather than working around it. */}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+                      multiple
+                      disabled={uploadingFor === event.id}
+                      className="sr-only"
+                      onChange={(e) => handleFilesSelected(event.id, e)}
+                    />
+                  </label>
                 )}
               </div>
             </motion.div>
