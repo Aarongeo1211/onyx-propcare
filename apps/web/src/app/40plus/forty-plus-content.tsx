@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Leaf,
   Users,
@@ -20,6 +21,10 @@ import {
   Compass,
   Crown,
   MessageCircle,
+  Copy,
+  Check,
+  X,
+  QrCode,
 } from "lucide-react";
 
 const NAVY = "#152A52";
@@ -168,9 +173,86 @@ function SectionBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
+function UpiQrModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyUpiId() {
+    try {
+      await navigator.clipboard.writeText(UPI_ID);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard access denied — the UPI ID is still visible to copy manually
+    }
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white text-center shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-4 top-4 z-10 rounded-full bg-black/5 p-1.5 text-black/50 hover:bg-black/10 hover:text-black"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="px-6 pb-6 pt-8">
+              <p className="font-body text-xs uppercase tracking-[0.25em]" style={{ color: ORANGE }}>
+                Scan to Pay
+              </p>
+              <div className="relative mx-auto mt-4 aspect-[352/662] w-full max-w-[220px] overflow-hidden rounded-xl border border-black/10">
+                <Image src="/40plus/upi-qr.jpg" alt="Onyx Propcare UPI QR code" fill className="object-contain" sizes="220px" />
+              </div>
+
+              <p className="mt-4 font-body text-xs text-black/45">UPI ID</p>
+              <button
+                type="button"
+                onClick={copyUpiId}
+                className="mt-1 inline-flex items-center gap-2 rounded-lg border border-black/10 px-3 py-2 font-mono text-xs text-black/80 transition-colors hover:border-black/20"
+              >
+                {UPI_ID}
+                {copied ? <Check className="h-3.5 w-3.5 flex-shrink-0" style={{ color: TEAL }} /> : <Copy className="h-3.5 w-3.5 flex-shrink-0 text-black/40" />}
+              </button>
+
+              <a
+                href={UPI_PAY_LINK}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white"
+                style={{ backgroundColor: ORANGE }}
+              >
+                Open in a UPI App
+              </a>
+              <p className="mt-2 font-body text-[11px] text-black/40">On mobile only — desktop, scan the code above.</p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export function FortyPlusContent() {
+  const [showUpiQr, setShowUpiQr] = useState(false);
+
   return (
     <div className="min-h-screen bg-onyx-950">
+      <UpiQrModal open={showUpiQr} onClose={() => setShowUpiQr(false)} />
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden pt-16 md:pt-20">
         <div className="absolute inset-0 pointer-events-none">
@@ -393,13 +475,15 @@ export function FortyPlusContent() {
                   </div>
                 )
               )}
-              <a
-                href={UPI_PAY_LINK}
+              <button
+                type="button"
+                onClick={() => setShowUpiQr(true)}
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
                 style={{ backgroundColor: ORANGE }}
               >
+                <QrCode className="h-4 w-4" />
                 Pay via UPI
-              </a>
+              </button>
               <a
                 href={`tel:${CONTACT_PHONE}`}
                 className="flex w-full items-center justify-center gap-2 rounded-full border-2 px-6 py-3 text-sm font-semibold transition-colors hover:bg-cream/5"
