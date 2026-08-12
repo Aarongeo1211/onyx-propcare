@@ -59,6 +59,7 @@ export function PropertiesPageClient({
   const searchParams = useSearchParams();
   const didHydrateRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasScrolledRef = useRef(false);
 
   const [properties, setProperties] = useState<PropertyCardData[]>(initialProperties);
   const [pagination, setPagination] = useState(initialPagination);
@@ -147,19 +148,37 @@ export function PropertiesPageClient({
     // Trigger well before the sentinel is actually visible — 400px was only ~1 row of
     // lead time, not enough to cover a full request round-trip at normal scroll speed,
     // so users caught up to the loading boundary before the next page had arrived.
-    // 1500px gives ~3 rows of buffer. IntersectionObserver only fires once the sentinel
-    // enters this zone, so a user who never scrolls never triggers an extra fetch.
+    // 1500px gives ~3 rows of buffer — but on tall/zoomed-out viewports that range can
+    // already cover the sentinel on initial mount, which would fire loadMore() before
+    // the user has done anything. hasScrolledRef guards against that.
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0].isIntersecting && hasScrolledRef.current) {
           loadMore();
         }
       },
       { rootMargin: "1500px 0px" }
     );
-
     observer.observe(sentinel);
-    return () => observer.disconnect();
+
+    // IntersectionObserver only calls back on state *transitions* — if the sentinel is
+    // already intersecting at mount (the tall-viewport case above), it won't fire again
+    // just because hasScrolledRef later flips true, since intersection never changed.
+    // So the first real scroll needs its own one-off geometry check to unblock that case.
+    const onScroll = () => {
+      if (hasScrolledRef.current) return;
+      hasScrolledRef.current = true;
+      const rect = sentinel.getBoundingClientRect();
+      if (rect.top - window.innerHeight < 1500) {
+        loadMore();
+      }
+    };
+    window.addEventListener("scroll", onScroll, { once: true, passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+    };
   }, [loadMore]);
 
   // Sync URL → filter state for external navigation (navbar links etc.)
