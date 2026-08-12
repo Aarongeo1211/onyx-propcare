@@ -60,6 +60,7 @@ export function PropertiesPageClient({
   const didHydrateRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
+  const loadingMoreRef = useRef(false);
 
   const [properties, setProperties] = useState<PropertyCardData[]>(initialProperties);
   const [pagination, setPagination] = useState(initialPagination);
@@ -104,7 +105,14 @@ export function PropertiesPageClient({
   }, [accessToken]);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || loading || !hasMore) return;
+    // loadingMoreRef (not the loadingMore *state*) is the real concurrency guard.
+    // State updates are async/batched, so two near-simultaneous callers (the scroll
+    // observer and the manual first-scroll geometry check both do this) can each
+    // read the pre-update value of `loadingMore` and both slip past a state-only
+    // check in the same tick. The ref is set synchronously, so the second caller
+    // sees it immediately.
+    if (loadingMoreRef.current || loading || !hasMore) return;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     const nextPage = page + 1;
     try {
@@ -130,9 +138,10 @@ export function PropertiesPageClient({
     } catch (error) {
       console.error("Failed to load more properties:", error);
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [loadingMore, loading, hasMore, page, filters, pagination, accessToken]);
+  }, [loading, hasMore, page, filters, pagination, accessToken]);
 
   useEffect(() => {
     if (status === "authenticated" && accessToken) {
