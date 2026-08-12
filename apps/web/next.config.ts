@@ -102,7 +102,9 @@ const nextConfig: NextConfig = {
               // Images: self + all configured remote patterns
               `img-src 'self' data: blob: https:${isDev ? " http://localhost:4000" : ""}`,
               // API connections
-              `connect-src 'self' https://${API_HOST}${isDev ? " http://localhost:4000" : ""} https://*.up.railway.app https://*.storageapi.dev`,
+              // TEMP: arcgisonline.com + s3.amazonaws.com are only for the throwaway
+              // /test-3d-map evaluation route — remove alongside that route.
+              `connect-src 'self' https://${API_HOST}${isDev ? " http://localhost:4000" : ""} https://*.up.railway.app https://*.storageapi.dev https://server.arcgisonline.com https://s3.amazonaws.com`,
               // Media (videos)
               "media-src 'self' blob: https://*.up.railway.app https://*.storageapi.dev https://res.cloudinary.com",
               // Frames: deny by default
