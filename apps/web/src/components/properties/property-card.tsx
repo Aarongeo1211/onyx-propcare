@@ -40,14 +40,20 @@ export interface PropertyCardData {
 interface PropertyCardProps {
   property: PropertyCardData;
   index?: number;
+  // Cards appended by infinite scroll are only requested once the user is
+  // already ~1500px from needing them (see the scroll observer), so by the
+  // time they mount they're wanted imminently — skip the browser's native
+  // lazy-load deferral for those instead of stacking two delays back to back.
+  eagerImage?: boolean;
 }
 
-export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
+export function PropertyCard({ property, index = 0, eagerImage = false }: PropertyCardProps) {
   const { data: session, status } = useSession();
   const hasImage = Boolean(property.images?.[0]?.url);
   const imageUrl = property.images?.[0]?.url || "/images/placeholder-property.svg";
   const imageAlt = property.images?.[0]?.alt || property.title;
   const [shareCopied, setShareCopied] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const typeVariant = getPropertyTypeBadgeVariant(property.type);
   const typePillClass =
@@ -114,14 +120,18 @@ export function PropertyCard({ property, index = 0 }: PropertyCardProps) {
         <div className="relative rounded-2xl border border-cream/8 bg-onyx-900/50 backdrop-blur-sm shadow-lg shadow-cream/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-gold/30 hover:shadow-gold/15 hover:shadow-xl">
           {/* Image */}
           <div className="relative aspect-[4/3] overflow-hidden">
+            {!imageLoaded && <div className="absolute inset-0 animate-pulse bg-onyx-800/50" />}
             <Image
               src={imageUrl}
               alt={imageAlt}
               fill
               unoptimized={!hasImage}
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              className={`object-cover transition-all duration-500 group-hover:scale-105 ${
+                imageLoaded ? "opacity-100" : "opacity-0"
+              }`}
+              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              loading={eagerImage ? "eager" : "lazy"}
             />
             {/* Dark scrims top & bottom so badges and price stay legible on any photo */}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent" />

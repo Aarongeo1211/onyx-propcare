@@ -286,7 +286,12 @@ export function PropertiesPageClient({
               <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                   {properties.map((property, index) => (
-                    <PropertyCard key={property.id} property={property} index={index} />
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      index={index}
+                      eagerImage={index >= PROPERTY_LIMIT}
+                    />
                   ))}
                 </div>
 
