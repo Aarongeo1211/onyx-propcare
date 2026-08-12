@@ -144,13 +144,18 @@ export function PropertiesPageClient({
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
+    // Trigger well before the sentinel is actually visible — 400px was only ~1 row of
+    // lead time, not enough to cover a full request round-trip at normal scroll speed,
+    // so users caught up to the loading boundary before the next page had arrived.
+    // 1500px gives ~3 rows of buffer. IntersectionObserver only fires once the sentinel
+    // enters this zone, so a user who never scrolls never triggers an extra fetch.
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
           loadMore();
         }
       },
-      { rootMargin: "400px" }
+      { rootMargin: "1500px 0px" }
     );
 
     observer.observe(sentinel);
