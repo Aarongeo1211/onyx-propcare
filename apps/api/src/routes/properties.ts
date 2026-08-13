@@ -205,8 +205,19 @@ propertyRoutes.get("/", optionalAuth, async (req, res) => {
 
     if (type) where.type = type;
     if (listingType) where.listingType = listingType;
-    if (state) where.state = state;
-    if (district) where.district = district;
+    // state/district also accept a comma-separated list of exact values —
+    // used by location landing pages to match every casing/whitespace
+    // variant of a place name that /properties/locations grouped into one
+    // canonical entry (e.g. "Bangalore", "Bangalore ", "BANGALORE URBAN").
+    // A single value keeps the original exact-match behavior unchanged.
+    if (state) {
+      const values = state.split(",").map((v) => v.trim()).filter(Boolean);
+      where.state = values.length > 1 ? { in: values } : state;
+    }
+    if (district) {
+      const values = district.split(",").map((v) => v.trim()).filter(Boolean);
+      where.district = values.length > 1 ? { in: values } : district;
+    }
     if (minPrice || maxPrice) {
       where.price = {
         ...(minPrice ? { gte: Number(minPrice) } : {}),
@@ -353,6 +364,118 @@ propertyRoutes.get("/featured", async (_req, res) => {
   } catch (error) {
     logger.error({ err: error }, "Error fetching featured");
     res.status(500).json({ success: false, error: "Failed to fetch featured properties" });
+  }
+});
+
+function slugifyLocation(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function normalizeLocationKey(value: string) {
+  return value.trim().toLowerCase();
+}
+
+// District names are free text entered per-listing, so the same place shows
+// up under several casings/whitespace variants ("Bangalore" / "bangalore" /
+// "Bangalore " / "BANGALORE URBAN"). Group by a normalized key and use
+// whichever exact casing occurred most often as the display name, instead of
+// treating every variant as its own district.
+class NamedCounter {
+  total = 0;
+  private variants = new Map<string, number>();
+
+  add(name: string, count: number) {
+    this.total += count;
+    this.variants.set(name, (this.variants.get(name) || 0) + count);
+  }
+
+  canonicalName() {
+    let best = "";
+    let bestCount = -1;
+    for (const [name, count] of this.variants) {
+      if (count > bestCount) {
+        best = name;
+        bestCount = count;
+      }
+    }
+    return best;
+  }
+
+  // Every raw casing/whitespace variant that was merged into this entry —
+  // needed to query properties by exact match without missing rows that
+  // don't equal the canonical name character-for-character.
+  allValues() {
+    return Array.from(this.variants.keys());
+  }
+}
+
+// Districts with only a handful of listings are disproportionately likely to
+// be one-off typos of a more common district rather than a real distinct
+// place worth its own landing page.
+const MIN_DISTRICT_LISTINGS = 2;
+
+// GET /api/v1/properties/locations — state/district hierarchy with active
+// listing counts, for location landing pages (/land-for-sale/[state]/[district])
+// and their sitemap entries. Only states/districts with at least
+// MIN_DISTRICT_LISTINGS active listings are returned, so no thin/near-empty
+// pages get generated from typo'd or one-off district values.
+propertyRoutes.get("/locations", async (_req, res) => {
+  try {
+    const CACHE_KEY = "properties:locations";
+    const cached = await cache.get(CACHE_KEY);
+    if (cached) return res.json({ success: true, data: cached });
+
+    const rows = await prisma.property.groupBy({
+      by: ["state", "district"],
+      where: { status: "ACTIVE" },
+      _count: { _all: true },
+    });
+
+    const stateMap = new Map<string, { state: NamedCounter; count: number; districts: Map<string, NamedCounter> }>();
+    for (const row of rows) {
+      const stateKey = normalizeLocationKey(row.state);
+      if (!stateMap.has(stateKey)) {
+        stateMap.set(stateKey, { state: new NamedCounter(), count: 0, districts: new Map() });
+      }
+      const entry = stateMap.get(stateKey)!;
+      entry.state.add(row.state, row._count._all);
+      entry.count += row._count._all;
+
+      const districtKey = normalizeLocationKey(row.district);
+      if (!entry.districts.has(districtKey)) {
+        entry.districts.set(districtKey, new NamedCounter());
+      }
+      entry.districts.get(districtKey)!.add(row.district, row._count._all);
+    }
+
+    const data = Array.from(stateMap.values())
+      .map((s) => {
+        const stateName = s.state.canonicalName();
+        return {
+          state: stateName,
+          slug: slugifyLocation(stateName),
+          values: s.state.allValues(),
+          count: s.count,
+          districts: Array.from(s.districts.values())
+            .filter((d) => d.total >= MIN_DISTRICT_LISTINGS)
+            .map((d) => {
+              const districtName = d.canonicalName();
+              return { district: districtName, slug: slugifyLocation(districtName), values: d.allValues(), count: d.total };
+            })
+            .sort((a, b) => b.count - a.count),
+        };
+      })
+      .filter((s) => s.districts.length > 0)
+      .sort((a, b) => b.count - a.count);
+
+    await cache.set(CACHE_KEY, data, 3600);
+    res.json({ success: true, data });
+  } catch (error) {
+    logger.error({ err: error }, "Error fetching location hierarchy");
+    res.status(500).json({ success: false, error: "Failed to fetch locations" });
   }
 });
 
