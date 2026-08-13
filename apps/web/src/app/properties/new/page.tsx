@@ -84,6 +84,20 @@ export default function NewPropertyPage() {
   const router = useRouter();
   const [usage, setUsage] = useState<SubscriptionUsage | null>(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
+  // useSession()'s `status` can already be "authenticated" by the client's
+  // very first render (e.g. a cached session resolving faster than usual),
+  // while the server-rendered HTML always shows the loading branch below
+  // (no session is available synchronously during SSR) -- that mismatch
+  // between server and first-client-render output is what throws React's
+  // hydration error. Gating on `mounted` (false on both the server render
+  // and the client's first render, flipped true only after mount) forces
+  // the first client paint to match the server exactly; the real
+  // status/loadingUsage-driven branch takes over one render later, after
+  // hydration has already succeeded.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [upgradingSeller, setUpgradingSeller] = useState(false);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [resendingVerification, setResendingVerification] = useState(false);
@@ -722,7 +736,7 @@ export default function NewPropertyPage() {
     }
   };
 
-  if (status === "loading" || loadingUsage) {
+  if (!mounted || status === "loading" || loadingUsage) {
     return (
       <div className="min-h-screen bg-onyx-950 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
