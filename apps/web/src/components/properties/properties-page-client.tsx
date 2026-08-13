@@ -4,12 +4,12 @@ import { useEffect, useRef, useState, useCallback, type ReactNode } from "react"
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { MapPin, SearchX, Loader2 } from "lucide-react";
+import { MapPin, SearchX, Loader2, BellPlus, Check } from "lucide-react";
 import type { PropertyFilters } from "@onyx/types";
 import { SearchBar } from "@/components/properties/search-bar";
 import { PropertyCard, type PropertyCardData } from "@/components/properties/property-card";
 import { PropertyFiltersSidebar } from "@/components/properties/property-filters";
-import { apiFetch } from "@/lib/utils";
+import { apiFetch, ApiError } from "@/lib/utils";
 import type { PropertiesResponse } from "@/lib/public-api";
 
 const PROPERTY_LIMIT = 12;
@@ -220,6 +220,39 @@ export function PropertiesPageClient({
     router.replace(`/properties${newUrl}`, { scroll: false });
   }, [filters, fetchProperties, router]);
 
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [saveSearchResult, setSaveSearchResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  async function saveCurrentSearch() {
+    if (status !== "authenticated" || !session?.user) {
+      window.location.assign(`/login?callbackUrl=${encodeURIComponent("/properties" + window.location.search)}`);
+      return;
+    }
+    setSavingSearch(true);
+    setSaveSearchResult(null);
+    try {
+      await apiFetch("/saved-searches", {
+        method: "POST",
+        body: JSON.stringify({
+          type: filters.type,
+          listingType: filters.listingType,
+          state: filters.state,
+          district: filters.district,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          search: filters.search,
+        }),
+        token: accessToken,
+      });
+      setSaveSearchResult({ ok: true, message: "Saved! We'll email you when new listings match." });
+    } catch (err) {
+      setSaveSearchResult({ ok: false, message: err instanceof ApiError ? err.message : "Couldn't save this search. Try again." });
+    } finally {
+      setSavingSearch(false);
+      setTimeout(() => setSaveSearchResult(null), 4000);
+    }
+  }
+
   const handleSearch = (search: string, state: string) => {
     setFilters((prev) => ({
       ...prev,
@@ -296,6 +329,28 @@ export function PropertiesPageClient({
               )}
             </motion.div>
           )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={saveCurrentSearch}
+              disabled={savingSearch}
+              className="flex items-center gap-2 rounded-full border border-gold/25 px-4 py-2 text-xs font-medium text-gold transition-colors hover:bg-gold/10 disabled:opacity-50"
+            >
+              {savingSearch ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <BellPlus className="h-3.5 w-3.5" />
+              )}
+              Save this search &amp; get email alerts
+            </button>
+            {saveSearchResult && (
+              <span className={`flex items-center gap-1.5 text-xs ${saveSearchResult.ok ? "text-cream/80" : "text-red-400"}`}>
+                {saveSearchResult.ok && <Check className="h-3.5 w-3.5 text-emerald-400" />}
+                {saveSearchResult.message}
+              </span>
+            )}
+          </div>
         </div>
       </section>
 

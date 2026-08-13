@@ -21,6 +21,7 @@ import { auditRoutes } from "./routes/audit";
 import { refundRoutes } from "./routes/refunds";
 import { locationRoutes } from "./routes/location";
 import { fortyPlusEventRoutes } from "./routes/forty-plus-events";
+import { savedSearchRoutes } from "./routes/saved-searches";
 import { generalLimiter, authLimiter, registerLimiter, uploadLimiter, forgotPasswordLimiter } from "./middleware/rateLimit";
 import { sanitizeInputs } from "./middleware/sanitize";
 import {
@@ -30,6 +31,8 @@ import {
 } from "./middleware/csrf";
 import { optionalAuth } from "./middleware/auth";
 import { configureBucketCors } from "./lib/storage";
+import cron from "node-cron";
+import { runSavedSearchAlerts } from "./jobs/saved-search-alerts";
 
 function getWorkspaceRoot() {
   const cwd = process.cwd();
@@ -116,6 +119,7 @@ app.use("/api/v1/callbacks", callbackRoutes);
 app.use("/api/v1/refunds", refundRoutes);
 app.use("/api/v1/location", locationRoutes);
 app.use("/api/v1/40plus/events", fortyPlusEventRoutes);
+app.use("/api/v1/saved-searches", savedSearchRoutes);
 app.use("/api/v1/admin/audit-logs", auditRoutes);
 
 // 404 handler
@@ -147,6 +151,14 @@ app.listen(env.PORT, () => {
   // Runs asynchronously — startup is not blocked if this fails.
   const corsOrigins = configuredOrigins.length > 0 ? configuredOrigins : ["*"];
   configureBucketCors(corsOrigins).catch(() => {/* already logged inside */});
+
+  // Daily saved-search digest, 8:00 AM IST (02:30 UTC). In-process rather than a
+  // separate Railway cron service — this deploys as a single instance (no
+  // replica fan-out risk of double-firing), so it's the simplest reliable option
+  // without provisioning additional infrastructure.
+  cron.schedule("30 2 * * *", () => {
+    runSavedSearchAlerts().catch((err) => logger.error({ err }, "Saved search alerts cron run failed"));
+  });
 });
 
 export default app;

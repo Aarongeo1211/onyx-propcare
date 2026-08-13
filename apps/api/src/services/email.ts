@@ -146,6 +146,48 @@ export async function sendWelcomeEmail(to: string, name: string) {
   await sendMail(to, "Welcome to Onyx Propcare", html);
 }
 
+export async function sendSavedSearchAlert(
+  to: string,
+  searchLabel: string,
+  properties: { title: string; price: number; district: string; state: string; url: string; imageUrl?: string | null }[],
+  manageUrl: string
+) {
+  const formatPrice = (price: number) =>
+    price >= 10000000 ? `₹${(price / 10000000).toFixed(2)} Cr` : price >= 100000 ? `₹${(price / 100000).toFixed(2)} Lakh` : `₹${price.toLocaleString("en-IN")}`;
+
+  const cards = properties
+    .slice(0, 6)
+    .map(
+      (p) => `
+    <tr>
+      <td style="padding:0 0 16px 0;">
+        <a href="${p.url}" style="text-decoration:none;display:block;border:1px solid #e4e9f2;border-radius:10px;overflow:hidden;">
+          ${p.imageUrl ? `<img src="${p.imageUrl}" width="536" height="240" style="width:100%;height:auto;display:block;object-fit:cover;" alt="" />` : ""}
+          <div style="padding:14px 16px;">
+            <p style="margin:0 0 4px 0;color:#16294C;font-size:15px;font-weight:600;">${p.title}</p>
+            <p style="margin:0 0 4px 0;color:#8a96ab;font-size:13px;">${p.district}, ${p.state}</p>
+            <p style="margin:0;color:#1E4793;font-size:15px;font-weight:600;">${formatPrice(p.price)}</p>
+          </div>
+        </a>
+      </td>
+    </tr>`
+    )
+    .join("");
+
+  const more = properties.length > 6 ? `<p ${textStyle}>+ ${properties.length - 6} more matching ${properties.length - 6 === 1 ? "listing" : "listings"}.</p>` : "";
+
+  const html = layout(
+    "New Listings Match Your Saved Search",
+    `<p ${textStyle}>New properties matching "<strong>${searchLabel}</strong>" just went live.</p>
+     <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">${cards}</table>
+     ${more}
+     <p style="color:#8a96ab;font-size:13px;margin:20px 0 0 0;">
+       <a href="${manageUrl}" style="color:#1E4793;">Manage your saved searches</a>
+     </p>`
+  );
+  await sendMail(to, `${properties.length} new ${properties.length === 1 ? "listing matches" : "listings match"} "${searchLabel}"`, html);
+}
+
 export async function sendVerificationEmail(
   to: string,
   name: string,

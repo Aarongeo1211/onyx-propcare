@@ -45,6 +45,7 @@ model User {
   callbackRequests CallbackRequest[]
   propertyViews    PropertyView[]
   refundRequests   RefundRequest[]
+  savedSearches    SavedSearch[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -403,6 +404,29 @@ model Favorite {
   @@unique([userId, propertyId])
   @@index([userId])
   @@map("favorites")
+}
+
+model SavedSearch {
+  id             String        @id @default(cuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String?
+  type           PropertyType?
+  listingType    ListingType?
+  state          String?
+  district       String?
+  minPrice       Float?
+  maxPrice       Float?
+  search         String?
+  active         Boolean       @default(true)
+  lastNotifiedAt DateTime      @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([active])
+  @@map("saved_searches")
 }
 
 model Review {

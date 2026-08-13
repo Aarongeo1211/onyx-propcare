@@ -13,6 +13,7 @@ import {
   Home,
   Settings,
   PhoneCall,
+  BellRing,
 } from "lucide-react";
 import { Badge } from "@onyx/ui";
 import { Logo } from "@/components/brand/logo";
@@ -34,12 +35,14 @@ const sellerNavItems = [
   { href: "/dashboard/callbacks", icon: PhoneCall, label: "Callbacks" },
   { href: "/dashboard/subscription", icon: CreditCard, label: "Subscription" },
   { href: "/dashboard/favorites", icon: Heart, label: "Favorites" },
+  { href: "/dashboard/saved-searches", icon: BellRing, label: "Saved Searches" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
 const buyerNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Overview" },
   { href: "/dashboard/favorites", icon: Heart, label: "Favorites" },
+  { href: "/dashboard/saved-searches", icon: BellRing, label: "Saved Searches" },
   { href: "/dashboard/inquiries", icon: MessageSquare, label: "My Inquiries" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];

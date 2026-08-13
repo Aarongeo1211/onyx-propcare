@@ -55,6 +55,62 @@ export function useRemoveFavorite() {
   });
 }
 
+export interface SavedSearchItem {
+  id: string;
+  name: string | null;
+  type: string | null;
+  listingType: string | null;
+  state: string | null;
+  district: string | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+  search: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+export function useSavedSearches() {
+  const token = useToken();
+  return useQuery({
+    queryKey: ["saved-searches"],
+    queryFn: () => apiFetch<{ success: boolean; data: SavedSearchItem[] }>("/saved-searches", { token: token! }),
+    enabled: !!token,
+  });
+}
+
+export function useCreateSavedSearch() {
+  const token = useToken();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<Omit<SavedSearchItem, "id" | "active" | "createdAt">>) =>
+      apiFetch<{ success: boolean; data: SavedSearchItem }>("/saved-searches", {
+        method: "POST",
+        body: JSON.stringify(data),
+        token: token!,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved-searches"] }),
+  });
+}
+
+export function useUpdateSavedSearch() {
+  const token = useToken();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; active?: boolean; name?: string }) =>
+      apiFetch(`/saved-searches/${id}`, { method: "PATCH", body: JSON.stringify(data), token: token! }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved-searches"] }),
+  });
+}
+
+export function useDeleteSavedSearch() {
+  const token = useToken();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiFetch(`/saved-searches/${id}`, { method: "DELETE", token: token! }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved-searches"] }),
+  });
+}
+
 export function useMyInquiries(status?: string) {
   const token = useToken();
   const params = new URLSearchParams();

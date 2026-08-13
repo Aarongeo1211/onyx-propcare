@@ -10,14 +10,15 @@
     "lint": "eslint src/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "cleanup:images": "tsx src/jobs/cloudinary-cleanup.ts"
+    "cleanup:images": "tsx src/jobs/cloudinary-cleanup.ts",
+    "alerts:saved-searches": "tsx src/jobs/saved-search-alerts.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1053.0",
     "@aws-sdk/s3-request-presigner": "^3.1053.0",
-    "@smithy/node-http-handler": "^4.7.4",
     "@onyx/db": "workspace:*",
     "@onyx/types": "workspace:*",
+    "@smithy/node-http-handler": "^4.7.4",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
@@ -32,6 +33,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.0",
     "multer": "^2.1.1",
+    "node-cron": "^4.6.0",
     "nodemailer": "^8.0.5",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
@@ -51,6 +53,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^2.1.0",
     "@types/node": "^22.10.0",
+    "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^8.0.0",
     "@types/sanitize-html": "^2.16.1",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
