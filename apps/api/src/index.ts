@@ -31,7 +31,6 @@ import {
 } from "./middleware/csrf";
 import { optionalAuth } from "./middleware/auth";
 import { configureBucketCors } from "./lib/storage";
-import cron from "node-cron";
 import { runSavedSearchAlerts } from "./jobs/saved-search-alerts";
 
 function getWorkspaceRoot() {
@@ -152,13 +151,23 @@ app.listen(env.PORT, () => {
   const corsOrigins = configuredOrigins.length > 0 ? configuredOrigins : ["*"];
   configureBucketCors(corsOrigins).catch(() => {/* already logged inside */});
 
-  // Daily saved-search digest, 8:00 AM IST (02:30 UTC). In-process rather than a
+  // Daily saved-search digest, ~8:00 AM IST (02:30 UTC). In-process rather than a
   // separate Railway cron service — this deploys as a single instance (no
-  // replica fan-out risk of double-firing), so it's the simplest reliable option
-  // without provisioning additional infrastructure.
-  cron.schedule("30 2 * * *", () => {
-    runSavedSearchAlerts().catch((err) => logger.error({ err }, "Saved search alerts cron run failed"));
-  });
+  // replica fan-out risk of double-firing) — and a plain setInterval check
+  // rather than the node-cron package, which crashed the process on boot
+  // (bundles an import.meta.url reference that esbuild can't resolve when
+  // targeting CJS, so fileURLToPath received undefined). Checking every 20
+  // minutes whether we've crossed 02:30 UTC and haven't already run today is
+  // simple enough not to need a scheduling library.
+  let lastSavedSearchRunDate: string | null = null;
+  setInterval(() => {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    if (now.getUTCHours() === 2 && now.getUTCMinutes() >= 30 && lastSavedSearchRunDate !== today) {
+      lastSavedSearchRunDate = today;
+      runSavedSearchAlerts().catch((err) => logger.error({ err }, "Saved search alerts run failed"));
+    }
+  }, 20 * 60 * 1000);
 });
 
 export default app;
