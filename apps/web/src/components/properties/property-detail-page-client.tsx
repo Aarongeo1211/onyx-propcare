@@ -317,7 +317,7 @@ export function PropertyDetailPageClient({
                   index === currentImage ? "border-gold" : "border-transparent opacity-50 hover:opacity-80"
                 }`}
               >
-                <Image src={image.url} alt="" fill className="object-cover" />
+                <Image src={image.url} alt={image.alt || `${property.title} - photo ${index + 1}`} fill className="object-cover" />
               </button>
             ))}
           </div>

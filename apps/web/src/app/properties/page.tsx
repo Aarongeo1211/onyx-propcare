@@ -62,6 +62,15 @@ function buildListingCopy(filters: PropertyFilters) {
   return { title, description };
 }
 
+// Free-text search and arbitrary price ranges produce effectively unlimited
+// filter combinations (every slider position, every typed query becomes its
+// own "canonical" URL) -- indexing all of them is thin/duplicate-content risk
+// that dilutes crawl budget. Only type/listingType/state/district combos are
+// curated enough to be worth ranking for.
+function isThinFilterCombo(filters: PropertyFilters) {
+  return Boolean(filters.search || filters.minPrice || filters.maxPrice);
+}
+
 export async function generateMetadata({
   searchParams,
 }: {
@@ -70,17 +79,39 @@ export async function generateMetadata({
   const resolvedSearchParams = await searchParams;
   const filters = buildFilters(resolvedSearchParams);
   const { title, description } = buildListingCopy(filters);
+  const canonical = buildCanonical(filters);
+
+  let shouldIndex = !isThinFilterCombo(filters);
+  if (shouldIndex) {
+    const response = await getProperties(
+      {
+        search: filters.search,
+        state: filters.state,
+        district: filters.district,
+        type: filters.type,
+        listingType: filters.listingType,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        sortBy: filters.sortBy,
+        page: filters.page,
+        limit: filters.limit,
+      },
+      300
+    ).catch(() => null);
+    shouldIndex = Boolean(response && response.pagination.total > 0);
+  }
 
   return {
     title,
     description,
     alternates: {
-      canonical: buildCanonical(filters),
+      canonical,
     },
+    robots: shouldIndex ? undefined : { index: false, follow: true },
     openGraph: {
       title,
       description,
-      url: absoluteUrl(buildCanonical(filters)),
+      url: absoluteUrl(canonical),
       type: "website",
     },
     twitter: {

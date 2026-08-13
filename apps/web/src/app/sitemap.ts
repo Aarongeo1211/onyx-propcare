@@ -15,6 +15,8 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: absoluteUrl("/insights/water"), changeFrequency: "monthly", priority: 0.7, lastModified: new Date() },
   { url: absoluteUrl("/insights/legal"), changeFrequency: "monthly", priority: 0.7, lastModified: new Date() },
   { url: absoluteUrl("/insights/drone"), changeFrequency: "monthly", priority: 0.7, lastModified: new Date() },
+  { url: absoluteUrl("/40plus"), changeFrequency: "monthly", priority: 0.6, lastModified: new Date() },
+  { url: absoluteUrl("/40plus/events"), changeFrequency: "weekly", priority: 0.6, lastModified: new Date() },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -30,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     response.data.forEach((property) => {
       propertyEntries.push({
         url: absoluteUrl(`/properties/${property.slug}`),
-        lastModified: new Date(),
+        lastModified: new Date(property.updatedAt),
         changeFrequency: "daily",
         priority: 0.8,
       });

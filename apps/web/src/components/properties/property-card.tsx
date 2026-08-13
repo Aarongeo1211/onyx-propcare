@@ -29,6 +29,7 @@ export interface PropertyCardData {
   roadAccess: boolean;
   hasClearTitle: boolean;
   isFeatured: boolean;
+  updatedAt: string;
   images: { url: string; alt?: string | null }[];
   videos?: { url: string }[];
   soilData?: { soilType: string; fertility?: string | null } | null;

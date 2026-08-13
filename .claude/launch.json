@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "web",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev:web"],
+      "runtimeExecutable": "corepack",
+      "runtimeArgs": ["pnpm", "--filter", "@onyx/web", "dev"],
       "port": 3000
     },
     {
