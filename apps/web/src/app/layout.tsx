@@ -30,6 +30,7 @@ import { LayoutShell } from "@/components/layout/layout-shell";
 import { JsonLd } from "@/components/seo/json-ld";
 import { TrackingScripts } from "@/components/analytics/tracking-scripts";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
+import { getPropertyTypeCounts } from "@/lib/public-api";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -74,11 +75,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const typeCounts = await getPropertyTypeCounts().catch(() => null);
+  const availableTypes = typeCounts?.filter((t) => t.count > 0).map((t) => t.type);
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -102,7 +105,7 @@ export default function RootLayout({
           <QueryProvider>
             <LayoutProvider>
               <ComparisonProvider>
-                <LayoutShell>{children}</LayoutShell>
+                <LayoutShell availableTypes={availableTypes}>{children}</LayoutShell>
                 <ComparisonBar />
               </ComparisonProvider>
             </LayoutProvider>

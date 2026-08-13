@@ -4,7 +4,13 @@ import { useLayout } from "@/components/providers/layout-provider";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 
-export function LayoutShell({ children }: { children: React.ReactNode }) {
+export function LayoutShell({
+  children,
+  availableTypes,
+}: {
+  children: React.ReactNode;
+  availableTypes?: string[];
+}) {
   const { isDashboard } = useLayout();
 
   if (isDashboard) {
@@ -15,7 +21,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     <>
       <Navbar />
       <main>{children}</main>
-      <Footer />
+      <Footer availableTypes={availableTypes} />
     </>
   );
 }

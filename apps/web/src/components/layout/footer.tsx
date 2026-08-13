@@ -28,7 +28,16 @@ const footerLinks = {
   ],
 };
 
-export function Footer() {
+export function Footer({ availableTypes }: { availableTypes?: string[] }) {
+  const marketplaceLinks =
+    availableTypes && availableTypes.length > 0
+      ? footerLinks.marketplace.filter((link) => {
+          const type = new URLSearchParams(link.href.split("?")[1]).get("type");
+          return !type || availableTypes.includes(type);
+        })
+      : footerLinks.marketplace;
+  const links = { ...footerLinks, marketplace: marketplaceLinks };
+
   return (
     <footer className="relative bg-onyx-950 border-t border-cream/8">
       {/* Brand line */}
@@ -67,13 +76,13 @@ export function Footer() {
           </div>
 
           {/* Link columns */}
-          {Object.entries(footerLinks).map(([title, links]) => (
+          {Object.entries(links).map(([title, sectionLinks]) => (
             <div key={title}>
               <h3 className="font-display text-sm font-semibold text-cream uppercase tracking-wider mb-4">
                 {title}
               </h3>
               <ul className="space-y-3">
-                {links.map((link) => (
+                {sectionLinks.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
