@@ -101,6 +101,7 @@ function AnimatedCounter({
 }
 
 interface SearchPanelProps {
+  types: typeof PROPERTY_TYPES;
   activeTab: PropertyTypeValue;
   onTabChange: (tab: PropertyTypeValue) => void;
   searchQuery: string;
@@ -115,6 +116,7 @@ interface SearchPanelProps {
 }
 
 function SearchPanel({
+  types,
   activeTab,
   onTabChange,
   searchQuery,
@@ -133,7 +135,7 @@ function SearchPanel({
   const buttonClass = compact ? "px-4 py-2.5 text-sm rounded-xl" : "px-6 py-3.5 text-sm rounded-2xl";
 
   // In compact mode only show the two primary tabs to save space.
-  const tabs = compact ? PROPERTY_TYPES.slice(0, 2) : PROPERTY_TYPES;
+  const tabs = compact ? types.slice(0, 2) : types;
 
   return (
     <div className={compact ? "w-full" : "w-full max-w-3xl"}>
@@ -241,16 +243,25 @@ interface QuickLocation {
 export function HeroSection({
   featuredProperties = [],
   topLocations = [],
+  availableTypes,
 }: {
   featuredProperties?: PropertyCardData[];
   topLocations?: QuickLocation[];
+  // Property types with at least one active listing. Undefined or empty
+  // means "show every category" (data unavailable, or a not-realistic
+  // all-zero edge case) rather than rendering an empty tab list.
+  availableTypes?: string[];
 }) {
+  const visibleTypes =
+    availableTypes && availableTypes.length > 0
+      ? PROPERTY_TYPES.filter((t) => availableTypes.includes(t.value))
+      : PROPERTY_TYPES;
   const router = useRouter();
   const heroRef = useRef<HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [showStateDropdown, setShowStateDropdown] = useState(false);
-  const [activeTab, setActiveTab] = useState<PropertyTypeValue>("FARMLAND");
+  const [activeTab, setActiveTab] = useState<PropertyTypeValue>(visibleTypes[0]?.value ?? "FARMLAND");
   const [heroVisible, setHeroVisible] = useState(true);
 
   // Hero background slides: curated images take priority, else live featured listings.
@@ -310,6 +321,7 @@ export function HeroSection({
             <div className="mx-auto max-w-5xl rounded-2xl bg-white p-1 shadow-xl shadow-black/10">
               <SearchPanel
                 compact
+                types={visibleTypes}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 searchQuery={searchQuery}
@@ -396,6 +408,7 @@ export function HeroSection({
             className="max-w-3xl rounded-2xl bg-white p-3 shadow-2xl shadow-black/25 sm:p-4"
           >
             <SearchPanel
+              types={visibleTypes}
               activeTab={activeTab}
               onTabChange={setActiveTab}
               searchQuery={searchQuery}

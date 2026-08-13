@@ -27,9 +27,16 @@ interface PropertyFiltersProps {
   filters: PropertyFilters;
   onChange: (filters: PropertyFilters) => void;
   totalResults: number;
+  // Property types with at least one active listing site-wide. Undefined or
+  // empty means "show every type" rather than rendering an empty filter.
+  availableTypes?: string[];
 }
 
-export function PropertyFiltersSidebar({ filters, onChange, totalResults }: PropertyFiltersProps) {
+export function PropertyFiltersSidebar({ filters, onChange, totalResults, availableTypes }: PropertyFiltersProps) {
+  const visibleTypes =
+    availableTypes && availableTypes.length > 0
+      ? PROPERTY_TYPES.filter((t) => availableTypes.includes(t.value))
+      : PROPERTY_TYPES;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     type: true,
@@ -97,7 +104,7 @@ export function PropertyFiltersSidebar({ filters, onChange, totalResults }: Prop
       {/* Property Type */}
       <FilterSection title="Property Type" isOpen={openSections.type} onToggle={() => toggleSection("type")}>
         <div className="space-y-2">
-          {PROPERTY_TYPES.map((pt) => (
+          {visibleTypes.map((pt) => (
             <label key={pt.value} className="flex items-center gap-2.5 cursor-pointer group/check">
               <input
                 type="checkbox"

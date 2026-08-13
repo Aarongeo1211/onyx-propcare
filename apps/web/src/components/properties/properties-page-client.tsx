@@ -47,12 +47,14 @@ interface PropertiesPageClientProps {
   initialFilters: PropertyFilters;
   initialProperties: PropertyCardData[];
   initialPagination: PropertiesResponse["pagination"];
+  availableTypes?: string[];
 }
 
 export function PropertiesPageClient({
   initialFilters,
   initialProperties,
   initialPagination,
+  availableTypes,
 }: PropertiesPageClientProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -360,6 +362,7 @@ export function PropertiesPageClient({
             filters={filters}
             onChange={handleFilterChange}
             totalResults={pagination.total}
+            availableTypes={availableTypes}
           />
 
           <div className="min-w-0 flex-1">

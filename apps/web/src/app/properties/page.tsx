@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { PropertyFilters } from "@onyx/types";
 import { PropertiesPageClient } from "@/components/properties/properties-page-client";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getProperties } from "@/lib/public-api";
+import { getProperties, getPropertyTypeCounts } from "@/lib/public-api";
 import { absoluteUrl, truncateText } from "@/lib/site";
 import { getPropertyTypeLabel } from "@/lib/utils";
 
@@ -141,6 +141,8 @@ export default async function PropertiesPage({
     page: filters.page,
     limit: filters.limit,
   });
+  const typeCounts = await getPropertyTypeCounts().catch(() => null);
+  const availableTypes = typeCounts?.filter((t) => t.count > 0).map((t) => t.type);
   const canonical = buildCanonical(filters);
   const { title, description } = buildListingCopy(filters);
   const collectionSchema = {
@@ -185,6 +187,7 @@ export default async function PropertiesPage({
         initialFilters={filters}
         initialProperties={response.data}
         initialPagination={response.pagination}
+        availableTypes={availableTypes}
       />
     </>
   );

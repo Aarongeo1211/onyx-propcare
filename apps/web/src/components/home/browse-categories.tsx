@@ -37,7 +37,12 @@ const categories = [
   },
 ];
 
-export function BrowseCategories() {
+export function BrowseCategories({ availableTypes }: { availableTypes?: string[] }) {
+  const visibleCategories =
+    availableTypes && availableTypes.length > 0
+      ? categories.filter((c) => availableTypes.includes(c.type))
+      : categories;
+
   return (
     <section className="relative mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:py-20">
       <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -57,7 +62,7 @@ export function BrowseCategories() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
-        {categories.map((category, index) => (
+        {visibleCategories.map((category, index) => (
           <motion.div
             key={category.type}
             initial={{ opacity: 0, y: 20 }}

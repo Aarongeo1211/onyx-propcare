@@ -7,7 +7,7 @@ import { HowItWorks } from "@/components/home/how-it-works";
 import { WhyOnyx } from "@/components/home/why-onyx";
 import { CTASection } from "@/components/home/cta-section";
 import { JsonLd } from "@/components/seo/json-ld";
-import { getFeaturedProperties, getLocationHierarchy } from "@/lib/public-api";
+import { getFeaturedProperties, getLocationHierarchy, getPropertyTypeCounts } from "@/lib/public-api";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -22,6 +22,10 @@ export default async function Home() {
   const featuredProperties = await getFeaturedProperties().catch(() => []);
   const locationHierarchy = await getLocationHierarchy().catch(() => []);
   const topLocations = locationHierarchy.slice(0, 5).map((state) => ({ name: state.state, slug: state.slug }));
+  // undefined (fetch failed) means "show every category" -- fail open rather
+  // than rendering an empty category picker if this call errors.
+  const typeCounts = await getPropertyTypeCounts().catch(() => null);
+  const availableTypes = typeCounts?.filter((t) => t.count > 0).map((t) => t.type);
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -46,8 +50,8 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={[websiteSchema, homePageSchema]} />
-      <HeroSection featuredProperties={featuredProperties} topLocations={topLocations} />
-      <BrowseCategories />
+      <HeroSection featuredProperties={featuredProperties} topLocations={topLocations} availableTypes={availableTypes} />
+      <BrowseCategories availableTypes={availableTypes} />
       <FeaturedProperties initialProperties={featuredProperties} />
       <DataInsights />
       <HowItWorks />

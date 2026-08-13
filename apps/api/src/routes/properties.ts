@@ -479,6 +479,34 @@ propertyRoutes.get("/locations", async (_req, res) => {
   }
 });
 
+// GET /api/v1/properties/type-counts — active listing count per PropertyType.
+// Used to hide category filters (e.g. Orchard, Plantation) on the homepage
+// and search filters until at least one active listing actually exists in
+// that category, instead of offering a filter that always dead-ends.
+propertyRoutes.get("/type-counts", async (_req, res) => {
+  try {
+    const CACHE_KEY = "properties:type-counts";
+    const cached = await cache.get(CACHE_KEY);
+    if (cached) return res.json({ success: true, data: cached });
+
+    const rows = await prisma.property.groupBy({
+      by: ["type"],
+      where: { status: "ACTIVE" },
+      _count: { _all: true },
+    });
+
+    const data = rows
+      .map((row) => ({ type: row.type, count: row._count._all }))
+      .sort((a, b) => b.count - a.count);
+
+    await cache.set(CACHE_KEY, data, 3600);
+    res.json({ success: true, data });
+  } catch (error) {
+    logger.error({ err: error }, "Error fetching property type counts");
+    res.status(500).json({ success: false, error: "Failed to fetch type counts" });
+  }
+});
+
 // GET /api/v1/properties/compare?ids=id1,id2,id3
 propertyRoutes.get("/compare", async (req, res) => {
   try {

@@ -212,3 +212,16 @@ export async function getLocationHierarchy(revalidate = 3600) {
   const response = await fetchPublicApi<{ success: boolean; data: LocationState[] }>("/properties/locations", revalidate);
   return response.data || [];
 }
+
+export interface PropertyTypeCount {
+  type: string;
+  count: number;
+}
+
+// Active listing count per PropertyType -- used to hide category filters
+// (Orchard, Plantation, ...) until at least one active listing exists in
+// that category, instead of offering a filter that always dead-ends.
+export async function getPropertyTypeCounts(revalidate = 3600) {
+  const response = await fetchPublicApi<{ success: boolean; data: PropertyTypeCount[] }>("/properties/type-counts", revalidate);
+  return response.data || [];
+}
