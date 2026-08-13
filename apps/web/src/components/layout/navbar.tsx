@@ -42,6 +42,19 @@ export function Navbar() {
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  // The navbar renders on every page, so this is the actual source of the
+  // site-wide hydration mismatch (React error #418): the server always
+  // renders logged-out (no session resolves synchronously during SSR), but
+  // useSession()'s `status` can already be "authenticated" by the client's
+  // very first paint -- the exact render React checks against the server
+  // HTML. `mounted` stays false through that first paint on both server and
+  // client, forcing isLoggedIn to false until a post-mount effect flips it,
+  // so hydration always matches before the real logged-in UI takes over.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);
@@ -60,7 +73,7 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isLoggedIn = status === "authenticated" && session?.user;
+  const isLoggedIn = mounted && status === "authenticated" && session?.user;
 
   const getInitials = (name: string) => {
     return name
