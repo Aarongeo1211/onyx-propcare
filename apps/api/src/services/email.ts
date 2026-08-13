@@ -102,6 +102,25 @@ export async function sendInquiryNotification(
   await sendMail(to, `New Inquiry: ${propertyTitle}`, html);
 }
 
+export async function sendCallbackNotification(
+  to: string,
+  propertyTitle: string,
+  callerName: string,
+  callerPhone: string
+) {
+  const html = layout(
+    "New Callback Request",
+    `<p ${textStyle}>Someone has requested a callback about your property listing.</p>
+     <p ${labelStyle}>Property</p>
+     <p ${valueStyle}>${propertyTitle}</p>
+     <p ${labelStyle}>Name</p>
+     <p ${valueStyle}>${callerName}</p>
+     <p ${labelStyle}>Phone</p>
+     <p ${valueStyle}>${callerPhone}</p>`
+  );
+  await sendMail(to, `New Callback Request: ${propertyTitle}`, html);
+}
+
 export async function sendSubscriptionConfirmation(
   to: string,
   planName: string,

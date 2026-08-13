@@ -3,6 +3,8 @@ import { prisma } from "@onyx/db";
 import { z } from "zod";
 import { requireAuth, optionalAuth } from "../middleware/auth";
 import { logger } from "../lib/logger";
+import { sendCallbackNotification } from "../services/email";
+import { sendSmsNotification, sendWhatsAppNotification } from "../services/sms";
 
 export const callbackRoutes = Router();
 
@@ -19,7 +21,7 @@ callbackRoutes.post("/", optionalAuth, async (req, res) => {
 
     const property = await prisma.property.findUnique({
       where: { id: data.propertyId },
-      select: { id: true, status: true },
+      select: { id: true, status: true, title: true, owner: { select: { email: true, phone: true } } },
     });
 
     if (!property || property.status !== "ACTIVE") {
@@ -37,6 +39,21 @@ callbackRoutes.post("/", optionalAuth, async (req, res) => {
         property: { select: { title: true, slug: true } },
       },
     });
+
+    sendCallbackNotification(property.owner.email, property.title, data.name, data.phone).catch((err) =>
+      logger.error({ err, callbackId: callback.id }, "Failed to send callback notification email")
+    );
+
+    // SMS/WhatsApp: no provider configured yet, these are safe no-ops (see services/sms.ts).
+    if (property.owner.phone) {
+      const smsBody = `New callback request for "${property.title}" from ${data.name} (${data.phone}). Check your Onyx Propcare dashboard.`;
+      sendSmsNotification(property.owner.phone, smsBody).catch((err) =>
+        logger.error({ err, callbackId: callback.id }, "Failed to send callback SMS")
+      );
+      sendWhatsAppNotification(property.owner.phone, smsBody).catch((err) =>
+        logger.error({ err, callbackId: callback.id }, "Failed to send callback WhatsApp message")
+      );
+    }
 
     res.status(201).json({ success: true, data: callback });
   } catch (error) {

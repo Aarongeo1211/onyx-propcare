@@ -3,6 +3,7 @@ import { prisma } from "@onyx/db";
 import { z } from "zod";
 import { requireAuth, optionalAuth } from "../middleware/auth";
 import { sendInquiryNotification } from "../services/email";
+import { sendSmsNotification, sendWhatsAppNotification } from "../services/sms";
 import { getQueryNumber, getSingleQueryParam } from "../utils/request";
 import { logger } from "../lib/logger";
 
@@ -36,32 +37,34 @@ inquiryRoutes.post("/", optionalAuth, async (req, res) => {
         guestPhone: req.user ? null : data.guestPhone,
       },
       include: {
-        property: { select: { title: true, slug: true } },
+        property: { select: { title: true, slug: true, owner: { select: { email: true, phone: true } } } },
         user: { select: { name: true, email: true } },
       },
     });
 
-    const property = await prisma.property.findUnique({
-      where: { id: data.propertyId },
-      select: {
-        title: true,
-        owner: { select: { email: true } },
-      },
-    });
+    const buyerName = inquiry.user?.name || inquiry.guestName || "A guest";
+    const buyerContact = inquiry.user?.email || inquiry.guestPhone || "no contact supplied";
+    const { email: ownerEmail, phone: ownerPhone } = inquiry.property.owner;
 
-    if (property) {
-      const buyerName = inquiry.user?.name || inquiry.guestName || "A guest";
-      const buyerContact = inquiry.user?.email || inquiry.guestPhone || "no contact supplied";
-      sendInquiryNotification(
-        property.owner.email,
-        property.title,
-        buyerName,
-        buyerContact,
-        data.message
-      ).catch(() => {});
+    sendInquiryNotification(ownerEmail, inquiry.property.title, buyerName, buyerContact, data.message).catch(
+      (err) => logger.error({ err, inquiryId: inquiry.id }, "Failed to send inquiry notification email")
+    );
+
+    // SMS/WhatsApp: no provider configured yet, these are safe no-ops (see services/sms.ts).
+    if (ownerPhone) {
+      const smsBody = `New inquiry on "${inquiry.property.title}" from ${buyerName} (${buyerContact}). Check your Onyx Propcare dashboard.`;
+      sendSmsNotification(ownerPhone, smsBody).catch((err) => logger.error({ err, inquiryId: inquiry.id }, "Failed to send inquiry SMS"));
+      sendWhatsAppNotification(ownerPhone, smsBody).catch((err) =>
+        logger.error({ err, inquiryId: inquiry.id }, "Failed to send inquiry WhatsApp message")
+      );
     }
 
-    res.status(201).json({ success: true, data: inquiry });
+    // Owner email/phone above is only for the notification -- never expose
+    // the property owner's private contact info back to whoever is
+    // submitting the inquiry.
+    const { owner: _owner, ...propertyWithoutOwner } = inquiry.property;
+    void _owner;
+    res.status(201).json({ success: true, data: { ...inquiry, property: propertyWithoutOwner } });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ success: false, error: error.errors });
