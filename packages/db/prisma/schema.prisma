@@ -208,6 +208,7 @@ model Property {
   @@index([status, createdAt])
   @@index([isFeatured, featuredAt])
   @@index([listingType, status])
+  @@index([searchVector], type: Gin)
   @@map("properties")
 }
 
@@ -379,7 +380,7 @@ model Inquiry {
   propertyId String
   property   Property      @relation(fields: [propertyId], references: [id])
   userId     String?
-  user       User?         @relation(fields: [userId], references: [id])
+  user       User?         @relation(fields: [userId], references: [id], onDelete: Restrict)
   guestName  String?
   guestPhone String?
 
