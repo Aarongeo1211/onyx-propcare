@@ -29,6 +29,7 @@ import {
 import type { SubscriptionUsage } from "@onyx/types";
 import { INDIAN_STATES, AREA_UNITS } from "@onyx/types";
 import { compressImages } from "@/lib/image-compression";
+import { LockedLocationField } from "@/components/properties/locked-location-field";
 import { becomeSeller, hasSellerAccess } from "@/lib/seller";
 import { ApiError } from "@/lib/utils";
 
@@ -307,7 +308,12 @@ export default function NewPropertyPage() {
     setForm((prev) => ({
       ...prev,
       address: location.address || prev.address,
-      state: location.state || prev.state,
+      // Only accept a geocoder-returned state if it exactly matches the
+      // whitelist the <select> is bound to -- otherwise the select renders
+      // blank while silently holding a value that doesn't match any option.
+      state: INDIAN_STATES.includes(location.state as (typeof INDIAN_STATES)[number])
+        ? location.state
+        : prev.state,
       district: location.district || prev.district,
       village: location.village || prev.village,
       taluka: location.taluka || prev.taluka,
@@ -538,6 +544,15 @@ export default function NewPropertyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // District is no longer a native <input required> (it's resolved via
+    // the location picker, not typed), so the browser's built-in required
+    // validation no longer covers it -- check explicitly.
+    if (!form.district.trim()) {
+      setError("Please set a district using the location search above.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -1154,19 +1169,12 @@ export default function NewPropertyPage() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-body text-cream/81 mb-2">
-                    District *
-                  </label>
-                  <input
-                    name="district"
-                    value={form.district}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter district"
-                    className="w-full px-4 py-3 bg-onyx-800/50 border border-cream/10 rounded-xl text-cream font-body text-sm placeholder:text-cream/79 focus:outline-none focus:border-gold/40 focus:ring-1 focus:ring-gold/20 transition-all"
-                  />
-                </div>
+                <LockedLocationField
+                  label="District"
+                  value={form.district}
+                  required
+                  onClear={() => setForm((prev) => ({ ...prev, district: "" }))}
+                />
               </div>
 
               {/* Village + Taluka */}
