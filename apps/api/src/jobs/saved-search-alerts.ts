@@ -89,15 +89,3 @@ export async function runSavedSearchAlerts() {
   logger.info({ searchesChecked: searches.length, emailsSent, errors }, "Saved search alerts run complete");
   return { searchesChecked: searches.length, emailsSent, errors };
 }
-
-if (require.main === module) {
-  runSavedSearchAlerts()
-    .then((result) => {
-      console.log("Saved search alerts result:", result);
-      process.exit(0);
-    })
-    .catch((err) => {
-      console.error("Saved search alerts failed:", err);
-      process.exit(1);
-    });
-}
