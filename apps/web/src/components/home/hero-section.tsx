@@ -28,8 +28,6 @@ const stats = [
   { value: 3200, suffix: " Cr", prefix: "₹", label: "Value Traded" },
 ];
 
-const quickStates = ["Maharashtra", "Karnataka", "Tamil Nadu", "Gujarat", "Rajasthan"];
-
 // Curated hero backgrounds. Drop high-res images (ideally drone/aerial shots of
 // farmland/plots, ~1920×1080+) into apps/web/public/brand/hero/ and list them here.
 // When this is non-empty it takes priority; otherwise the hero falls back to live
@@ -235,7 +233,18 @@ function SearchPanel({
   );
 }
 
-export function HeroSection({ featuredProperties = [] }: { featuredProperties?: PropertyCardData[] }) {
+interface QuickLocation {
+  name: string;
+  slug: string;
+}
+
+export function HeroSection({
+  featuredProperties = [],
+  topLocations = [],
+}: {
+  featuredProperties?: PropertyCardData[];
+  topLocations?: QuickLocation[];
+}) {
   const router = useRouter();
   const heroRef = useRef<HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -401,23 +410,25 @@ export function HeroSection({ featuredProperties = [] }: { featuredProperties?: 
           </motion.div>
 
           {/* Quick state chips */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-            className="mt-5 flex flex-wrap items-center gap-2"
-          >
-            <span className="text-xs font-semibold text-white/70">Popular:</span>
-            {quickStates.map((state) => (
-              <Link
-                key={state}
-                href={`/properties?state=${encodeURIComponent(state)}`}
-                className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 transition-all duration-300 hover:border-white/60 hover:bg-white/20"
-              >
-                {state}
-              </Link>
-            ))}
-          </motion.div>
+          {topLocations.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="mt-5 flex flex-wrap items-center gap-2"
+            >
+              <span className="text-xs font-semibold text-white/70">Popular:</span>
+              {topLocations.map((location) => (
+                <Link
+                  key={location.slug}
+                  href={`/land-for-sale/${location.slug}`}
+                  className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 transition-all duration-300 hover:border-white/60 hover:bg-white/20"
+                >
+                  {location.name}
+                </Link>
+              ))}
+            </motion.div>
+          )}
 
           {/* Compact stats row */}
           <motion.div

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getProperties } from "@/lib/public-api";
+import { getLocationHierarchy, getProperties } from "@/lib/public-api";
 import { absoluteUrl } from "@/lib/site";
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
@@ -17,6 +17,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: absoluteUrl("/insights/drone"), changeFrequency: "monthly", priority: 0.7, lastModified: new Date() },
   { url: absoluteUrl("/40plus"), changeFrequency: "monthly", priority: 0.6, lastModified: new Date() },
   { url: absoluteUrl("/40plus/events"), changeFrequency: "weekly", priority: 0.6, lastModified: new Date() },
+  { url: absoluteUrl("/land-for-sale"), changeFrequency: "weekly", priority: 0.8, lastModified: new Date() },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -41,5 +42,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page += 1;
   }
 
-  return [...STATIC_ROUTES, ...propertyEntries];
+  const hierarchy = await getLocationHierarchy().catch(() => []);
+  const locationEntries: MetadataRoute.Sitemap = hierarchy.flatMap((state) => [
+    {
+      url: absoluteUrl(`/land-for-sale/${state.slug}`),
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+      lastModified: new Date(),
+    },
+    ...state.districts.map((district) => ({
+      url: absoluteUrl(`/land-for-sale/${state.slug}/${district.slug}`),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+      lastModified: new Date(),
+    })),
+  ]);
+
+  return [...STATIC_ROUTES, ...propertyEntries, ...locationEntries];
 }

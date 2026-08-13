@@ -185,3 +185,30 @@ export async function getProperties(params: Record<string, string | number | und
 export async function getPropertyBySlug(slug: string, revalidate = 300) {
   return fetchPublicApi<PropertyDetailResponse>(`/properties/${slug}`, revalidate);
 }
+
+export interface LocationDistrict {
+  district: string;
+  slug: string;
+  values: string[];
+  count: number;
+}
+
+export interface LocationState {
+  state: string;
+  slug: string;
+  values: string[];
+  count: number;
+  districts: LocationDistrict[];
+}
+
+// State/district hierarchy with active listing counts, for the
+// /land-for-sale location landing pages and their sitemap entries.
+// `values` on each entry lists every raw casing/whitespace variant of that
+// place name in the data (e.g. "Bangalore", "Bangalore ", "BANGALORE URBAN")
+// -- pass values.join(",") as the state/district filter to getProperties()
+// to match all of them, since a plain name match would miss variants that
+// don't equal the canonical display name character-for-character.
+export async function getLocationHierarchy(revalidate = 3600) {
+  const response = await fetchPublicApi<{ success: boolean; data: LocationState[] }>("/properties/locations", revalidate);
+  return response.data || [];
+}
