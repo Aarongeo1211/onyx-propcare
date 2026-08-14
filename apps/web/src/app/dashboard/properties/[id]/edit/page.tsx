@@ -998,7 +998,7 @@ export default function EditPropertyPage() {
                     label="District"
                     value={form.district}
                     required
-                    onClear={() => setForm((prev) => ({ ...prev, district: "" }))}
+                    onChange={(district) => setForm((prev) => ({ ...prev, district }))}
                   />
                 </div>
 
