@@ -189,9 +189,8 @@ export default function UsersPage() {
           currentUserRole={currentUserRole}
           currentUserId={currentUserId}
           onClose={() => setEditing(null)}
-          onSaved={(updated) => {
+          onUserUpdated={(updated) => {
             setUsers((prev) => prev.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)));
-            setEditing(null);
           }}
         />
       )}
@@ -205,14 +204,14 @@ function EditUserDrawer({
   currentUserRole,
   currentUserId,
   onClose,
-  onSaved,
+  onUserUpdated,
 }: {
   user: User;
   token: string;
   currentUserRole?: Role;
   currentUserId?: string;
   onClose: () => void;
-  onSaved: (u: User) => void;
+  onUserUpdated: (u: User) => void;
 }) {
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone || "");
@@ -241,7 +240,11 @@ function EditUserDrawer({
         const nextValue = !hasUnlimitedGrant;
         setHasUnlimitedGrant(nextValue);
         setGrantMsg({ type: "ok", text: nextValue ? "Unlimited listings granted" : "Exception revoked" });
-        onSaved({ ...user, hasUnlimitedGrant: nextValue });
+        // Sync the table row but deliberately don't close the drawer here --
+        // this used to call the same callback as "Save changes", which also
+        // closed the drawer, so the confirmation message above never had a
+        // chance to be seen before it vanished.
+        onUserUpdated({ ...user, hasUnlimitedGrant: nextValue });
       } else {
         setGrantMsg({ type: "err", text: data.error || "Failed to update" });
       }
@@ -269,7 +272,8 @@ function EditUserDrawer({
       const data = await res.json();
       if (data.success) {
         setMsg({ type: "ok", text: "User updated" });
-        onSaved(data.data);
+        onUserUpdated(data.data);
+        onClose();
       } else {
         const errText = Array.isArray(data.error) ? data.error[0]?.message : data.error;
         setMsg({ type: "err", text: errText || "Failed to update user" });
