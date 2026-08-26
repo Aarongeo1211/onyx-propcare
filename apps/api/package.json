@@ -11,9 +11,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "cleanup:images": "tsx src/jobs/cloudinary-cleanup.ts",
-    "alerts:saved-searches": "tsx src/jobs/run-saved-search-alerts-cli.ts"
+    "alerts:saved-searches": "tsx src/jobs/run-saved-search-alerts-cli.ts",
+    "blog:generate": "tsx src/jobs/run-blog-generator-cli.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.1",
     "@aws-sdk/client-s3": "^3.1053.0",
     "@aws-sdk/s3-request-presigner": "^3.1053.0",
     "@onyx/db": "workspace:*",

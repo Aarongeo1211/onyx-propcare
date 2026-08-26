@@ -225,3 +225,36 @@ export async function getPropertyTypeCounts(revalidate = 3600) {
   const response = await fetchPublicApi<{ success: boolean; data: PropertyTypeCount[] }>("/properties/type-counts", revalidate);
   return response.data || [];
 }
+
+export interface BlogPostSummary {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  coverImage: string | null;
+  tags: string[];
+  authorName: string;
+  createdAt: string;
+}
+
+export interface BlogPostDetail extends BlogPostSummary {
+  content: string;
+  metaDescription: string | null;
+  updatedAt: string;
+}
+
+export interface BlogListResponse {
+  success: boolean;
+  data: BlogPostSummary[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export async function getBlogPosts(params: { page?: number; limit?: number } = {}, revalidate = 300) {
+  const query = buildPropertyQuery(params);
+  return fetchPublicApi<BlogListResponse>(`/blog${query ? `?${query}` : ""}`, revalidate);
+}
+
+export async function getBlogPostBySlug(slug: string, revalidate = 300) {
+  const response = await fetchPublicApi<{ success: boolean; data: BlogPostDetail }>(`/blog/${slug}`, revalidate);
+  return response.data;
+}

@@ -43,6 +43,13 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(), // Resend.com API key — preferred over SMTP for Railway deploys
 
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
+
+  // Autonomous blog content pipeline -- generation is skipped (logged, not
+  // fatal) whenever ANTHROPIC_API_KEY is unset, same graceful-degradation
+  // pattern as the email/SMS providers.
+  ANTHROPIC_API_KEY: z.string().optional(),
+  BLOG_AUTOPUBLISH_ENABLED: z.coerce.boolean().default(true),
+  BLOG_POSTS_PER_WEEK: z.coerce.number().min(1).max(7).default(2),
 });
 
 const parsed = schema.safeParse(process.env);

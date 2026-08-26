@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getLocationHierarchy, getProperties } from "@/lib/public-api";
+import { getBlogPosts, getLocationHierarchy, getProperties } from "@/lib/public-api";
 import { absoluteUrl } from "@/lib/site";
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
@@ -18,6 +18,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: absoluteUrl("/40plus"), changeFrequency: "monthly", priority: 0.6, lastModified: new Date() },
   { url: absoluteUrl("/40plus/events"), changeFrequency: "weekly", priority: 0.6, lastModified: new Date() },
   { url: absoluteUrl("/land-for-sale"), changeFrequency: "weekly", priority: 0.8, lastModified: new Date() },
+  { url: absoluteUrl("/blog"), changeFrequency: "weekly", priority: 0.7, lastModified: new Date() },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -58,5 +59,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]);
 
-  return [...STATIC_ROUTES, ...propertyEntries, ...locationEntries];
+  const blogEntries: MetadataRoute.Sitemap = [];
+  let blogPage = 1;
+  let blogTotalPages = 1;
+  while (blogPage <= blogTotalPages) {
+    const response = await getBlogPosts({ page: blogPage, limit: 50 }, 300).catch(() => null);
+    if (!response) break;
+
+    blogTotalPages = response.pagination.totalPages || 1;
+    response.data.forEach((post) => {
+      blogEntries.push({
+        url: absoluteUrl(`/blog/${post.slug}`),
+        lastModified: new Date(post.createdAt),
+        changeFrequency: "monthly",
+        priority: 0.6,
+      });
+    });
+
+    blogPage += 1;
+  }
+
+  return [...STATIC_ROUTES, ...propertyEntries, ...locationEntries, ...blogEntries];
 }

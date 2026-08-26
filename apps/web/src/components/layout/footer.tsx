@@ -19,6 +19,7 @@ const footerLinks = {
     { href: "/about", label: "About Us" },
     { href: "/contact", label: "Contact" },
     { href: "/insights/soil", label: "Insights" },
+    { href: "/blog", label: "Blog" },
     { href: "/pricing", label: "Pricing" },
   ],
   legal: [

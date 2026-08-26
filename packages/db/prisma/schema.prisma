@@ -450,18 +450,26 @@ model Review {
 // ─── CMS / Admin ─────────────────────────────────────────
 
 model BlogPost {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  content     String   @db.Text
-  excerpt     String?
-  coverImage  String?
-  isPublished Boolean  @default(false)
-  authorName  String
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  content         String   @db.Text
+  excerpt         String?
+  metaDescription String?
+  coverImage      String?
+  tags            String[] @default([])
+  isPublished     Boolean  @default(false)
+  authorName      String
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  // Traceability for autonomously-generated posts -- lets admin filter/audit
+  // what the pipeline published and why, without gating publish on review.
+  generatedBy String? // e.g. "ai-auto"; null for manually-authored posts
+  sourceTopic String? // the topic prompt that produced this post
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPublished, createdAt])
   @@map("blog_posts")
 }
 

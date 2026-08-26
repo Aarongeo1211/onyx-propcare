@@ -230,6 +230,19 @@
 }
 
 @layer utilities {
+  /* Styling for raw sanitized HTML rendered via dangerouslySetInnerHTML
+     (blog post content) -- no typography plugin installed, hand-written
+     to match the site's dark theme instead of pulling in a dependency
+     for a handful of tag selectors. */
+  .prose-onyx h2 { @apply mb-4 mt-10 font-display text-2xl text-cream first:mt-0; }
+  .prose-onyx h3 { @apply mb-3 mt-8 font-display text-xl text-cream; }
+  .prose-onyx p { @apply mb-5 leading-relaxed; }
+  .prose-onyx ul { @apply mb-5 list-disc space-y-2 pl-6; }
+  .prose-onyx ol { @apply mb-5 list-decimal space-y-2 pl-6; }
+  .prose-onyx li { @apply leading-relaxed; }
+  .prose-onyx strong { @apply text-cream; }
+  .prose-onyx blockquote { @apply mb-5 border-l-2 border-gold/30 pl-4 italic text-cream/75; }
+
   .animate-delay-100 { animation-delay: 100ms; }
   .animate-delay-200 { animation-delay: 200ms; }
   .animate-delay-300 { animation-delay: 300ms; }

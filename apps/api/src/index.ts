@@ -22,6 +22,7 @@ import { refundRoutes } from "./routes/refunds";
 import { locationRoutes } from "./routes/location";
 import { fortyPlusEventRoutes } from "./routes/forty-plus-events";
 import { savedSearchRoutes } from "./routes/saved-searches";
+import { blogRoutes } from "./routes/blog";
 import { generalLimiter, authLimiter, registerLimiter, uploadLimiter, forgotPasswordLimiter } from "./middleware/rateLimit";
 import { sanitizeInputs } from "./middleware/sanitize";
 import {
@@ -32,6 +33,7 @@ import {
 import { optionalAuth } from "./middleware/auth";
 import { configureBucketCors } from "./lib/storage";
 import { runSavedSearchAlerts } from "./jobs/saved-search-alerts";
+import { runBlogGenerator } from "./services/blog-generator";
 
 function getWorkspaceRoot() {
   const cwd = process.cwd();
@@ -119,6 +121,7 @@ app.use("/api/v1/refunds", refundRoutes);
 app.use("/api/v1/location", locationRoutes);
 app.use("/api/v1/40plus/events", fortyPlusEventRoutes);
 app.use("/api/v1/saved-searches", savedSearchRoutes);
+app.use("/api/v1/blog", blogRoutes);
 app.use("/api/v1/admin/audit-logs", auditRoutes);
 
 // 404 handler
@@ -167,6 +170,27 @@ app.listen(env.PORT, () => {
       lastSavedSearchRunDate = today;
       runSavedSearchAlerts().catch((err) => logger.error({ err }, "Saved search alerts run failed"));
     }
+  }, 20 * 60 * 1000);
+
+  // Autonomous blog post, spread across the week per BLOG_POSTS_PER_WEEK
+  // (default 2 -> roughly every 3-4 days) rather than a fixed day, so
+  // cadence stays tunable via env var without a code change. Offset to
+  // 03:30 UTC so it doesn't tick in the same cycle as the alerts run above.
+  let lastBlogRunDate: string | null = null;
+  const blogIntervalDays = Math.max(1, Math.round(7 / env.BLOG_POSTS_PER_WEEK));
+  setInterval(() => {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    if (now.getUTCHours() !== 3 || now.getUTCMinutes() < 30) return;
+    if (lastBlogRunDate === today) return;
+
+    const daysSinceLastRun = lastBlogRunDate
+      ? Math.round((now.getTime() - new Date(`${lastBlogRunDate}T00:00:00Z`).getTime()) / 86_400_000)
+      : blogIntervalDays;
+    if (daysSinceLastRun < blogIntervalDays) return;
+
+    lastBlogRunDate = today;
+    runBlogGenerator().catch((err) => logger.error({ err }, "Blog generator run failed"));
   }, 20 * 60 * 1000);
 });
 

@@ -7,6 +7,7 @@ import { logger } from "../lib/logger";
 import { logAudit } from "../middleware/audit";
 import { getStorageSettingsSummary, deleteFile } from "../lib/storage";
 import { cache } from "../lib/redis";
+import { runBlogGenerator } from "../services/blog-generator";
 
 const ADMIN_STATS_CACHE_KEY = "admin:stats";
 const ADMIN_STATS_TTL = 60;
@@ -1117,6 +1118,101 @@ adminRoutes.delete(
     } catch (err) {
       logger.error({ err }, "Error removing 40+ event media");
       res.status(500).json({ success: false, error: "Failed to remove media" });
+    }
+  }
+);
+
+// GET /api/v1/admin/blog — all posts (published + draft), for oversight of
+// the autonomous generation pipeline.
+adminRoutes.get(
+  "/blog",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (_req, res) => {
+    try {
+      const posts = await prisma.blogPost.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      });
+      res.json({ success: true, data: posts });
+    } catch (err) {
+      logger.error({ err }, "Error fetching blog posts");
+      res.status(500).json({ success: false, error: "Failed to fetch blog posts" });
+    }
+  }
+);
+
+const updateBlogPostSchema = z.object({
+  title: z.string().min(3).max(200).optional(),
+  excerpt: z.string().max(300).nullable().optional(),
+  metaDescription: z.string().max(300).nullable().optional(),
+  content: z.string().min(1).optional(),
+  tags: z.array(z.string()).optional(),
+  isPublished: z.boolean().optional(),
+});
+
+// PATCH /api/v1/admin/blog/:id — edit or unpublish a post. This is the
+// oversight lever for the autonomous pipeline: nothing blocks publish
+// up front, but any post can be pulled or corrected after the fact.
+adminRoutes.patch(
+  "/blog/:id",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const data = updateBlogPostSchema.parse(req.body);
+      const postId = String(req.params.id);
+      const updated = await prisma.blogPost.update({ where: { id: postId }, data });
+      await logAudit(req, { action: "UPDATE_BLOG_POST", entity: "blog_post", entityId: postId, details: data as Record<string, unknown> });
+      await cache.invalidatePrefix("blog:list:");
+      res.json({ success: true, data: updated });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ success: false, error: err.errors });
+      }
+      logger.error({ err }, "Error updating blog post");
+      res.status(500).json({ success: false, error: "Failed to update blog post" });
+    }
+  }
+);
+
+// DELETE /api/v1/admin/blog/:id
+adminRoutes.delete(
+  "/blog/:id",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const postId = String(req.params.id);
+      await prisma.blogPost.delete({ where: { id: postId } });
+      await logAudit(req, { action: "DELETE_BLOG_POST", entity: "blog_post", entityId: postId });
+      await cache.invalidatePrefix("blog:list:");
+      res.json({ success: true, message: "Post deleted" });
+    } catch (err) {
+      logger.error({ err }, "Error deleting blog post");
+      res.status(500).json({ success: false, error: "Failed to delete blog post" });
+    }
+  }
+);
+
+// POST /api/v1/admin/blog/generate-now — manually trigger one generation
+// cycle on demand, outside the scheduled cadence (useful for testing and
+// for topping up content without waiting for the next scheduled run).
+adminRoutes.post(
+  "/blog/generate-now",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const result = await runBlogGenerator();
+      await logAudit(req, { action: "MANUAL_BLOG_GENERATE", entity: "blog_post", entityId: result.postId || "none", details: result });
+      if (result.generated) {
+        await cache.invalidatePrefix("blog:list:");
+      }
+      res.json({ success: true, data: result });
+    } catch (err) {
+      logger.error({ err }, "Error running manual blog generation");
+      res.status(500).json({ success: false, error: "Failed to generate post" });
     }
   }
 );

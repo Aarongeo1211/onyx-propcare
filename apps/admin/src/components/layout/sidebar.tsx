@@ -14,6 +14,7 @@ import {
   CreditCard,
   Settings,
   PartyPopper,
+  Newspaper,
 } from "lucide-react";
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/callbacks", icon: PhoneCall, label: "Callbacks" },
   { href: "/refunds", icon: CreditCard, label: "Refunds" },
   { href: "/40plus-events", icon: PartyPopper, label: "Onyx 40+ Events" },
+  { href: "/blog", icon: Newspaper, label: "Blog" },
   { href: "/audit-log", icon: ScrollText, label: "Audit Log" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
