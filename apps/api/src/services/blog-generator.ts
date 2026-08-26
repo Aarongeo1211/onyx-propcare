@@ -5,8 +5,6 @@ import { env } from "../config/env";
 import { logger } from "../lib/logger";
 import { cache } from "../lib/redis";
 
-const MODEL = "claude-sonnet-4-5-20250929";
-
 // Evergreen guide topics tied to the platform's actual differentiators
 // (soil/water/legal/drone verification) rather than generic real-estate
 // clickbait -- keeps auto-published content on-brand and defensible.
@@ -110,7 +108,7 @@ const BLOG_POST_TOOL = {
 
 async function generateDraft(anthropic: Anthropic, topic: TopicCandidate) {
   const message = await anthropic.messages.create({
-    model: MODEL,
+    model: env.BLOG_MODEL,
     max_tokens: 4000,
     system:
       "You are a content writer for Onyx Propcare, an Indian land marketplace that differentiates itself on verified data: soil reports, water analysis, legal title checks, and drone surveys. Write informative, plainly-worded blog content for prospective land buyers. Do not state specific legal procedures, tax rates, or regulatory figures as fact -- those vary by state and change over time; write generally and suggest the reader confirm current specifics with a local advocate or revenue office where relevant. Do not fabricate statistics, prices, or named case studies. Write in a grounded, practical tone -- no hype, no generic filler.",
@@ -154,7 +152,10 @@ export async function runBlogGenerator() {
     return { generated: false, reason: "no_topics" };
   }
 
-  const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const anthropic = new Anthropic({
+    apiKey: env.ANTHROPIC_API_KEY,
+    ...(env.ANTHROPIC_BASE_URL ? { baseURL: env.ANTHROPIC_BASE_URL } : {}),
+  });
 
   try {
     const draft = await generateDraft(anthropic, topic);

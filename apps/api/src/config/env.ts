@@ -48,6 +48,13 @@ const schema = z.object({
   // fatal) whenever ANTHROPIC_API_KEY is unset, same graceful-degradation
   // pattern as the email/SMS providers.
   ANTHROPIC_API_KEY: z.string().optional(),
+  // Points the same @anthropic-ai/sdk client at any Anthropic-compatible
+  // endpoint (e.g. DeepSeek's https://api.deepseek.com/anthropic) instead of
+  // Anthropic's own API -- verified working with DeepSeek's compat layer
+  // (tool-forcing and structured output both work unchanged). Leave unset to
+  // use Anthropic directly.
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  BLOG_MODEL: z.string().default("claude-sonnet-4-5-20250929"),
   BLOG_AUTOPUBLISH_ENABLED: z.coerce.boolean().default(true),
   BLOG_POSTS_PER_WEEK: z.coerce.number().min(1).max(7).default(2),
 });
