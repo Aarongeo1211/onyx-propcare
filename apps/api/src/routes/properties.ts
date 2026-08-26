@@ -203,8 +203,20 @@ propertyRoutes.get("/", optionalAuth, async (req, res) => {
 
     const where: Record<string, unknown> = { status: statusValue };
 
-    if (type) where.type = type;
-    if (listingType) where.listingType = listingType;
+    // type/listingType feed straight into a Prisma enum column -- an
+    // unrecognized value (e.g. a caller sending lowercase "agricultural_land"
+    // instead of "AGRICULTURAL_LAND") throws PrismaClientValidationError,
+    // which was surfacing as an uncaught 500. Normalize casing so a
+    // differently-cased-but-valid value still works, and silently drop the
+    // filter (rather than 500 or 400) if it still doesn't match anything --
+    // same permissive fallback already used for `status` above.
+    const validTypes = ["FARMLAND", "RESIDENTIAL_PLOT", "AGRICULTURAL_LAND", "ORCHARD", "PLANTATION"];
+    const validListingTypes = ["SALE", "LEASE", "RENT"];
+    const normalizedType = type?.trim().toUpperCase();
+    const normalizedListingType = listingType?.trim().toUpperCase();
+
+    if (normalizedType && validTypes.includes(normalizedType)) where.type = normalizedType;
+    if (normalizedListingType && validListingTypes.includes(normalizedListingType)) where.listingType = normalizedListingType;
     // state/district also accept a comma-separated list of exact values —
     // used by location landing pages to match every casing/whitespace
     // variant of a place name that /properties/locations grouped into one

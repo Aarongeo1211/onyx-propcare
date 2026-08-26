@@ -45,10 +45,12 @@ export const registerLimiter = rateLimit({
   message: { success: false, error: "Too many registration attempts, please try again later" },
 });
 
-// Upload: 20 req / 15 min per IP
+// Upload: 60 req / 15 min per IP. Was 20 -- real sellers uploading images for
+// several properties in one sitting (higher-tier plans allow 15+ images per
+// listing) were hitting that within a single session and getting throttled.
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isProduction ? 20 : 100,
+  max: isProduction ? 60 : 100,
   standardHeaders: true,
   legacyHeaders: false,
   store: makeStore("upload"),
