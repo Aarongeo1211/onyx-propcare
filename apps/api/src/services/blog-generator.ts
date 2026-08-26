@@ -110,6 +110,12 @@ async function generateDraft(anthropic: Anthropic, topic: TopicCandidate) {
   const message = await anthropic.messages.create({
     model: env.BLOG_MODEL,
     max_tokens: 4000,
+    // Required for DeepSeek's V4 models via the Anthropic-compat endpoint --
+    // they default to "thinking mode," which errors on a forced tool_choice
+    // ("Thinking mode does not support this tool_choice"). Explicitly
+    // disabling is a harmless no-op against real Anthropic models, which
+    // don't enable extended thinking unless asked to.
+    thinking: { type: "disabled" },
     system:
       "You are a content writer for Onyx Propcare, an Indian land marketplace that differentiates itself on verified data: soil reports, water analysis, legal title checks, and drone surveys. Write informative, plainly-worded blog content for prospective land buyers. Do not state specific legal procedures, tax rates, or regulatory figures as fact -- those vary by state and change over time; write generally and suggest the reader confirm current specifics with a local advocate or revenue office where relevant. Do not fabricate statistics, prices, or named case studies. Write in a grounded, practical tone -- no hype, no generic filler.",
     messages: [
