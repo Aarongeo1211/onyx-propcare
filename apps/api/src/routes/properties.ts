@@ -405,12 +405,23 @@ class NamedCounter {
   }
 
   canonicalName() {
+    // Prefer a properly-formatted variant (Title Case, no stray whitespace)
+    // over a merely-more-frequent one -- plain frequency will happily pick
+    // an ALL-CAPS/lowercase/trailing-space value as "canonical" when it
+    // outnumbers a cleaner-looking one, which is a real quality regression
+    // for anything derived from this (location landing pages, sitemap).
     let best = "";
-    let bestCount = -1;
+    let bestScore = -Infinity;
     for (const [name, count] of this.variants) {
-      if (count > bestCount) {
-        best = name;
-        bestCount = count;
+      const trimmed = name.trim();
+      const hasStrayWhitespace = trimmed !== name;
+      const isTitleCased = trimmed
+        .split(/\s+/)
+        .every((word) => /^[A-Z][a-z]*$/.test(word) || /^[A-Z]$/.test(word));
+      const score = (isTitleCased ? 1_000_000 : 0) - (hasStrayWhitespace ? 500_000 : 0) + count;
+      if (score > bestScore) {
+        best = trimmed;
+        bestScore = score;
       }
     }
     return best;

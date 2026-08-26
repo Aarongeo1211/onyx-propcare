@@ -10,6 +10,7 @@ import { cache } from "../lib/redis";
 
 const ADMIN_STATS_CACHE_KEY = "admin:stats";
 const ADMIN_STATS_TTL = 60;
+const UNLIMITED_PLAN_CODE = "UNLIMITED_INTERNAL";
 
 export const adminRoutes = Router();
 
@@ -623,6 +624,11 @@ adminRoutes.get(
             id: true, name: true, email: true, phone: true, role: true,
             isActive: true, createdAt: true,
             _count: { select: { properties: true, inquiries: true } },
+            subscriptions: {
+              where: { status: "ACTIVE", plan: { code: UNLIMITED_PLAN_CODE } },
+              select: { id: true },
+              take: 1,
+            },
           },
           orderBy: { createdAt: "desc" },
           skip: (pageNum - 1) * limitNum,
@@ -631,9 +637,14 @@ adminRoutes.get(
         prisma.user.count({ where }),
       ]);
 
+      const usersWithGrantFlag = users.map(({ subscriptions, ...user }) => ({
+        ...user,
+        hasUnlimitedGrant: subscriptions.length > 0,
+      }));
+
       res.json({
         success: true,
-        data: users,
+        data: usersWithGrantFlag,
         pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) },
       });
     } catch (err) {
@@ -745,6 +756,124 @@ adminRoutes.patch(
       }
       logger.error({ err }, "Error updating user");
       res.status(500).json({ success: false, error: "Failed to update user" });
+    }
+  }
+);
+
+// Lazily creates the special unlimited-listings plan the first time it's
+// needed, rather than requiring a separate seed/migration step. isActive:
+// false keeps it out of the public /plans listing (GET /plans filters on
+// isActive), so it only ever shows up via an admin-granted subscription.
+async function getOrCreateUnlimitedPlan() {
+  const existing = await prisma.plan.findUnique({ where: { code: UNLIMITED_PLAN_CODE } });
+  if (existing) return existing;
+
+  return prisma.plan.create({
+    data: {
+      code: UNLIMITED_PLAN_CODE,
+      name: "Unlimited (Admin Grant)",
+      type: "ENTERPRISE",
+      category: "ALL",
+      price: 0,
+      maxProperties: -1,
+      maxImages: 50,
+      maxVideos: 10,
+      listingDuration: 3650,
+      features: ["Unlimited listings", "Granted by admin"],
+      hasSoilData: true,
+      hasWaterData: true,
+      hasLegalCheck: true,
+      hasDroneMap: true,
+      hasFeatured: true,
+      hasVideo: true,
+      hasVerifiedBadge: true,
+      isActive: false,
+    },
+  });
+}
+
+// POST /api/v1/admin/users/:id/unlimited-plan — grant a seller unlimited
+// listings, bypassing the normal plan-limit enforcement in
+// utils/plans.ts#findEligibleSubscription (maxProperties: -1 is already
+// treated as unlimited there). Idempotent: re-granting just refreshes the
+// expiry instead of creating a duplicate active subscription.
+adminRoutes.post(
+  "/users/:id/unlimited-plan",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const targetId = String(req.params.id);
+      const target = await prisma.user.findUnique({ where: { id: targetId } });
+      if (!target) return res.status(404).json({ success: false, error: "User not found" });
+
+      const plan = await getOrCreateUnlimitedPlan();
+      const existingGrant = await prisma.subscription.findFirst({
+        where: { userId: targetId, planId: plan.id, status: "ACTIVE" },
+      });
+
+      const tenYearsOut = new Date();
+      tenYearsOut.setFullYear(tenYearsOut.getFullYear() + 10);
+
+      const subscription = existingGrant
+        ? await prisma.subscription.update({
+            where: { id: existingGrant.id },
+            data: { endDate: tenYearsOut },
+          })
+        : await prisma.subscription.create({
+            data: {
+              userId: targetId,
+              planId: plan.id,
+              status: "ACTIVE",
+              amount: 0,
+              startDate: new Date(),
+              endDate: tenYearsOut,
+            },
+          });
+
+      await logAudit(req, {
+        action: "GRANT_UNLIMITED_PLAN",
+        entity: "user",
+        entityId: targetId,
+        details: { subscriptionId: subscription.id },
+      });
+
+      res.json({ success: true, data: { subscriptionId: subscription.id, endDate: subscription.endDate } });
+    } catch (err) {
+      logger.error({ err }, "Error granting unlimited plan");
+      res.status(500).json({ success: false, error: "Failed to grant unlimited plan" });
+    }
+  }
+);
+
+// DELETE /api/v1/admin/users/:id/unlimited-plan — revoke a previously
+// granted unlimited-listings exception.
+adminRoutes.delete(
+  "/users/:id/unlimited-plan",
+  requireAuth,
+  requireRole("ADMIN", "SUPER_ADMIN"),
+  async (req, res) => {
+    try {
+      const targetId = String(req.params.id);
+      const plan = await prisma.plan.findUnique({ where: { code: UNLIMITED_PLAN_CODE } });
+      if (!plan) return res.json({ success: true, data: { revoked: false } });
+
+      const result = await prisma.subscription.updateMany({
+        where: { userId: targetId, planId: plan.id, status: "ACTIVE" },
+        data: { status: "CANCELLED", endDate: new Date() },
+      });
+
+      await logAudit(req, {
+        action: "REVOKE_UNLIMITED_PLAN",
+        entity: "user",
+        entityId: targetId,
+        details: { revokedCount: result.count },
+      });
+
+      res.json({ success: true, data: { revoked: result.count > 0 } });
+    } catch (err) {
+      logger.error({ err }, "Error revoking unlimited plan");
+      res.status(500).json({ success: false, error: "Failed to revoke unlimited plan" });
     }
   }
 );

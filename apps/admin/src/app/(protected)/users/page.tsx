@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, Pencil, X, Save, AlertCircle, Check } from "lucide-react";
+import { Search, Pencil, X, Save, AlertCircle, Check, Infinity as InfinityIcon } from "lucide-react";
 import { useMemo, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
@@ -18,6 +18,7 @@ interface User {
   role: Role;
   isActive: boolean;
   createdAt: string;
+  hasUnlimitedGrant?: boolean;
   _count?: { properties?: number; inquiries?: number };
 }
 
@@ -152,10 +153,18 @@ export default function UsersPage() {
                     {new Date(user.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-flex items-center gap-2 text-xs ${user.isActive ? "text-emerald-400" : "text-cream/25"}`}>
-                      <span className={`h-2 w-2 rounded-full ${user.isActive ? "bg-emerald-400" : "bg-cream/20"}`} />
-                      {user.isActive ? "Active" : "Inactive"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-2 text-xs ${user.isActive ? "text-emerald-400" : "text-cream/25"}`}>
+                        <span className={`h-2 w-2 rounded-full ${user.isActive ? "bg-emerald-400" : "bg-cream/20"}`} />
+                        {user.isActive ? "Active" : "Inactive"}
+                      </span>
+                      {user.hasUnlimitedGrant && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-gold/25 bg-gold/10 px-2 py-0.5 text-[10px] text-gold">
+                          <InfinityIcon className="h-3 w-3" />
+                          Unlimited
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-right">
                     <button
@@ -211,10 +220,37 @@ function EditUserDrawer({
   const [isActive, setIsActive] = useState(user.isActive);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [hasUnlimitedGrant, setHasUnlimitedGrant] = useState(user.hasUnlimitedGrant ?? false);
+  const [grantBusy, setGrantBusy] = useState(false);
+  const [grantMsg, setGrantMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const isSelf = currentUserId === user.id;
   const canAssignAdmin = currentUserRole === "SUPER_ADMIN";
   const targetIsSuperAdmin = user.role === "SUPER_ADMIN" && currentUserRole !== "SUPER_ADMIN";
+
+  async function toggleUnlimitedGrant() {
+    setGrantBusy(true);
+    setGrantMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/admin/users/${user.id}/unlimited-plan`, {
+        method: hasUnlimitedGrant ? "DELETE" : "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        const nextValue = !hasUnlimitedGrant;
+        setHasUnlimitedGrant(nextValue);
+        setGrantMsg({ type: "ok", text: nextValue ? "Unlimited listings granted" : "Exception revoked" });
+        onSaved({ ...user, hasUnlimitedGrant: nextValue });
+      } else {
+        setGrantMsg({ type: "err", text: data.error || "Failed to update" });
+      }
+    } catch {
+      setGrantMsg({ type: "err", text: "Network error" });
+    } finally {
+      setGrantBusy(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -334,6 +370,33 @@ function EditUserDrawer({
               </button>
             </div>
             {isSelf && <p className="text-[11px] text-cream/30 mt-1">Cannot deactivate yourself</p>}
+          </div>
+
+          <div className="rounded-lg border border-cream/10 p-3.5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-cream/50">Listing limit exception</p>
+                <p className="mt-1 text-[11px] text-cream/30">
+                  Bypasses the normal plan cap entirely -- for internal/VIP accounts only, not a substitute for a real plan.
+                </p>
+              </div>
+              <button
+                onClick={toggleUnlimitedGrant}
+                disabled={grantBusy}
+                className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs border transition disabled:opacity-50 ${
+                  hasUnlimitedGrant
+                    ? "bg-gold/15 border-gold/30 text-gold hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
+                    : "border-cream/10 text-cream/50 hover:border-gold/30 hover:text-gold"
+                }`}
+              >
+                {grantBusy ? "..." : hasUnlimitedGrant ? "Revoke" : "Grant unlimited"}
+              </button>
+            </div>
+            {grantMsg && (
+              <p className={`mt-2 text-[11px] ${grantMsg.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>
+                {grantMsg.text}
+              </p>
+            )}
           </div>
 
           {msg && (
