@@ -15,10 +15,14 @@ function makeStore(prefix: string) {
   });
 }
 
-// General: 100 req / 15 min per IP
+// General: 400 req / 15 min per IP. Applies to every request across the whole
+// API (browsing, not just mutations), and Next.js prefetches every visible
+// link in the background on top of normal filter/sort/pagination fetches --
+// 100 was getting exhausted by ordinary browsing, especially from shared IPs
+// (mobile carrier NAT, offices) where many users draw from the same bucket.
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isProduction ? 100 : 500,
+  max: isProduction ? 400 : 500,
   standardHeaders: true,
   legacyHeaders: false,
   store: makeStore("general"),

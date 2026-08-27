@@ -63,8 +63,9 @@ const configuredOrigins = env.CORS_ORIGINS
   : defaultAllowedOrigins;
 
 app.set("trust proxy", 1);
-app.use(generalLimiter);
-app.use(helmet());
+// cors() must run before generalLimiter -- otherwise a 429 rejection short-circuits
+// the response before CORS headers are attached, and the browser reports a rate-limit
+// as a CORS policy violation instead (no Access-Control-Allow-Origin on the 429 body).
 app.use(
   cors({
     origin(origin, callback) {
@@ -76,6 +77,8 @@ app.use(
     credentials: true,
   })
 );
+app.use(generalLimiter);
+app.use(helmet());
 app.use(pinoHttp({ logger }));
 app.use(cookieParser(env.CSRF_SECRET));
 
