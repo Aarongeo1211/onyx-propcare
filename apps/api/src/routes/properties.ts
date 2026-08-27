@@ -31,11 +31,12 @@ function generatePropertyCacheKey(opts: {
   const { type, state, listingType, sortBy, page, search, district, minPrice, maxPrice, minArea, maxArea } = opts;
 
   if (!type && !state && !listingType) return null;
-  if (search || district || minPrice || maxPrice || minArea || maxArea) return null;
+  if (search || minPrice || maxPrice || minArea || maxArea) return null;
 
   const parts = ["properties"];
   if (type) parts.push(`type:${type}`);
   if (state) parts.push(`state:${state}`);
+  if (district) parts.push(`district:${district}`);
   if (listingType) parts.push(`listing:${listingType}`);
   if (sortBy && sortBy !== "newest") parts.push(`sort:${sortBy}`);
   parts.push(`page:${page || 1}`);
@@ -847,12 +848,10 @@ propertyRoutes.post("/", requireAuth, async (req, res) => {
       data: { propertiesUsed: { increment: 1 } },
     });
 
-    // Invalidate relevant caches
-    if (property.isFeatured) await cache.del("properties:featured");
-    // Invalidate search cache for this property's type and state
-    await cache.invalidatePrefix(`properties:type:${property.type}:state:${property.state}`);
-    // Invalidate broader caches
-    await cache.invalidatePrefix(`properties:type:${property.type}`);
+    // Invalidate every cached list/featured/locations/type-counts view -- a
+    // targeted prefix (by type+state) misses state-only, district-only, and
+    // aggregate (locations, type-counts) entries, leaving them stale.
+    await cache.invalidatePrefix("properties:");
 
     res.status(201).json({ success: true, data: property });
   } catch (error) {
@@ -1132,9 +1131,7 @@ propertyRoutes.patch("/:id", requireAuth, async (req, res) => {
 
     // Invalidate relevant caches after update
     if (updated) {
-      if (updated.isFeatured) await cache.del("properties:featured");
-      await cache.invalidatePrefix(`properties:type:${updated.type}:state:${updated.state}`);
-      await cache.invalidatePrefix(`properties:type:${updated.type}`);
+      await cache.invalidatePrefix("properties:");
       await cache.del(propertyDetailCacheKey(property.slug));
     }
 
@@ -1169,9 +1166,7 @@ propertyRoutes.delete("/:id", requireAuth, async (req, res) => {
     });
 
     // Invalidate relevant caches after deletion
-    if (property.isFeatured) await cache.del("properties:featured");
-    await cache.invalidatePrefix(`properties:type:${property.type}:state:${property.state}`);
-    await cache.invalidatePrefix(`properties:type:${property.type}`);
+    await cache.invalidatePrefix("properties:");
     await cache.del(propertyDetailCacheKey(property.slug));
 
     res.json({ success: true, message: "Property deactivated" });
