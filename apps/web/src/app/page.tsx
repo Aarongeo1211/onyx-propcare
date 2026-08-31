@@ -11,7 +11,7 @@ import { getFeaturedProperties, getLocationHierarchy, getPropertyTypeCounts } fr
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `${SITE_NAME} | Verified Farmland & Plot Marketplace in India`,
+  title: `${SITE_NAME} | Verified Farmland & Plot Marketplace`,
   description: SITE_DESCRIPTION,
   alternates: {
     canonical: "/",
