@@ -5,6 +5,24 @@ import { env } from "../config/env";
 import { logger } from "../lib/logger";
 import { cache } from "../lib/redis";
 
+// High-demand topics informed by real OpenSEO keyword research (Aug 2026):
+// "[plot/land] for sale in [city]" and price/valuation queries for these
+// cities carry far more real search volume than generic farmland terms
+// (e.g. "plots for sale in hyderabad" ~5400/mo, "plot for sale in pune"
+// ~3600/mo, both low competition) -- checked after real-inventory location
+// topics (which link to actual listings) but before the fully generic
+// evergreen fallback below.
+const HIGH_DEMAND_CITY_TOPICS = [
+  "What to know before buying a residential plot in Hyderabad",
+  "What to know before buying a residential plot in Chennai",
+  "What to know before buying a residential plot in Pune",
+  "What to know before buying a residential plot in Delhi NCR",
+  "What to know before buying a residential plot in Kolkata",
+  "What to know before buying a residential plot in Mumbai",
+  "How land and plot prices are actually valued in India: a buyer's guide",
+  "Why the cheapest land listing isn't always the best deal: what to check first",
+];
+
 // Evergreen guide topics tied to the platform's actual differentiators
 // (soil/water/legal/drone verification) rather than generic real-estate
 // clickbait -- keeps auto-published content on-brand and defensible.
@@ -73,6 +91,13 @@ async function pickNextTopic(): Promise<TopicCandidate | null> {
   for (const candidate of locationCandidates) {
     if (!covered.has(candidate.key)) {
       return { key: candidate.key, prompt: candidate.prompt };
+    }
+  }
+
+  for (const topic of HIGH_DEMAND_CITY_TOPICS) {
+    const key = `high-demand:${htmlSlug(topic)}`;
+    if (!covered.has(key)) {
+      return { key, prompt: topic };
     }
   }
 

@@ -6,6 +6,34 @@ import { PropertyCard } from "@/components/properties/property-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getLocationHierarchy, getProperties } from "@/lib/public-api";
 import { absoluteUrl, truncateText } from "@/lib/site";
+import { formatPrice, getPropertyTypeLabel } from "@/lib/utils";
+import type { PropertyCardData } from "@/components/properties/property-card";
+
+// Real, per-district numbers computed from the actual listings shown on this
+// page -- deliberately not generic boilerplate text with the district name
+// swapped in, since templated filler across hundreds of near-identical
+// district pages is exactly the "thin duplicate content" pattern search
+// engines penalize. Every figure here is genuine and changes per district.
+function buildDistrictStats(properties: PropertyCardData[]) {
+  if (properties.length === 0) return null;
+
+  const prices = properties.map((p) => p.price);
+  const typeCounts = new Map<string, number>();
+  for (const p of properties) {
+    typeCounts.set(p.type, (typeCounts.get(p.type) ?? 0) + 1);
+  }
+  const topTypes = Array.from(typeCounts.entries()).sort((a, b) => b[1] - a[1]);
+
+  const verifiedCount = properties.filter((p) => p.soilData || p.waterData || p.legalCheck).length;
+
+  return {
+    minPrice: Math.min(...prices),
+    maxPrice: Math.max(...prices),
+    topTypes,
+    verifiedCount,
+    sampleSize: properties.length,
+  };
+}
 
 export const revalidate = 300;
 
@@ -65,6 +93,7 @@ export default async function DistrictLandingPage({ params }: { params: Params }
     300
   );
   const properties = response.data;
+  const stats = buildDistrictStats(properties);
 
   const canonical = `/land-for-sale/${state.slug}/${district.slug}`;
   const pageUrl = absoluteUrl(canonical);
@@ -138,6 +167,33 @@ export default async function DistrictLandingPage({ params }: { params: Params }
               Filter by price, type &amp; more
             </Link>
           </div>
+
+          {stats && (
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="rounded-2xl border border-cream/8 bg-onyx-900/40 p-4">
+                <p className="text-xs uppercase tracking-wide text-cream/50">Price range</p>
+                <p className="mt-1 font-display text-lg text-cream">
+                  {formatPrice(stats.minPrice)} – {formatPrice(stats.maxPrice)}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-cream/8 bg-onyx-900/40 p-4">
+                <p className="text-xs uppercase tracking-wide text-cream/50">Most listed type</p>
+                <p className="mt-1 font-display text-lg text-cream">
+                  {getPropertyTypeLabel(stats.topTypes[0][0])}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-cream/8 bg-onyx-900/40 p-4">
+                <p className="text-xs uppercase tracking-wide text-cream/50">With verified data</p>
+                <p className="mt-1 font-display text-lg text-cream">
+                  {stats.verifiedCount} of {stats.sampleSize}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-cream/8 bg-onyx-900/40 p-4">
+                <p className="text-xs uppercase tracking-wide text-cream/50">Total listings</p>
+                <p className="mt-1 font-display text-lg text-cream">{district.count}</p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
