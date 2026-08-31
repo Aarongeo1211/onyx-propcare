@@ -4,7 +4,7 @@ import { legalProcess } from "./legal-data";
 import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
-  title: "Legal Verification for Land & Property Titles",
+  title: "Legal Title Verification for Land",
   description:
     "Title deed checks, mutation records, encumbrance certificates, and court order clearance — how Onyx Propcare verifies clear legal title on every land listing.",
   alternates: {

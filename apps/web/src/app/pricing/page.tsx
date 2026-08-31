@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { Plan } from "@onyx/types";
 import { PricingPageContent } from "./pricing-content";
 import { JsonLd } from "@/components/seo/json-ld";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, truncateText } from "@/lib/site";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
@@ -10,8 +10,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export const metadata: Metadata = {
   title: "Pricing & Subscription Plans",
-  description:
+  description: truncateText(
     "Compare Onyx Propcare listing and subscription plans for buyers, owners, and agents — transparent pricing for verified land, plot, and farmland marketplace access.",
+    160
+  ),
   alternates: {
     canonical: "/pricing",
   },

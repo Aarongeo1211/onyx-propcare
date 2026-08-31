@@ -35,7 +35,7 @@ import { getPropertyTypeCounts } from "@/lib/public-api";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} | Verified Farmland & Plot Marketplace in India`,
+    default: `${SITE_NAME} | Verified Farmland & Plot Marketplace`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,

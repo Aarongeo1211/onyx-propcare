@@ -3,13 +3,15 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getLocationHierarchy } from "@/lib/public-api";
-import { absoluteUrl } from "@/lib/site";
+import { absoluteUrl, truncateText } from "@/lib/site";
 
 export const revalidate = 3600;
 
 const TITLE = "Land for Sale Across India";
-const DESCRIPTION =
-  "Browse verified farmland, plots, and agricultural land for sale by state and district across India. Every listing includes soil, water, legal, and drone survey data.";
+const DESCRIPTION = truncateText(
+  "Browse verified farmland, plots, and agricultural land for sale by state and district across India. Every listing includes soil, water, legal, and drone survey data.",
+  160
+);
 
 export const metadata: Metadata = {
   title: TITLE,

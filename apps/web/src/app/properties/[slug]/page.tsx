@@ -37,7 +37,13 @@ export async function generateMetadata({
   }
 
   const property = propertyResponse.data;
-  const title = `${property.title} in ${property.district}, ${property.state}`;
+  // Full title (with location) drives the OG/Twitter cards and on-page H1 via
+  // the client component; the <title> tag itself is capped to ~60 chars since
+  // Google truncates longer titles in SERPs anyway, and seller-entered titles
+  // vary widely in length -- flagged by an OpenSEO site audit (37 pages over
+  // the recommended length before this).
+  const fullTitle = `${property.title} in ${property.district}, ${property.state}`;
+  const title = truncateText(fullTitle, 60);
   const description = truncateText(
     `${property.title} in ${property.district}, ${property.state}. ${formatArea(property.totalArea, property.areaUnit)} listed at ${formatPrice(property.price)} with verified property data, legal checks, and Onyx Propcare insights.`,
     160
@@ -51,7 +57,7 @@ export async function generateMetadata({
       canonical: `/properties/${property.slug}`,
     },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url: absoluteUrl(`/properties/${property.slug}`),
       type: "article",
@@ -63,7 +69,7 @@ export async function generateMetadata({
       ],
     },
     twitter: {
-      title,
+      title: fullTitle,
       description,
       card: "summary_large_image",
       images: [image],

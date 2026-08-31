@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { FortyPlusContent } from "./forty-plus-content";
 import { JsonLd } from "@/components/seo/json-ld";
-import { absoluteUrl } from "@/lib/site";
+import { absoluteUrl, truncateText } from "@/lib/site";
 
-const PAGE_TITLE = "Onyx 40+ | A Premium Community for People Above 40";
-const PAGE_DESCRIPTION =
-  "Onyx 40+ is a trusted, members-only lifestyle community for people above 40. Farm visits, nature experiences, business networking, wellness retreats, and lifelong friendships across India.";
+const PAGE_TITLE = "Onyx 40+ Community";
+const PAGE_DESCRIPTION = truncateText(
+  "Onyx 40+ is a trusted, members-only lifestyle community for people above 40. Farm visits, nature experiences, business networking, wellness retreats, and lifelong friendships across India.",
+  160
+);
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
