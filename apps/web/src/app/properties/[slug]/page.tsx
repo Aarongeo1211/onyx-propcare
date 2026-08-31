@@ -38,12 +38,14 @@ export async function generateMetadata({
 
   const property = propertyResponse.data;
   // Full title (with location) drives the OG/Twitter cards and on-page H1 via
-  // the client component; the <title> tag itself is capped to ~60 chars since
-  // Google truncates longer titles in SERPs anyway, and seller-entered titles
-  // vary widely in length -- flagged by an OpenSEO site audit (37 pages over
-  // the recommended length before this).
+  // the client component; the <title> tag itself is capped since Google
+  // truncates longer titles in SERPs anyway, and seller-entered titles vary
+  // widely in length -- flagged by an OpenSEO site audit (37 pages over the
+  // recommended length before this). The root layout appends " | Onyx
+  // Propcare" (16 chars) via its title template, so the budget here has to
+  // leave room for that on top of the ~60-char target.
   const fullTitle = `${property.title} in ${property.district}, ${property.state}`;
-  const title = truncateText(fullTitle, 60);
+  const title = truncateText(fullTitle, 44);
   const description = truncateText(
     `${property.title} in ${property.district}, ${property.state}. ${formatArea(property.totalArea, property.areaUnit)} listed at ${formatPrice(property.price)} with verified property data, legal checks, and Onyx Propcare insights.`,
     160
