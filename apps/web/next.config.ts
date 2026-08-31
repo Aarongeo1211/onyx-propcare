@@ -94,15 +94,22 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               // Scripts: self + Next.js inline scripts (nonce not used, so unsafe-inline needed for now)
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              // + Google tag manager (GA4/Google Ads loader) and Meta Pixel loader --
+              // tracking-scripts.tsx renders these when their env vars are set, and
+              // without them here the browser silently blocks the script fetch (no
+              // visible error unless you check the console): dataLayer/gtag still get
+              // defined by the *inline* init script either way, so a check for
+              // `window.gtag` existing is NOT proof the real library loaded or that
+              // any hit ever reached Google -- verify via an actual network request.
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net",
               // Styles: self + inline (Tailwind applies inline styles)
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               // Fonts
               "font-src 'self' https://fonts.gstatic.com",
               // Images: self + all configured remote patterns
               `img-src 'self' data: blob: https:${isDev ? " http://localhost:4000" : ""}`,
-              // API connections
-              `connect-src 'self' https://${API_HOST}${isDev ? " http://localhost:4000" : ""} https://*.up.railway.app https://*.storageapi.dev`,
+              // API connections + GA4/Google Ads hit collection + Meta Pixel
+              `connect-src 'self' https://${API_HOST}${isDev ? " http://localhost:4000" : ""} https://*.up.railway.app https://*.storageapi.dev https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com`,
               // Media (videos)
               "media-src 'self' blob: https://*.up.railway.app https://*.storageapi.dev https://res.cloudinary.com",
               // Frames: deny by default
