@@ -436,6 +436,25 @@ class NamedCounter {
   }
 }
 
+// Known administrative district renames -- district is free text, so a new
+// listing can still be entered under an old official name and silently
+// split one real district across two location pages (found via "Bangalore
+// Rural District" / "Bengaluru North" both being active -- Karnataka
+// renamed the district in July 2025; both names refer to the same place).
+// Deliberately a small, verified list rather than an attempt at a full
+// national district dataset -- add an entry whenever another real rename
+// turns up.
+const DISTRICT_ALIASES: Record<string, string> = {
+  "bangalore rural district": "Bengaluru North",
+  "bangalore rural": "Bengaluru North",
+  "bengaluru rural": "Bengaluru North",
+  "bengaluru rural district": "Bengaluru North",
+};
+
+function resolveDistrictAlias(district: string): string {
+  return DISTRICT_ALIASES[normalizeLocationKey(district)] ?? district;
+}
+
 // Districts with only a handful of listings are disproportionately likely to
 // be one-off typos of a more common district rather than a real distinct
 // place worth its own landing page.
@@ -468,10 +487,14 @@ propertyRoutes.get("/locations", async (_req, res) => {
       entry.state.add(row.state, row._count._all);
       entry.count += row._count._all;
 
-      const districtKey = normalizeLocationKey(row.district);
+      const resolvedDistrict = resolveDistrictAlias(row.district);
+      const districtKey = normalizeLocationKey(resolvedDistrict);
       if (!entry.districts.has(districtKey)) {
         entry.districts.set(districtKey, new NamedCounter());
       }
+      // Record row.district (the raw, possibly-aliased value) so allValues()
+      // still includes it -- needed for exact-match filtering by district to
+      // keep matching listings stored under the old name.
       entry.districts.get(districtKey)!.add(row.district, row._count._all);
     }
 
