@@ -95,7 +95,7 @@ export default async function PropertyDetailPage({
   const similarResponse = await getProperties(
     {
       type: property.type,
-      state: property.state,
+      district: property.district,
       limit: 4,
     },
     300

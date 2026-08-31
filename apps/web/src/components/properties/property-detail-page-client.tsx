@@ -97,7 +97,7 @@ export function PropertyDetailPageClient({
         setActiveTab(getDefaultTab(res.data));
 
         const similarRes = await apiFetch<{ success: boolean; data: PropertyCardData[] }>(
-          `/properties?type=${res.data.type}&state=${res.data.state}&limit=3`,
+          `/properties?type=${res.data.type}&district=${encodeURIComponent(res.data.district)}&limit=4`,
           authOptions
         );
         setSimilar((similarRes.data || []).filter((item) => item.slug !== slug).slice(0, 3));
@@ -709,26 +709,6 @@ export function PropertyDetailPageClient({
           </div>
         </div>
 
-        {property.sellerOtherListings.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="mt-16"
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-2xl font-semibold text-cream">
-                More from {property.owner.name} in {property.district}
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {property.sellerOtherListings.map((item, index) => (
-                <PropertyCard key={item.id} property={item} index={index} />
-              ))}
-            </div>
-          </motion.div>
-        )}
-
         {similar.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -737,9 +717,11 @@ export function PropertyDetailPageClient({
             className="mt-16"
           >
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-2xl font-semibold text-cream">Similar Properties</h2>
+              <h2 className="font-display text-2xl font-semibold text-cream">
+                More {getPropertyTypeLabel(property.type)} Listings in {property.district}
+              </h2>
               <Link
-                href={`/properties?type=${property.type}&state=${property.state}`}
+                href={`/properties?type=${property.type}&district=${encodeURIComponent(property.district)}`}
                 className="text-sm text-gold transition-colors hover:text-gold-light"
               >
                 View all
