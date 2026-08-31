@@ -229,7 +229,14 @@ propertyRoutes.get("/", optionalAuth, async (req, res) => {
     }
     if (district) {
       const values = district.split(",").map((v) => v.trim()).filter(Boolean);
-      where.district = values.length > 1 ? { in: values } : district;
+      // Multi-value form (comma-separated) comes from the location landing
+      // pages passing every known raw variant of one canonical district --
+      // those are exact, already-correct strings, so match them exactly.
+      // A single value is free-text user input (the properties search
+      // filter): matching it case-sensitively/exactly against "Kolar" broke
+      // for anything typed as "kolar" or "KOLAR" -- use a case-insensitive
+      // partial match instead, like the search box's title/address fallback.
+      where.district = values.length > 1 ? { in: values } : { contains: district.trim(), mode: "insensitive" };
     }
     if (minPrice || maxPrice) {
       where.price = {
