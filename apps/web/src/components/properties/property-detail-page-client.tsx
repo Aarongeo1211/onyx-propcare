@@ -709,6 +709,26 @@ export function PropertyDetailPageClient({
           </div>
         </div>
 
+        {property.sellerOtherListings.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mt-16"
+          >
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="font-display text-2xl font-semibold text-cream">
+                More from {property.owner.name} in {property.district}
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {property.sellerOtherListings.map((item, index) => (
+                <PropertyCard key={item.id} property={item} index={index} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {similar.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

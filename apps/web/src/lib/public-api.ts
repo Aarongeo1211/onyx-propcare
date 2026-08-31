@@ -125,6 +125,7 @@ export interface PropertyDetail {
   waterData: WaterData | null;
   legalCheck: LegalCheck | null;
   droneMap: DroneMap | null;
+  sellerOtherListings: PropertyCardData[];
 }
 
 export interface PropertyDetailResponse {

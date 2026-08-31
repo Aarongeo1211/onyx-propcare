@@ -702,7 +702,43 @@ propertyRoutes.get("/:slug", optionalAuth, async (req, res) => {
         },
       });
 
-      if (property) await cache.set(cacheKey, property, 60);
+      if (property) {
+        // Other active listings from the same seller in the same district --
+        // internal cross-linking for genuinely related plots (e.g. several
+        // units within one development) without guessing at "same project"
+        // from free-text address fields, which are too inconsistent to
+        // cluster reliably (a real case: one seller's own listings for the
+        // same development had 3 different spellings of the village name).
+        const sellerOtherListings = await prisma.property.findMany({
+          where: {
+            ownerId: (property as { ownerId: string }).ownerId,
+            district: (property as { district: string }).district,
+            status: "ACTIVE",
+            id: { not: (property as { id: string }).id },
+          },
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            type: true,
+            listingType: true,
+            price: true,
+            totalArea: true,
+            areaUnit: true,
+            district: true,
+            state: true,
+            roadAccess: true,
+            hasClearTitle: true,
+            isFeatured: true,
+            updatedAt: true,
+            images: { where: { isPrimary: true }, take: 1, select: { url: true, alt: true } },
+          },
+          take: 4,
+          orderBy: { createdAt: "desc" },
+        });
+        property = { ...property, sellerOtherListings };
+        await cache.set(cacheKey, property, 60);
+      }
     }
 
     if (!property) {
