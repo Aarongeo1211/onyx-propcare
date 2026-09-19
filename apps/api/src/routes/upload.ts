@@ -1,4 +1,6 @@
-import { Router } from "express";
+import fs from "node:fs/promises";
+import os from "node:os";
+import { Router, type Request, type RequestHandler, type Response } from "express";
 import multer from "multer";
 import { prisma } from "@onyx/db";
 import { z } from "zod";
@@ -20,9 +22,23 @@ const IMAGE_MAX_FILE_SIZE = 50 * 1024 * 1024;
 const VIDEO_MAX_FILE_SIZE = 100 * 1024 * 1024;
 const DOCUMENT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+// Uploaded files are spooled to temp files on disk rather than held in memory:
+// with 50MB images x10 (or 100MB videos x5) per request, memoryStorage let a
+// single upload balloon the process by hundreds of MB, and RAM is what Railway
+// bills for. Disk-backed temp files are removed once the response is done.
+function deleteTempFilesWhenDone(req: Request, res: Response) {
+  res.on("close", () => {
+    const files = req.files;
+    const list = Array.isArray(files) ? files : files ? Object.values(files).flat() : [];
+    for (const file of list) {
+      if (file.path) fs.rm(file.path, { force: true }).catch(() => {});
+    }
+  });
+}
+
 function createUploader(allowedTypes: string[], maxFileSize: number, maxFiles: number) {
-  return multer({
-    storage: multer.memoryStorage(),
+  const upload = multer({
+    dest: os.tmpdir(),
     limits: { fileSize: maxFileSize, files: maxFiles },
     fileFilter: (_req, file, cb) => {
       if (allowedTypes.includes(file.mimetype)) {
@@ -32,6 +48,15 @@ function createUploader(allowedTypes: string[], maxFileSize: number, maxFiles: n
       }
     },
   });
+  return {
+    array(fieldName: string, maxCount: number): RequestHandler {
+      const parse = upload.array(fieldName, maxCount);
+      return (req, res, next) => {
+        deleteTempFilesWhenDone(req, res);
+        parse(req, res, next);
+      };
+    },
+  };
 }
 
 const imageUpload = createUploader(IMAGE_TYPES, IMAGE_MAX_FILE_SIZE, 10);

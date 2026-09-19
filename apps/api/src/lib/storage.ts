@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import crypto from "node:crypto";
+import { createReadStream } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Agent as HttpsAgent } from "node:https";
@@ -150,7 +151,7 @@ async function uploadToCloudinary(
         });
       }
     );
-    stream.end(file.buffer);
+    createReadStream(file.path).on("error", reject).pipe(stream);
   });
 }
 
@@ -170,7 +171,9 @@ async function uploadToBucket(
     new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: objectKey,
-      Body: file.buffer,
+      Body: createReadStream(file.path),
+      // Required for a stream body -- the SDK can't infer length from it.
+      ContentLength: file.size,
       ContentType: file.mimetype,
       CacheControl: "public, max-age=31536000, immutable",
       ContentDisposition: `inline; filename="${path.basename(file.originalname).replace(/"/g, "")}"`,
@@ -194,7 +197,7 @@ async function saveToLocalUploads(req: Request, file: Express.Multer.File, folde
   const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
   const absolutePath = path.join(targetDir, safeName);
 
-  await fs.writeFile(absolutePath, file.buffer);
+  await fs.copyFile(file.path, absolutePath);
 
   const apiBase = `${req.protocol}://${req.get("host")}`;
   return {

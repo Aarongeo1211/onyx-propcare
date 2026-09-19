@@ -5,19 +5,34 @@ const API_HOST = process.env.NEXT_PUBLIC_API_URL
   ? new URL(process.env.NEXT_PUBLIC_API_URL).host
   : "onyx-api-production-b3da.up.railway.app";
 
+// Stored image URLs embed the API host they were uploaded through, so keep the
+// original Railway host allowed even if NEXT_PUBLIC_API_URL later moves to a
+// custom domain.
+const LEGACY_API_HOST = "onyx-api-production-b3da.up.railway.app";
+const MEDIA_HOSTS = Array.from(new Set([API_HOST, LEGACY_API_HOST]));
+
 const isDev = process.env.NODE_ENV !== "production";
 
 const nextConfig: NextConfig = {
   output: "standalone",
   transpilePackages: ["@onyx/ui", "@onyx/types"],
   outputFileTracingRoot: path.join(__dirname, "../.."),
+  // Default is 50MB of rendered pages/fetch results held in RAM on top of the
+  // on-disk copy. Every property/district/search-param combination gets its own
+  // entry, so it fills up and stays full; disk hits are fast enough at our traffic.
+  cacheMaxMemorySize: 16 * 1024 * 1024,
   images: {
+    // Only our own media proxy. Wildcards like **.up.railway.app or
+    // **.storageapi.dev are shared by every Railway customer, which let anyone
+    // use /_next/image to make this process download and resize arbitrary
+    // images at our memory cost.
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "4000" },
-      { protocol: "https", hostname: "**.up.railway.app" },
-      { protocol: "https", hostname: "**.storageapi.dev" },
-      { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "res.cloudinary.com" },
+      ...MEDIA_HOSTS.map((hostname) => ({
+        protocol: "https" as const,
+        hostname,
+        pathname: "/api/v1/upload/files/**",
+      })),
     ],
     // No layout on this site renders an image wider than ~1536px, so the stock
     // 2048/3840 breakpoints only add memory-heavy sharp resizes nobody needs.

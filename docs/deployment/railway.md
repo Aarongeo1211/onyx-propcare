@@ -20,8 +20,7 @@ Create each Railway service from the same repo root. Do not change the source ro
 
 ### API service
 
-- Build command: `pnpm railway:build:api`
-- Start command: `pnpm railway:start:api`
+- Builder: Dockerfile — set `RAILWAY_DOCKERFILE_PATH=apps/api/Dockerfile` (no custom build/start command; the image runs the compiled output directly)
 
 Environment variables:
 
@@ -60,8 +59,7 @@ If you are not using Cloudinary, mount a Railway volume to the API service and s
 
 ### Web service
 
-- Build command: `pnpm railway:build:web`
-- Start command: `pnpm railway:start:web`
+- Builder: Dockerfile — set `RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile` (no custom build/start command; the image runs the compiled output directly)
 
 Environment variables:
 
@@ -77,8 +75,7 @@ GOOGLE_CLIENT_SECRET=
 
 ### Admin service
 
-- Build command: `pnpm railway:build:admin`
-- Start command: `pnpm railway:start:admin`
+- Builder: Dockerfile — set `RAILWAY_DOCKERFILE_PATH=apps/admin/Dockerfile` (no custom build/start command; the image runs the compiled output directly)
 
 Environment variables:
 
@@ -89,6 +86,18 @@ NEXTAUTH_SECRET=replace-with-long-random-secret
 NEXTAUTH_URL=https://your-admin-domain
 NEXT_PUBLIC_API_URL=https://your-api-domain
 ```
+
+## Memory settings
+
+Railway bills RAM by actual usage ($10/GB-month), so these runtime variables matter:
+
+| Service | Variable | Value | Why |
+|---|---|---|---|
+| web | `NODE_OPTIONS` | `--max-old-space-size=512` | Without a tight cap V8 lets the heap grow to the limit before collecting; at 1536 web idled around 850MB. |
+| web, api | `MALLOC_ARENA_MAX` | `2` | glibc otherwise keeps per-thread malloc arenas (sharp/libvips, Prisma engine threads) and rarely returns freed memory to the OS. |
+| api | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}?connection_limit=5` | Prisma's default pool is sized from the host's CPU count; each idle connection also costs Postgres memory. |
+
+Don't set a heap cap on the API below what uploads/jobs need — uploads are spooled to disk, not RAM, so the heap stays small. Avoid bursts of back-to-back deploys: each one briefly runs old and new containers side by side, which is where past 0.9–1.9GB spikes came from.
 
 ## Database
 
