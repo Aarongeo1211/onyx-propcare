@@ -1,4 +1,5 @@
 import type { PropertyCardData } from "@/components/properties/property-card";
+import { internalApiHeaders } from "@/lib/internal-api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
@@ -147,6 +148,7 @@ async function fetchPublicApi<T>(endpoint: string, revalidate = 300): Promise<T>
     next: { revalidate },
     headers: {
       "Content-Type": "application/json",
+      ...internalApiHeaders(),
     },
   });
 

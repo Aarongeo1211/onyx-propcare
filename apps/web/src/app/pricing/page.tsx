@@ -3,6 +3,7 @@ import type { Plan } from "@onyx/types";
 import { PricingPageContent } from "./pricing-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { SITE_NAME, truncateText } from "@/lib/site";
+import { internalApiHeaders } from "@/lib/internal-api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 
 async function getPlans(): Promise<Plan[]> {
   try {
-    const res = await fetch(`${API_BASE}/plans`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/plans`, { next: { revalidate: 3600 }, headers: internalApiHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data?.data) ? data.data : [];

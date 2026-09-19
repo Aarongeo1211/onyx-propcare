@@ -4,6 +4,7 @@ import { RedisStore } from "rate-limit-redis";
 import jwt from "jsonwebtoken";
 import { redisClient } from "../lib/redis";
 import { env } from "../config/env";
+import { isInternalServiceCall } from "./internalCaller";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -50,7 +51,9 @@ function isMediaRead(req: Request): boolean {
 // Next.js prefetches every visible link in the background on top of normal
 // filter/sort/pagination fetches -- 100 was getting exhausted by ordinary
 // browsing, especially from shared IPs where many users draw from one bucket.
-// Media reads are excluded and counted by mediaReadLimiter instead.
+// Media reads are excluded and counted by mediaReadLimiter instead, and the web
+// server's own public-data renders (no visitor attached) are not counted at all
+// -- otherwise every visitor's server-rendered page would share one bucket.
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProduction ? 400 : 500,
@@ -58,20 +61,21 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false,
   store: makeStore("general"),
   keyGenerator: userOrIpKey,
-  skip: isMediaRead,
+  skip: (req, res) => isMediaRead(req) || isInternalServiceCall(res),
   message: { success: false, error: "Too many requests, please try again later" },
 });
 
-// Media reads (GET /api/v1/upload/files/*): 3000 req / 15 min per IP. The web
-// app's image optimizer fetches every original server-side from one egress IP,
-// and a single page can need a dozen images at several widths; after a deploy
-// wipes its image cache, that must not compete with the SSR data fetches that
-// share generalLimiter's bucket for the same IP. Video seeking also issues many
-// range requests. Still bounded so the public media proxy can't be hammered for
-// unlimited bucket egress.
+// Media reads (GET /api/v1/upload/files/*): 10000 req / 15 min per IP. The web
+// app's image optimizer fetches originals server-side from one egress IP and
+// can't attach the internal-caller headers, so its traffic lands here. It only
+// fetches on a cache miss (one per image/width/format, cached for a year per
+// the upstream Cache-Control), so even a crawl of the whole catalogue right
+// after a deploy stays far below this; video seeking also issues many range
+// requests. This is only an anti-hammering bound on the public media proxy --
+// at real scale media belongs behind a CDN rather than a bigger number here.
 export const mediaReadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 3000,
+  max: 10000,
   standardHeaders: true,
   legacyHeaders: false,
   store: makeStore("media"),
@@ -109,7 +113,7 @@ export const registerLimiter = rateLimit({
 // reads (GET /files/*). Those must not count: the web app's image optimizer
 // fetches every original server-side from one egress IP, so after a deploy
 // clears its image cache a single page of listings could burn through this
-// quota and turn into 429s / broken images. Reads stay under generalLimiter.
+// quota and turn into 429s / broken images. Reads are counted by mediaReadLimiter.
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProduction ? 60 : 100,

@@ -1,7 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { internalApiHeaders } from "@/lib/internal-api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const GOOGLE_ROLE_COOKIE = "onyx-auth-role";
@@ -10,6 +11,23 @@ const GOOGLE_ROLE_COOKIE = "onyx-auth-role";
 // The NextAuth cookie rolls indefinitely for active users, but the embedded backend
 // JWT expires after 7 days — without renewal, authed API calls start 401ing.
 const ACCESS_TOKEN_REFRESH_MARGIN_SEC = 2 * 24 * 60 * 60; // refresh when < 2 days remain
+
+/**
+ * Login, Google sign-in and token refresh reach the API from this server's one
+ * IP, so they're sent with the visitor's IP (see lib/internal-api.ts) to keep
+ * the API's per-IP auth rate limit per visitor instead of site-wide. Railway's
+ * edge overwrites X-Real-IP with the connecting client's address (a spoofed
+ * value is discarded), so it can be forwarded as-is. When there's no request
+ * scope or header, nothing extra is sent and the call is limited as before.
+ */
+async function visitorApiHeaders(): Promise<Record<string, string>> {
+  try {
+    const ip = (await headers()).get("x-real-ip");
+    return ip ? internalApiHeaders(ip) : {};
+  } catch {
+    return {};
+  }
+}
 
 function getJwtExpirySeconds(token: string): number | null {
   try {
@@ -38,7 +56,7 @@ async function ensureFreshAccessToken(accessToken: string | undefined): Promise<
   try {
     const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${accessToken}`, ...(await visitorApiHeaders()) },
     });
     if (res.ok) {
       const data = await res.json();
@@ -88,7 +106,7 @@ export const authOptions: NextAuthOptions = {
 
         const res = await fetch(`${API_URL}/api/v1/auth/login`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...(await visitorApiHeaders()) },
           body: JSON.stringify({
             email: credentials.email,
             password: credentials.password,
@@ -128,7 +146,7 @@ export const authOptions: NextAuthOptions = {
           const role = await getRequestedGoogleRole();
           const res = await fetch(`${API_URL}/api/v1/auth/google`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...(await visitorApiHeaders()) },
             body: JSON.stringify({ idToken: account.id_token, role }),
           });
           const data = await res.json();

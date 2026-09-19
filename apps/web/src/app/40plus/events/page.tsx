@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, MapPin, PartyPopper } from "lucide-react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl } from "@/lib/site";
+import { internalApiHeaders } from "@/lib/internal-api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://onyx-api-production-b3da.up.railway.app";
 
@@ -47,6 +48,7 @@ async function getEvents(): Promise<EventItem[]> {
   try {
     const res = await fetch(`${API_BASE}/api/v1/40plus/events`, {
       next: { revalidate: 120 },
+      headers: internalApiHeaders(),
     });
     if (!res.ok) return [];
     const data = await res.json();

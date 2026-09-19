@@ -95,9 +95,10 @@ Railway bills RAM by actual usage ($10/GB-month), so these runtime variables mat
 |---|---|---|---|
 | web | `NODE_OPTIONS` | `--max-old-space-size=512` | Without a tight cap V8 lets the heap grow to the limit before collecting; at 1536 web idled around 850MB. |
 | web, api | `MALLOC_ARENA_MAX` | `2` | glibc otherwise keeps per-thread malloc arenas (sharp/libvips, Prisma engine threads) and rarely returns freed memory to the OS. |
-| api | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}?connection_limit=5` | Prisma's default pool is sized from the host's CPU count; each idle connection also costs Postgres memory. |
+| api | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}?connection_limit=10&pool_timeout=20` | Prisma's default pool is sized from the host's CPU count (dozens of connections on Railway hosts); each idle connection costs Postgres memory. 10 leaves headroom for traffic spikes and interactive transactions; raise it (and add replicas) before it becomes a queue. |
+| api, web | `INTERNAL_API_SECRET` | random, ≥32 chars on api; `${{onyx-api.INTERNAL_API_SECRET}}` on web | Lets the web server's calls be told apart from the public. Without it every login/refresh/SSR call shares the web container's single IP in the API's per-IP rate limits (10 logins / 15 min site-wide). See `apps/api/src/middleware/internalCaller.ts`. |
 
-Don't set a heap cap on the API below what uploads/jobs need — uploads are spooled to disk, not RAM, so the heap stays small. Avoid bursts of back-to-back deploys: each one briefly runs old and new containers side by side, which is where past 0.9–1.9GB spikes came from.
+If web's memory climbs toward the 512MB heap cap as traffic grows, raise `NODE_OPTIONS` (the bill follows actual usage, not the cap) or add a replica. Don't set a heap cap on the API below what uploads/jobs need — uploads are spooled to disk, not RAM, so the heap stays small. Avoid bursts of back-to-back deploys: each one briefly runs old and new containers side by side, which is where past 0.9–1.9GB spikes came from.
 
 ## Database
 
@@ -175,3 +176,10 @@ If you choose volume-backed uploads instead:
 - property image upload works
 - payment plan creation works
 - password reset email links use the production web URL
+
+## Scaling notes
+
+- Rate limits are per client IP. Server-side calls from web carry `INTERNAL_API_SECRET` (+ the visitor's `X-Real-IP` for logins/refreshes); keep the variable set on both services.
+- Media (`/api/v1/upload/files/*`) is capped at 10000 requests / 15 min per IP. web's image optimizer shares one IP for cache misses; at larger scale put a CDN in front of media/`/_next/image` instead of raising the number.
+- Uploads spool to the container's temp disk (not RAM) and are deleted after each request.
+- Limiter counters live in Redis, so they stay correct across multiple replicas.

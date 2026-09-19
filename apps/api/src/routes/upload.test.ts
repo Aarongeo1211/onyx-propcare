@@ -170,8 +170,8 @@ describe("uploadLimiter on /api/v1/upload", () => {
       const res = await fetch(`${limitedUrl}/files/${key}`);
       expect(res.status).toBe(200);
       expect(Buffer.from(await res.arrayBuffer()).equals(MEDIA_BYTES)).toBe(true);
-      expect(res.headers.get("ratelimit-policy")).toBe("3000;w=900");
-      expect(res.headers.get("ratelimit-remaining")).toBe(String(3000 - 1 - i));
+      expect(res.headers.get("ratelimit-policy")).toBe("10000;w=900");
+      expect(res.headers.get("ratelimit-remaining")).toBe(String(10000 - 1 - i));
     }
     // Only the second /ping itself was counted by generalLimiter.
     expect(await generalRemaining()).toBe(generalBefore - 1);

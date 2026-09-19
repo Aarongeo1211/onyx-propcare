@@ -12,6 +12,9 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 chars"),
   CSRF_SECRET: z.string().min(32, "CSRF_SECRET must be at least 32 chars"),
+  // Shared with the web app's server so its calls can be told apart from the
+  // public -- see middleware/internalCaller.ts. Unset = feature off.
+  INTERNAL_API_SECRET: z.string().min(32, "INTERNAL_API_SECRET must be at least 32 chars").optional(),
   CORS_ORIGINS: z.string().optional(),
   APP_URL: z.string().url().default("http://localhost:3000"),
 

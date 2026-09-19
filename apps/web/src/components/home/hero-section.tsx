@@ -280,6 +280,21 @@ export function HeroSection({
   }, [slides.length]);
   const activeProp = slides[bgIndex]?.property;
 
+  // Only the first slide loads with the page. Hidden slides are still "in the
+  // viewport" (they're stacked behind it at opacity 0), so native lazy-loading
+  // can't defer them and all of them used to download up front, competing with
+  // the one that's actually visible. Instead each later slide is mounted a few
+  // seconds before it rotates in (slides change every 6s).
+  const [mountedSlides, setMountedSlides] = useState(1);
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const timer = setTimeout(() => setMountedSlides((n) => Math.max(n, 2)), 2500);
+    return () => clearTimeout(timer);
+  }, [slides.length]);
+  useEffect(() => {
+    if (bgIndex > 0) setMountedSlides((n) => Math.max(n, bgIndex + 2));
+  }, [bgIndex]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setHeroVisible(entry.isIntersecting),
@@ -342,7 +357,7 @@ export function HeroSection({
         {/* Background slides — CSS opacity crossfade (no framer layer promotion / no negative
             z-index = no mobile compositing glitch). Painted first so content stacks above it. */}
         <div className="absolute inset-0 bg-onyx-50">
-          {slides.map((slide, i) => (
+          {slides.slice(0, mountedSlides).map((slide, i) => (
             <div
               key={slide.id}
               className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${

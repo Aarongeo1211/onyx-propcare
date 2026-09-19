@@ -25,6 +25,7 @@ import { savedSearchRoutes } from "./routes/saved-searches";
 import { blogRoutes } from "./routes/blog";
 import { generalLimiter, mediaReadLimiter, authLimiter, registerLimiter, uploadLimiter, forgotPasswordLimiter } from "./middleware/rateLimit";
 import { sanitizeInputs } from "./middleware/sanitize";
+import { internalCaller } from "./middleware/internalCaller";
 import {
   doubleCsrfProtection,
   generateCsrfToken,
@@ -63,6 +64,9 @@ const configuredOrigins = env.CORS_ORIGINS
   : defaultAllowedOrigins;
 
 app.set("trust proxy", 1);
+// Must run before the rate limiters and request logging: it rewrites req.ip for
+// the web server's calls made on a visitor's behalf and strips its headers.
+app.use(internalCaller);
 // cors() must run before generalLimiter -- otherwise a 429 rejection short-circuits
 // the response before CORS headers are attached, and the browser reports a rate-limit
 // as a CORS policy violation instead (no Access-Control-Allow-Origin on the 429 body).
