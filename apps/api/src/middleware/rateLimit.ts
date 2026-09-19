@@ -39,11 +39,18 @@ function userOrIpKey(req: Request): string {
   return ipKeyGenerator(req.ip ?? "unknown");
 }
 
+const MEDIA_FILES_PATH = "/api/v1/upload/files/";
+
+function isMediaRead(req: Request): boolean {
+  return (req.method === "GET" || req.method === "HEAD") && req.originalUrl.startsWith(MEDIA_FILES_PATH);
+}
+
 // General: 400 req / 15 min per user (or per IP if unauthenticated). Applies
 // to every request across the whole API (browsing, not just mutations), and
 // Next.js prefetches every visible link in the background on top of normal
 // filter/sort/pagination fetches -- 100 was getting exhausted by ordinary
 // browsing, especially from shared IPs where many users draw from one bucket.
+// Media reads are excluded and counted by mediaReadLimiter instead.
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProduction ? 400 : 500,
@@ -51,6 +58,24 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false,
   store: makeStore("general"),
   keyGenerator: userOrIpKey,
+  skip: isMediaRead,
+  message: { success: false, error: "Too many requests, please try again later" },
+});
+
+// Media reads (GET /api/v1/upload/files/*): 3000 req / 15 min per IP. The web
+// app's image optimizer fetches every original server-side from one egress IP,
+// and a single page can need a dozen images at several widths; after a deploy
+// wipes its image cache, that must not compete with the SSR data fetches that
+// share generalLimiter's bucket for the same IP. Video seeking also issues many
+// range requests. Still bounded so the public media proxy can't be hammered for
+// unlimited bucket egress.
+export const mediaReadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeStore("media"),
+  skip: (req) => !isMediaRead(req),
   message: { success: false, error: "Too many requests, please try again later" },
 });
 
@@ -79,6 +104,12 @@ export const registerLimiter = rateLimit({
 // images for several properties in one sitting (higher-tier plans allow 15+
 // images per listing) were hitting that within a single session and getting
 // throttled.
+//
+// Mounted on the whole /api/v1/upload router, which also serves public media
+// reads (GET /files/*). Those must not count: the web app's image optimizer
+// fetches every original server-side from one egress IP, so after a deploy
+// clears its image cache a single page of listings could burn through this
+// quota and turn into 429s / broken images. Reads stay under generalLimiter.
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isProduction ? 60 : 100,
@@ -86,6 +117,7 @@ export const uploadLimiter = rateLimit({
   legacyHeaders: false,
   store: makeStore("upload"),
   keyGenerator: userOrIpKey,
+  skip: (req) => req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS",
   message: { success: false, error: "Too many upload requests, please try again later" },
 });
 

@@ -23,7 +23,7 @@ import { locationRoutes } from "./routes/location";
 import { fortyPlusEventRoutes } from "./routes/forty-plus-events";
 import { savedSearchRoutes } from "./routes/saved-searches";
 import { blogRoutes } from "./routes/blog";
-import { generalLimiter, authLimiter, registerLimiter, uploadLimiter, forgotPasswordLimiter } from "./middleware/rateLimit";
+import { generalLimiter, mediaReadLimiter, authLimiter, registerLimiter, uploadLimiter, forgotPasswordLimiter } from "./middleware/rateLimit";
 import { sanitizeInputs } from "./middleware/sanitize";
 import {
   doubleCsrfProtection,
@@ -78,6 +78,7 @@ app.use(
   })
 );
 app.use(generalLimiter);
+app.use(mediaReadLimiter);
 app.use(helmet());
 app.use(pinoHttp({ logger }));
 app.use(cookieParser(env.CSRF_SECRET));
