@@ -383,6 +383,13 @@ uploadRoutes.get("/files/:objectKey(*)", optionalAuth, async (req, res) => {
     // video playback (seek, scrub) without relying on redirect + S3 signed URL chains.
     await streamBucketFile(req, res, objectKey);
   } catch (error) {
+    // A key that isn't in the bucket is the caller's problem, not a server error:
+    // 404 (and no error log) so scrapers/stale links don't read as an outage.
+    const err = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+    if (err.name === "NoSuchKey" || err.$metadata?.httpStatusCode === 404) {
+      if (!res.headersSent) res.status(404).json({ success: false, error: "File not found" });
+      return;
+    }
     logger.error({ err: error }, "File access error");
     if (!res.headersSent) {
       res.status(500).json({ success: false, error: "Failed to access file" });

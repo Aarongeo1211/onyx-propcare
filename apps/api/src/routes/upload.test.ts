@@ -71,6 +71,16 @@ beforeAll(async () => {
           body: chunked ? decodeAwsChunked(raw) : raw,
         });
       }
+      if (req.method === "GET" && (req.url ?? "").includes("missing")) {
+        res.writeHead(404, { "Content-Type": "application/xml" });
+        res.end('<?xml version="1.0" encoding="UTF-8"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message></Error>');
+        return;
+      }
+      if (req.method === "GET" && (req.url ?? "").includes("broken")) {
+        res.writeHead(500, { "Content-Type": "application/xml" });
+        res.end('<?xml version="1.0" encoding="UTF-8"?><Error><Code>InternalError</Code><Message>boom</Message></Error>');
+        return;
+      }
       if (req.method === "GET") {
         res.writeHead(200, { ETag: '"etag"', "Content-Type": "image/jpeg", "Content-Length": String(MEDIA_BYTES.length) });
         res.end(MEDIA_BYTES);
@@ -190,5 +200,23 @@ describe("uploadLimiter on /api/v1/upload", () => {
       expect((await postEmptyImages()).status).not.toBe(429);
     }
     expect((await postEmptyImages()).status).toBe(429);
+  });
+});
+
+describe("GET /upload/files/* when the bucket can't serve the key", () => {
+  const get = (name: string) =>
+    fetch(`${apiUrl}/upload/files/${encodeURIComponent(`onyx-propcare/properties/${name}`)}`);
+
+  it("returns 404 for a key that doesn't exist, including the scraper's trailing-backslash form", async () => {
+    for (const name of ["missing-1.jpg", "missing-1.jpg\\"]) {
+      const res = await get(name);
+      expect(res.status).toBe(404);
+      expect(await res.json()).toEqual({ success: false, error: "File not found" });
+    }
+  });
+
+  it("still returns 500 for a genuine storage failure", async () => {
+    const res = await get("broken-1.jpg");
+    expect(res.status).toBe(500);
   });
 });
