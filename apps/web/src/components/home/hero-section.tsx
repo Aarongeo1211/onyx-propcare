@@ -16,10 +16,7 @@ import {
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { INDIAN_STATES } from "@onyx/types";
-import { formatPrice } from "@/lib/utils";
-import type { PropertyCardData } from "@/components/properties/property-card";
 
 const stats = [
   { value: 12500, suffix: "+", label: "Properties Listed" },
@@ -27,23 +24,6 @@ const stats = [
   { value: 8400, suffix: "+", label: "Happy Investors" },
   { value: 3200, suffix: " Cr", prefix: "₹", label: "Value Traded" },
 ];
-
-// Curated hero backgrounds. Drop high-res images (ideally drone/aerial shots of
-// farmland/plots, ~1920×1080+) into apps/web/public/brand/hero/ and list them here.
-// When this is non-empty it takes priority; otherwise the hero falls back to live
-// featured-listing photos.
-const CURATED_HERO_IMAGES: string[] = [
-  "/brand/hero/hero-1.jpg",
-  "/brand/hero/hero-2.jpg",
-  "/brand/hero/hero-3.jpg",
-  "/brand/hero/hero-4.jpg",
-];
-
-interface HeroSlide {
-  id: string;
-  url: string;
-  property?: PropertyCardData;
-}
 
 type PropertyTypeValue =
   | "FARMLAND"
@@ -241,11 +221,9 @@ interface QuickLocation {
 }
 
 export function HeroSection({
-  featuredProperties = [],
   topLocations = [],
   availableTypes,
 }: {
-  featuredProperties?: PropertyCardData[];
   topLocations?: QuickLocation[];
   // Property types with at least one active listing. Undefined or empty
   // means "show every category" (data unavailable, or a not-realistic
@@ -263,37 +241,6 @@ export function HeroSection({
   const [showStateDropdown, setShowStateDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<PropertyTypeValue>(visibleTypes[0]?.value ?? "FARMLAND");
   const [heroVisible, setHeroVisible] = useState(true);
-
-  // Hero background slides: curated images take priority, else live featured listings.
-  const curatedSlides: HeroSlide[] = CURATED_HERO_IMAGES.map((url, i) => ({ id: `curated-${i}`, url }));
-  const listingSlides: HeroSlide[] = featuredProperties
-    .filter((p) => p.images?.[0]?.url)
-    .slice(0, 5)
-    .map((p) => ({ id: p.id, url: p.images[0].url, property: p }));
-  const slides = curatedSlides.length > 0 ? curatedSlides : listingSlides;
-
-  const [bgIndex, setBgIndex] = useState(0);
-  useEffect(() => {
-    if (slides.length <= 1) return;
-    const timer = setInterval(() => setBgIndex((i) => (i + 1) % slides.length), 6000);
-    return () => clearInterval(timer);
-  }, [slides.length]);
-  const activeProp = slides[bgIndex]?.property;
-
-  // Only the first slide loads with the page. Hidden slides are still "in the
-  // viewport" (they're stacked behind it at opacity 0), so native lazy-loading
-  // can't defer them and all of them used to download up front, competing with
-  // the one that's actually visible. Instead each later slide is mounted a few
-  // seconds before it rotates in (slides change every 6s).
-  const [mountedSlides, setMountedSlides] = useState(1);
-  useEffect(() => {
-    if (slides.length <= 1) return;
-    const timer = setTimeout(() => setMountedSlides((n) => Math.max(n, 2)), 2500);
-    return () => clearTimeout(timer);
-  }, [slides.length]);
-  useEffect(() => {
-    if (bgIndex > 0) setMountedSlides((n) => Math.max(n, bgIndex + 2));
-  }, [bgIndex]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -353,33 +300,12 @@ export function HeroSection({
         )}
       </AnimatePresence>
 
-      <section ref={heroRef} className="relative min-h-[34rem] overflow-hidden border-b border-cream/8 lg:min-h-[40rem]">
-        {/* Background slides — CSS opacity crossfade (no framer layer promotion / no negative
-            z-index = no mobile compositing glitch). Painted first so content stacks above it. */}
-        <div className="absolute inset-0 bg-onyx-50">
-          {slides.slice(0, mountedSlides).map((slide, i) => (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                i === bgIndex ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <Image
-                src={slide.url}
-                alt={slide.property?.title || "Verified farmland and plots on Onyx Propcare"}
-                fill
-                priority={i === 0}
-                quality={72}
-                sizes="100vw"
-                className="object-cover"
-              />
-            </div>
-          ))}
-          {/* Navy scrims for legibility (heavier bottom-left where the content sits) */}
-          <div className="absolute inset-0 bg-gradient-to-t from-onyx-50/92 via-onyx-50/55 to-onyx-50/35" />
-          <div className="absolute inset-0 bg-gradient-to-r from-onyx-50/80 via-onyx-50/25 to-transparent" />
-        </div>
-
+      {/* Plain background: navy with a soft brand-blue glow top-right. Text inside is white
+          (4.5:1+ over the lightest part of the glow), so keep any replacement dark. */}
+      <section
+        ref={heroRef}
+        className="relative min-h-[34rem] overflow-hidden border-b border-cream/8 bg-onyx-50 bg-[radial-gradient(ellipse_70%_90%_at_85%_0%,rgb(var(--gold-500)/0.55),transparent_65%)] lg:min-h-[40rem]"
+      >
         <div className="relative z-10 mx-auto flex min-h-[34rem] w-full max-w-6xl flex-col justify-center px-5 pb-16 pt-14 sm:px-6 lg:min-h-[40rem] lg:pb-20 lg:pt-20">
           <div className="max-w-2xl">
             <motion.div
@@ -477,39 +403,6 @@ export function HeroSection({
             ))}
           </motion.div>
         </div>
-
-        {/* "Now showing" caption for the live plot in the background (desktop) */}
-        {activeProp && (
-          <Link
-            href={`/properties/${activeProp.slug}`}
-            className="absolute bottom-5 right-5 z-10 hidden max-w-xs items-center gap-3 rounded-2xl border border-white/15 bg-black/45 px-4 py-2.5 backdrop-blur-md transition-colors hover:bg-black/60 lg:flex"
-          >
-            <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">Now showing</div>
-              <div className="truncate text-sm font-medium text-white">{activeProp.title}</div>
-              <div className="truncate text-xs text-white/70">
-                {activeProp.district}, {activeProp.state} · {formatPrice(activeProp.price)}
-              </div>
-            </div>
-            <ArrowRight className="h-4 w-4 shrink-0 text-white/70" />
-          </Link>
-        )}
-
-        {/* Image indicators */}
-        {slides.length > 1 && (
-          <div className="absolute bottom-6 left-5 z-10 flex gap-1.5 sm:left-6">
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setBgIndex(i)}
-                aria-label={`Show featured plot ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === bgIndex ? "w-5 bg-white" : "w-1.5 bg-white/40 hover:bg-white/70"
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </section>
     </>
   );

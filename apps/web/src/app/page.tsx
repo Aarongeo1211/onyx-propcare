@@ -50,7 +50,7 @@ export default async function Home() {
   return (
     <>
       <JsonLd data={[websiteSchema, homePageSchema]} />
-      <HeroSection featuredProperties={featuredProperties} topLocations={topLocations} availableTypes={availableTypes} />
+      <HeroSection topLocations={topLocations} availableTypes={availableTypes} />
       <BrowseCategories availableTypes={availableTypes} />
       <FeaturedProperties initialProperties={featuredProperties} />
       <DataInsights />
